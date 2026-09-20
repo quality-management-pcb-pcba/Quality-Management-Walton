@@ -32,6 +32,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 import { QmBadge } from './QmBadge';
 import { ContactModal } from './modals/ContactModal';
@@ -58,6 +59,10 @@ import {
   ChevronRight,
   Image as ImageIcon,
   RotateCcw,
+  Facebook,
+  Youtube,
+  Linkedin,
+  Instagram,
 } from 'lucide-react';
 
 interface AnimatedCounterProps {
@@ -430,17 +435,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          {/* Lower-Right Badge: "Quality Management PCB & PCBA" */}
+          {/* Center Heading Banner: "Quality Management" */}
+          <div
+            id="hero-qm-center-title"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 text-center px-4 py-2 bg-transparent border-none shadow-none w-[95%] max-w-4xl flex flex-col items-center justify-center pointer-events-none"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.94 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: [0, -7, 0],
+              }}
+              transition={{
+                opacity: { duration: 0.9, ease: 'easeOut' },
+                scale: { duration: 0.9, ease: 'easeOut' },
+                y: {
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 0.9,
+                },
+              }}
+              className="text-white font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl uppercase tracking-wider sm:tracking-widest leading-[0.92] drop-shadow-[0_6px_24px_rgba(0,0,0,0.95)]"
+            >
+              <span className="block">QUALITY</span>
+              <span className="block mt-1 sm:mt-2">MANAGEMENT</span>
+            </motion.div>
+          </div>
+
+          {/* Right Corner Text: "PCB & PCBA" */}
           <div
             id="hero-qm-badge"
-            className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 bg-[#0d1730]/90 backdrop-blur-md border-l-4 border-[#14b8a6] px-4 py-2 rounded-r-xl shadow-lg"
+            className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-20 bg-transparent border-none shadow-none pointer-events-none"
           >
-            <div className="text-white font-bold text-sm sm:text-base tracking-wide">
-              Quality Management
-            </div>
-            <div className="text-[#2dd4bf] font-semibold text-xs sm:text-sm tracking-wider">
+            <motion.div
+              initial={{ opacity: 0, x: 20, scale: 0.92 }}
+              animate={{
+                opacity: 1,
+                x: 0,
+                scale: [1, 1.04, 1],
+              }}
+              transition={{
+                opacity: { duration: 0.8, delay: 0.3, ease: 'easeOut' },
+                x: { duration: 0.8, delay: 0.3, ease: 'easeOut' },
+                scale: {
+                  duration: 3.2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 1,
+                },
+              }}
+              className="text-[#2dd4bf] font-extrabold text-lg sm:text-2xl md:text-3xl uppercase tracking-widest drop-shadow-[0_3px_12px_rgba(0,0,0,0.95)] text-right"
+            >
               PCB &amp; PCBA
-            </div>
+            </motion.div>
           </div>
         </div>
 
@@ -714,19 +763,84 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <button
-                  onClick={() => setContactOpen(true)}
-                  className="px-4 py-2 bg-[#e35b2a] hover:bg-[#c74a1f] text-white font-bold text-xs rounded-lg shadow-xs transition-colors cursor-pointer"
+              <div className="flex flex-col items-center md:items-end gap-3.5">
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    onClick={() => setContactOpen(true)}
+                    className="px-4 py-2 bg-[#e35b2a] hover:bg-[#c74a1f] text-white font-bold text-xs rounded-lg shadow-xs transition-colors cursor-pointer"
+                  >
+                    Contact Quality Line
+                  </button>
+                  <button
+                    onClick={() => handleNav('dashboard')}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+                  >
+                    Open QMS Portal
+                  </button>
+                </div>
+
+                {/* Social Media Channels matching uploaded reference image */}
+                <div
+                  id="footer-social-media-channels"
+                  className="flex items-center gap-2.5 pt-0.5"
+                  aria-label="Walton Social Media Channels"
                 >
-                  Contact Quality Line
-                </button>
-                <button
-                  onClick={() => handleNav('dashboard')}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer"
-                >
-                  Open QMS Portal
-                </button>
+                  <a
+                    id="footer-social-facebook"
+                    href="https://www.facebook.com/waltonbd"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Facebook"
+                    aria-label="Facebook"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#93c5fd] text-[#0d1730] flex items-center justify-center hover:scale-110 hover:bg-white transition-all shadow-xs"
+                  >
+                    <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#0d1730] stroke-none" />
+                  </a>
+                  <a
+                    id="footer-social-youtube"
+                    href="https://www.youtube.com/@WaltonBD"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="YouTube"
+                    aria-label="YouTube"
+                    className="w-8 h-6 sm:w-9 sm:h-7 rounded-lg bg-[#93c5fd] text-[#0d1730] flex items-center justify-center hover:scale-110 hover:bg-white transition-all shadow-xs"
+                  >
+                    <Youtube className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-[#0d1730] text-[#93c5fd]" />
+                  </a>
+                  <a
+                    id="footer-social-linkedin"
+                    href="https://www.linkedin.com/company/waltonbd"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="LinkedIn"
+                    aria-label="LinkedIn"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-[#93c5fd] text-[#0d1730] flex items-center justify-center hover:scale-110 hover:bg-white transition-all shadow-xs"
+                  >
+                    <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#0d1730] stroke-none" />
+                  </a>
+                  <a
+                    id="footer-social-instagram"
+                    href="https://www.instagram.com/waltonbd"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Instagram"
+                    aria-label="Instagram"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 border-[#93c5fd] text-[#93c5fd] flex items-center justify-center hover:scale-110 hover:border-white hover:text-white transition-all shadow-xs"
+                  >
+                    <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
+                  </a>
+                  <a
+                    id="footer-social-x"
+                    href="https://x.com/waltonbd"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="X (Twitter)"
+                    aria-label="X"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-[#93c5fd] text-[#0d1730] flex items-center justify-center hover:scale-110 hover:bg-white transition-all shadow-xs"
+                  >
+                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.8]" />
+                  </a>
+                </div>
               </div>
             </div>
 
