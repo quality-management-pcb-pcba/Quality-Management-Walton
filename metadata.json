@@ -1,0 +1,8 @@
+{
+  "name": "Walton Quality Management - PCB \u0026 PCBA",
+  "description": "Comprehensive Quality Management System for PCB and PCBA manufacturing, inspection tracking, CAPA, NCR, and KPI governance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
