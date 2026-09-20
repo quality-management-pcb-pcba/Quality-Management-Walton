@@ -63,6 +63,7 @@ import {
   Plus,
   Sparkles,
   X,
+  ChevronLeft,
   ChevronRight,
   ChevronDown,
   Target,
@@ -143,21 +144,31 @@ interface LandingPageProps {
   onSelectDepartment?: (deptId: string) => void;
 }
 
+import heroImg1 from '../assets/images/walton_smt_factory_1789903546021.jpg';
+import heroImg2 from '../assets/images/walton_pcb_banner_1789903566969.jpg';
+import heroImg3 from '../assets/images/walton_tv_pcba_1789903587667.jpg';
+import heroImg4 from '../assets/images/walton_toy_pcba_1789903608083.jpg';
+
 const heroBannerImages = [
   {
-    url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1600&q=80',
-    title: 'Walton Quality Management PCB & PCBA Engineering Meeting',
-    label: 'Engineering Quality Governance & IPC Class 3 Review',
+    url: heroImg1,
+    title: 'Walton High-Tech Automated SMT Factory Production Line',
+    label: 'Automated SMT Assembly · Cleanroom Engineering',
   },
   {
-    url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1600&q=80',
-    title: 'High-Precision Automated SMT Line & Optical Inspection',
-    label: 'SMT Line 1-8 · Reflow Profiling & AOI Quality Control',
+    url: heroImg2,
+    title: 'Walton PCB & PCBA Precision Robotic Placement Technology',
+    label: 'Precision Pick-and-Place & Robotic SMD Placement',
   },
   {
-    url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80',
-    title: 'Multilayer PCB Micro-Soldering & IPC Quality Verification',
-    label: 'Automated X-Ray BGA Void Analysis & Solder Integrity',
+    url: heroImg3,
+    title: 'Walton Smart TV Motherboard PCB & PCBA Assembly',
+    label: 'ওয়ালটন পিসিবি ও পিসিবিএ · টিভি মাদারবোর্ড',
+  },
+  {
+    url: heroImg4,
+    title: 'Walton Smart Toy & IoT Electronic Controller PCBA',
+    label: 'ওয়ালটন পিসিবি ও পিসিবিএ · স্মার্ট খেলনা ও কন্ট্রোলার',
   },
 ];
 
@@ -203,6 +214,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [productOpen, setProductOpen] = useState(false);
   const [kpiAnimKey, setKpiAnimKey] = useState(0);
   const [heroSlide, setHeroSlide] = useState(0);
+
+  // Auto-cycle hero banner images smoothly every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroSlide((prev) => (prev + 1) % heroBannerImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Worker Talent Entry state & persistence
   const [talentData, setTalentData] = useState<WorkerTalentData>(() => {
@@ -348,7 +367,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         id="home-header"
         className="w-full bg-[#0d1730] py-2.5 sm:py-3.5 shadow-md border-b-[3px] border-[#e35b2a]"
       >
-        <div className="w-[92%] max-w-[1500px] mx-auto px-2 sm:px-4 flex items-center justify-between">
+        <div className="w-[96%] max-w-[1820px] mx-auto px-2 sm:px-4 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4.5">
             {/* QM Logo box - prominently sized for crystal-clear readability */}
             <div
@@ -543,22 +562,71 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </header>
 
-      {/* Main Page Content Body - Responsive 92% container, max-width 1500px */}
-      <main className="flex-1 w-[92%] max-w-[1500px] mx-auto py-5 sm:py-6 space-y-6 sm:space-y-7 box-border">
+      {/* Main Page Content Body - Responsive 96% container, max-width 1820px to eliminate large empty side margins */}
+      <main className="flex-1 w-[96%] max-w-[1820px] mx-auto py-5 sm:py-6 space-y-6 sm:space-y-7 box-border">
         {/* 1. Hero Banner */}
         <div
           id="hero-meeting-banner"
-          className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-[#cbd5e1] min-h-[300px] sm:min-h-[340px] lg:min-h-[380px] flex items-center justify-center bg-gradient-to-br from-[#0a1226] via-[#0e1d40] to-[#070d1c]"
+          className="group relative w-full rounded-2xl overflow-hidden shadow-xl border border-[#cbd5e1] min-h-[440px] sm:min-h-[500px] md:min-h-[560px] lg:min-h-[620px] xl:min-h-[680px] flex items-center justify-center bg-[#0a1226]"
         >
+          {/* Background Hero Image with smooth transition */}
+          <div className="absolute inset-0 z-0">
+            <img
+              id="hero-banner-image"
+              key={heroSlide}
+              src={heroBannerImages[heroSlide].url}
+              alt={heroBannerImages[heroSlide].title}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover object-center transition-all duration-700 ease-out"
+            />
+          </div>
+
+          {/* High-contrast Technical Dark Overlay to keep typography crisp and clear */}
+          <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#0a1226]/85 via-[#0a1226]/65 to-[#0a1226]/80" />
+          <div className="absolute inset-0 z-[2] bg-gradient-to-t from-[#070d1c]/90 via-transparent to-[#0a1226]/60 pointer-events-none" />
+
           {/* Subtle PCB Tech Grid Background & Glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 z-[3] bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-blue-600/20 rounded-full blur-3xl pointer-events-none z-[3]" />
 
           {/* High-tech Quality Optical Inspection Scanline */}
           <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(34,211,238,0.9)] animate-hero-scanline pointer-events-none z-10 opacity-70" />
 
-          {/* Dark technical gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a1226]/80 via-transparent to-transparent pointer-events-none" />
+
+
+          {/* Slide Navigation Buttons (Previous / Next) */}
+          <button
+            type="button"
+            onClick={() => setHeroSlide((prev) => (prev === 0 ? heroBannerImages.length - 1 : prev - 1))}
+            aria-label="Previous slide"
+            className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/45 hover:bg-black/75 text-white/80 hover:text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/20 cursor-pointer shadow-lg active:scale-95"
+          >
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setHeroSlide((prev) => (prev + 1) % heroBannerImages.length)}
+            aria-label="Next slide"
+            className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/45 hover:bg-black/75 text-white/80 hover:text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/20 cursor-pointer shadow-lg active:scale-95"
+          >
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+
+          {/* Slide Indicators */}
+          <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-20 flex items-center gap-2">
+            {heroBannerImages.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setHeroSlide(idx)}
+                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  heroSlide === idx ? 'w-7 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'w-2 bg-white/40 hover:bg-white/70'
+                }`}
+                title={`Go to slide ${idx + 1}: ${heroBannerImages[idx].title}`}
+                aria-label={`Slide ${idx + 1}`}
+              />
+            ))}
+          </div>
 
           {/* Center Heading Banner: "Quality Management" */}
           <div
@@ -635,7 +703,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="group relative rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-[#cbd5e1] cursor-pointer bg-white transition-all duration-200 hover:-translate-y-0.5 flex flex-col h-full"
               >
                 {/* Image Container */}
-                <div className="relative h-28 sm:h-32 md:h-36 w-full overflow-hidden bg-slate-100 shrink-0">
+                <div className="relative h-28 sm:h-36 md:h-40 lg:h-44 w-full overflow-hidden bg-slate-100 shrink-0">
                   <img
                     src={dept.img}
                     alt={dept.title}
@@ -741,19 +809,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 4. Worker Talent of the Month-Jul'26 */}
+        {/* 4. Worker Talent Spotlight - Left side Image and Right side Description (Matching user reference style) */}
         <section
           id="worker-talent-section"
-          className="bg-white rounded-2xl border border-[#cbd5e1] p-5 sm:p-6 shadow-sm flex flex-col md:flex-row items-center gap-6 relative group"
+          className="w-full bg-white rounded-2xl border border-[#cbd5e1] overflow-hidden shadow-sm flex flex-col md:flex-row items-stretch relative group transition-all duration-300 hover:shadow-md"
         >
           {/* Top-Right Entry Button - Rendered ONLY for authorized logged-in users */}
           {isLoggedIn && (
-            <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
               <button
                 id="btn-worker-talent-entry"
                 type="button"
                 onClick={handleOpenTalentModal}
-                className="px-3 py-1.5 bg-[#1c356b] hover:bg-[#28498f] text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border border-[#2d4c8e]"
+                className="px-3.5 py-1.5 bg-[#1c356b] hover:bg-[#28498f] text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border border-[#2d4c8e]"
                 title="Enter or update Worker Talent records"
               >
                 <Edit3 className="w-3.5 h-3.5 text-[#93c5fd]" />
@@ -762,59 +830,77 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           )}
 
-          {/* Left: Photos Container */}
-          <div className="flex items-center gap-3 shrink-0 p-2 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl">
-            {/* Photo 1: Team award */}
-            <div className="w-36 h-24 sm:w-44 sm:h-28 rounded-lg overflow-hidden border border-[#cbd5e1] shadow-xs relative">
+          {/* Left Side: Dual Images Container (Photo 1 & Photo 2) */}
+          <div className="w-full md:w-1/2 lg:w-1/2 grid grid-cols-2 gap-2.5 p-2.5 sm:p-3 bg-slate-100/70 border-b md:border-b-0 md:border-r border-slate-200 shrink-0">
+            {/* Image 1 */}
+            <div className="relative min-h-[260px] sm:min-h-[300px] md:min-h-[340px] lg:min-h-[380px] rounded-xl overflow-hidden bg-slate-900 shadow-xs group/img1">
               <img
-                src={talentData.photo1Url}
-                alt="Quality Inspection Team Receiving Certificate"
-                className="w-full h-full object-cover"
+                src={talentData.photo1Url || DEFAULT_WORKER_TALENT.photo1Url}
+                alt={talentData.photo1Label || talentData.title}
+                className="w-full h-full object-cover object-center group-hover/img1:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded font-medium">
-                {talentData.photo1Label || 'Line 03 SMT'}
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              {talentData.photo1Label && (
+                <div className="absolute bottom-3 left-3 z-10 bg-[#0d1730]/85 backdrop-blur-sm text-white border border-white/20 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+                  <span className="truncate max-w-[130px]">{talentData.photo1Label}</span>
+                </div>
+              )}
             </div>
 
-            {/* Photo 2: Executive award handover */}
-            <div className="w-36 h-24 sm:w-44 sm:h-28 rounded-lg overflow-hidden border border-[#cbd5e1] shadow-xs relative">
+            {/* Image 2 */}
+            <div className="relative min-h-[260px] sm:min-h-[300px] md:min-h-[340px] lg:min-h-[380px] rounded-xl overflow-hidden bg-slate-900 shadow-xs group/img2">
               <img
-                src={talentData.photo2Url}
-                alt="Executive Award Presentation Gala"
-                className="w-full h-full object-cover"
+                src={talentData.photo2Url || DEFAULT_WORKER_TALENT.photo2Url}
+                alt={talentData.photo2Label || talentData.title}
+                className="w-full h-full object-cover object-center group-hover/img2:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded font-medium">
-                {talentData.photo2Label || 'QM Excellence'}
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              {talentData.photo2Label && (
+                <div className="absolute bottom-3 left-3 z-10 bg-[#0d1730]/85 backdrop-blur-sm text-white border border-white/20 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                  <span className="truncate max-w-[130px]">{talentData.photo2Label}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right: Worker Talent Details */}
-          <div className="flex-1 text-center md:text-left space-y-2 pr-0 md:pr-24">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              <span className="p-1 rounded-md bg-amber-100 text-amber-800">
+          {/* Right Side: Headline & Description */}
+          <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col justify-center text-left space-y-4">
+            {/* Section Tag */}
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-amber-100 text-amber-800 inline-flex items-center justify-center shadow-xs">
                 <Award className="w-4 h-4" />
               </span>
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#0d1730] tracking-tight">
-                {talentData.title}
-              </h3>
+              <span className="text-xs font-bold tracking-wider uppercase text-[#e35b2a]">
+                Walton QM Talent Spotlight
+              </span>
             </div>
-            <p className="text-sm text-[#475569] leading-relaxed max-w-xl">
+
+            {/* Main Headline */}
+            <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold text-[#0d1730] tracking-tight leading-snug sm:leading-tight">
+              {talentData.title}
+            </h3>
+
+            {/* Detailed Description */}
+            <p className="text-sm sm:text-base lg:text-lg text-[#475569] leading-relaxed font-normal">
               {talentData.description}
             </p>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1 text-xs">
+
+            {/* Awardee Badges & Key Achievements */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 text-xs sm:text-sm">
               {talentData.awardees.map((awardee, idx) => {
                 const colorStyles = [
-                  'bg-[#e0f2fe] text-[#0369a1]',
-                  'bg-[#fef3c7] text-[#92400e]',
-                  'bg-[#dcfce7] text-[#15803d] font-mono',
-                  'bg-[#f3e8ff] text-[#7e22ce]',
-                  'bg-[#ffe4e6] text-[#be123c]',
+                  'bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd]',
+                  'bg-[#fef3c7] text-[#92400e] border border-[#fde68a]',
+                  'bg-[#dcfce7] text-[#15803d] font-mono border border-[#bbf7d0]',
+                  'bg-[#f3e8ff] text-[#7e22ce] border border-[#e9d5ff]',
+                  'bg-[#ffe4e6] text-[#be123c] border border-[#fecdd3]',
                 ];
                 return (
                   <span
                     key={idx}
-                    className={`px-2.5 py-1 rounded-md font-semibold ${
+                    className={`px-3 py-1.5 rounded-lg font-semibold shadow-2xs ${
                       colorStyles[idx % colorStyles.length]
                     }`}
                   >
