@@ -36,6 +36,13 @@ import { motion } from 'motion/react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 import { QmBadge } from './QmBadge';
 import { ContactModal } from './modals/ContactModal';
+import { AboutModal, AboutTabType } from './modals/AboutModal';
+import { ProductModal } from './modals/ProductModal';
+import {
+  WALTON_EMBLEM_LEFT_PATH,
+  WALTON_EMBLEM_RED_PATH,
+  WALTON_EMBLEM_RIGHT_PATH,
+} from './waltonLogoPaths';
 import { PageId } from '../types';
 import {
   Globe,
@@ -57,12 +64,23 @@ import {
   Sparkles,
   X,
   ChevronRight,
+  ChevronDown,
+  Target,
+  Eye,
+  Briefcase,
+  PlayCircle,
+  Layers,
+  User,
+  UserCheck,
+  ClipboardCheck,
+  BookOpenCheck,
   Image as ImageIcon,
   RotateCcw,
   Facebook,
   Youtube,
   Linkedin,
   Instagram,
+  ExternalLink,
 } from 'lucide-react';
 
 interface AnimatedCounterProps {
@@ -179,6 +197,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectDepartment = (_deptId: string) => {},
 }) => {
   const [contactOpen, setContactOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [aboutTab, setAboutTab] = useState<AboutTabType>('overview');
+  const [aboutMenuOpen, setAboutMenuOpen] = useState(false);
+  const [productOpen, setProductOpen] = useState(false);
   const [kpiAnimKey, setKpiAnimKey] = useState(0);
   const [heroSlide, setHeroSlide] = useState(0);
 
@@ -324,62 +346,185 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Top Header matching user mockup */}
       <header
         id="home-header"
-        className="w-full bg-[#0d1730] px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between shadow-md border-b-[3px] border-[#e35b2a]"
+        className="w-full bg-[#0d1730] py-2.5 sm:py-3.5 shadow-md border-b-[3px] border-[#e35b2a]"
       >
-        <div className="flex items-center gap-3 sm:gap-4.5">
-          {/* QM Logo box - prominently sized for crystal-clear readability */}
-          <div
-            id="qm-logo-box"
-            onClick={() => handleNav('home')}
-            className="flex items-center justify-center cursor-pointer transition-transform hover:scale-105 shrink-0"
-            title="Walton Quality Management - Home"
-          >
-            <WaltonSealLogo className="w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] md:w-[122px] md:h-[122px] lg:w-[132px] lg:h-[132px] shrink-0 drop-shadow-xl" />
+        <div className="w-[92%] max-w-[1500px] mx-auto px-2 sm:px-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4.5">
+            {/* QM Logo box - prominently sized for crystal-clear readability */}
+            <div
+              id="qm-logo-box"
+              onClick={() => handleNav('home')}
+              className="flex items-center justify-center cursor-pointer transition-transform hover:scale-105 shrink-0"
+              title="Walton Quality Management - Home"
+            >
+              <WaltonSealLogo className="w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] md:w-[122px] md:h-[122px] lg:w-[132px] lg:h-[132px] shrink-0 drop-shadow-xl" />
+            </div>
+
+            {/* Walton Quality Management text title - clean text without box shape */}
+            <div
+              id="walton-qm-title-box"
+              onClick={() => handleNav('home')}
+              className="cursor-pointer transition-opacity hover:opacity-90 py-1"
+            >
+              <h1 className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight leading-tight drop-shadow-xs">
+                Walton Quality Management
+              </h1>
+              <p className="text-[#93c5fd] text-xs sm:text-sm md:text-base font-semibold mt-0.5 tracking-wide">
+                PCB &amp; PCBA Manufacturing
+              </p>
+            </div>
           </div>
 
-          {/* Walton Quality Management box matching mockup */}
+          {/* Right side: Navigation buttons (About, Product, Walton), Contact Us, and Login - text only with increased size */}
+          <div id="home-header-actions" className="flex items-center flex-wrap gap-3 sm:gap-5 md:gap-7">
+          {/* 1. About button with sub-menu */}
           <div
-            id="walton-qm-title-box"
-            onClick={() => handleNav('home')}
-            className="bg-[#1c356b] border border-[#2d4c8e] rounded-md px-4 sm:px-5.5 py-2 sm:py-2.5 shadow-inner cursor-pointer hover:bg-[#223f7d] transition-colors"
+            className="relative"
+            onMouseEnter={() => setAboutMenuOpen(true)}
+            onMouseLeave={() => setAboutMenuOpen(false)}
           >
-            <h1 className="text-white text-[15px] sm:text-[18px] md:text-[20px] font-black tracking-tight leading-tight">
-              Walton Quality Management
-            </h1>
-            <p className="text-[#93c5fd] text-[11px] sm:text-[12.5px] md:text-[13.5px] font-semibold mt-0.5">
-              PCB &amp; PCBA Manufacturing
-            </p>
-          </div>
-        </div>
+            <button
+              id="btn-home-about"
+              onClick={() => {
+                setAboutTab('overview');
+                setAboutOpen(true);
+              }}
+              className="text-sm sm:text-base md:text-lg font-bold text-white hover:text-[#93c5fd] transition-colors cursor-pointer py-1 flex items-center gap-1"
+              title="About Walton PCB & PCBA Quality Management"
+              aria-haspopup="true"
+              aria-expanded={aboutMenuOpen}
+            >
+              <span>About</span>
+              <ChevronDown
+                className={`w-4 h-4 text-[#93c5fd] transition-transform duration-200 ${
+                  aboutMenuOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
 
-        {/* Right side: Contact Us on left, Login on right side of Contact Us */}
-        <div id="home-header-actions" className="flex items-center gap-2 sm:gap-3">
+            {/* Sub-menu Dropdown */}
+            {aboutMenuOpen && (
+              <div
+                id="about-sub-menu"
+                className="absolute left-0 top-full pt-1.5 z-50 w-44 animate-in fade-in slide-in-from-top-1 duration-150"
+              >
+                <div className="bg-[#0d1730] border border-[#2d4c8e] rounded-xl shadow-2xl p-1.5 space-y-0.5 backdrop-blur-md">
+                  <button
+                    id="btn-sub-menu-mission"
+                    onClick={() => {
+                      setAboutTab('mission');
+                      setAboutOpen(true);
+                      setAboutMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-[#1c356b] rounded-lg transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span>Mission</span>
+                    <Target className="w-3.5 h-3.5 text-[#e35b2a]" />
+                  </button>
+
+                  <button
+                    id="btn-sub-menu-vission"
+                    onClick={() => {
+                      setAboutTab('vision');
+                      setAboutOpen(true);
+                      setAboutMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-[#1c356b] rounded-lg transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span>Vission</span>
+                    <Eye className="w-3.5 h-3.5 text-[#38bdf8]" />
+                  </button>
+
+                  <button
+                    id="btn-sub-menu-overview"
+                    onClick={() => {
+                      setAboutTab('overview');
+                      setAboutOpen(true);
+                      setAboutMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-[#1c356b] rounded-lg transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span>Overview</span>
+                    <Layers className="w-3.5 h-3.5 text-[#2dd4bf]" />
+                  </button>
+
+                  <button
+                    id="btn-sub-menu-career"
+                    onClick={() => {
+                      setAboutTab('career');
+                      setAboutOpen(true);
+                      setAboutMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-[#1c356b] rounded-lg transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span>Career</span>
+                    <Briefcase className="w-3.5 h-3.5 text-[#f59e0b]" />
+                  </button>
+
+                  <button
+                    id="btn-sub-menu-video"
+                    onClick={() => {
+                      setAboutTab('video');
+                      setAboutOpen(true);
+                      setAboutMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-[#1c356b] rounded-lg transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span>Video</span>
+                    <PlayCircle className="w-3.5 h-3.5 text-[#f43f5e]" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 2. Product button */}
+          <button
+            id="btn-home-product"
+            onClick={() => setProductOpen(true)}
+            className="text-sm sm:text-base md:text-lg font-bold text-white hover:text-[#93c5fd] transition-colors cursor-pointer py-1"
+            title="Walton PCB & PCBA Products"
+          >
+            Product
+          </button>
+
+          {/* 3. Walton (https://waltonbd.com/) link */}
+          <a
+            id="btn-home-walton"
+            href="https://waltonbd.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Walton Official Website (https://waltonbd.com/)"
+            className="text-sm sm:text-base md:text-lg font-bold text-white hover:text-[#93c5fd] transition-colors cursor-pointer py-1"
+          >
+            Walton
+          </a>
+
           {/* Contact Us button */}
           <button
             id="btn-home-contact"
             onClick={() => setContactOpen(true)}
-            className="px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-bold bg-[#1c356b] hover:bg-[#254487] text-white border border-[#2d4c8e] rounded-md shadow-xs transition-all active:scale-95 cursor-pointer"
+            className="text-sm sm:text-base md:text-lg font-bold text-white hover:text-[#93c5fd] transition-colors cursor-pointer py-1"
           >
             Contact Us
           </button>
 
           {/* Login button: positioned on the right side of Contact Us */}
           {isLoggedIn ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 id="btn-home-login"
                 onClick={onOpenLogin}
-                className="px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold bg-[#1c356b] hover:bg-[#254487] text-white border border-[#2d4c8e] rounded-md shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="text-sm sm:text-base md:text-lg font-bold text-white hover:text-[#93c5fd] transition-colors cursor-pointer py-1 flex items-center gap-1.5"
                 title="QA User logged in. Click to switch account."
               >
-                <LogIn className="w-4 h-4 text-[#2dd4bf]" />
                 <span>Login</span>
                 <span className="inline-block w-2 h-2 rounded-full bg-[#2dd4bf] animate-pulse" title="Active session" />
               </button>
               <button
                 id="btn-home-logout"
                 onClick={onLogout}
-                className="p-2 text-[#9fb0d6] hover:text-white hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+                className="p-1.5 text-[#9fb0d6] hover:text-white hover:bg-white/10 rounded-md transition-colors cursor-pointer"
                 title="Sign out of Quality System"
               >
                 <LogOut className="w-4 h-4" />
@@ -389,51 +534,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               id="btn-home-login"
               onClick={onOpenLogin}
-              className="px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold bg-[#1c356b] hover:bg-[#254487] text-white border border-[#2d4c8e] rounded-md shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+              className="text-sm sm:text-base md:text-lg font-bold text-white hover:text-[#93c5fd] transition-colors cursor-pointer py-1"
             >
-              <LogIn className="w-4 h-4 text-[#93c5fd]" />
-              <span>Login</span>
+              Login
             </button>
           )}
+          </div>
         </div>
       </header>
 
-      {/* Main Page Content Body */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-5 space-y-6">
-        {/* 1. Hero Image with Overlay */}
+      {/* Main Page Content Body - Responsive 92% container, max-width 1500px */}
+      <main className="flex-1 w-[92%] max-w-[1500px] mx-auto py-5 sm:py-6 space-y-6 sm:space-y-7 box-border">
+        {/* 1. Hero Banner */}
         <div
           id="hero-meeting-banner"
-          className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-[#cbd5e1] min-h-[340px] sm:min-h-[400px] flex items-center justify-center bg-[#0d1730]"
+          className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-[#cbd5e1] min-h-[300px] sm:min-h-[340px] lg:min-h-[380px] flex items-center justify-center bg-gradient-to-br from-[#0a1226] via-[#0e1d40] to-[#070d1c]"
         >
-          {/* Background meeting photo with Ken Burns zoom & pan animation */}
-          <img
-            key={heroSlide}
-            src={heroBannerImages[heroSlide].url}
-            alt={heroBannerImages[heroSlide].title}
-            className="absolute inset-0 w-full h-full object-cover object-center opacity-85 animate-hero-kenburns transition-all duration-1000 ease-in-out"
-          />
+          {/* Subtle PCB Tech Grid Background & Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
 
           {/* High-tech Quality Optical Inspection Scanline */}
           <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(34,211,238,0.9)] animate-hero-scanline pointer-events-none z-10 opacity-70" />
 
           {/* Dark technical gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1730]/90 via-[#0d1730]/40 to-transparent pointer-events-none" />
-
-          {/* Lower-Left Slide Navigation */}
-          <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-20 flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-[#0d1730]/60 backdrop-blur-sm px-2.5 py-1.5 rounded-full border border-white/10 shadow-md">
-              {heroBannerImages.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setHeroSlide(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                    heroSlide === idx ? 'w-6 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'w-2 bg-white/40 hover:bg-white/70'
-                  }`}
-                  aria-label={`Switch to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a1226]/80 via-transparent to-transparent pointer-events-none" />
 
           {/* Center Heading Banner: "Quality Management" */}
           <div
@@ -494,12 +619,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* 2. "Our Departments" Section */}
-        <section id="our-departments-section" className="space-y-3">
+        <section id="our-departments-section" className="w-full space-y-3 sm:space-y-3.5">
           <h2 className="text-xl sm:text-2xl font-bold text-[#0d1730] tracking-tight">
             Our Departments
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5 w-full">
             {departmentCards.map((dept) => (
               <div
                 key={dept.id}
@@ -507,10 +632,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onSelectDepartment(dept.id);
                   handleNav(dept.page);
                 }}
-                className="group relative rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-[#cbd5e1] cursor-pointer bg-white transition-all duration-200 hover:-translate-y-0.5"
+                className="group relative rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-[#cbd5e1] cursor-pointer bg-white transition-all duration-200 hover:-translate-y-0.5 flex flex-col h-full"
               >
                 {/* Image Container */}
-                <div className="relative h-28 sm:h-32 w-full overflow-hidden bg-slate-100">
+                <div className="relative h-28 sm:h-32 md:h-36 w-full overflow-hidden bg-slate-100 shrink-0">
                   <img
                     src={dept.img}
                     alt={dept.title}
@@ -530,11 +655,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
 
                 {/* Subtitle / Focus footer */}
-                <div className="p-2.5 bg-white">
-                  <div className="text-xs font-bold text-[#0d1730] truncate group-hover:text-[#e35b2a] transition-colors">
+                <div className="p-3 bg-white flex-1 flex flex-col justify-between">
+                  <div className="text-xs sm:text-sm font-bold text-[#0d1730] truncate group-hover:text-[#e35b2a] transition-colors">
                     {dept.title}
                   </div>
-                  <div className="text-[11px] text-[#64748b] truncate">
+                  <div className="text-[11px] sm:text-xs text-[#64748b] truncate mt-0.5">
                     {dept.subtitle}
                   </div>
                 </div>
@@ -543,55 +668,75 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 3. Cyan / Turquoise Stat Strip with animated counting from 0 */}
+        {/* 3. KPI Stat Cards Section - Designed to match attached image style with floating white cards */}
         <section
           id="cyan-kpi-bar"
           onClick={() => setKpiAnimKey((k) => k + 1)}
           title="Click to replay counter animation"
-          className="w-full bg-[#2dd4bf] text-[#0f172a] rounded-xl shadow-sm overflow-hidden py-4 px-3 sm:px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#0f172a]/15 cursor-pointer transition-all duration-300 hover:brightness-105 active:scale-[0.99] select-none"
+          className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5 select-none cursor-pointer"
         >
-          <div className="p-2 text-center flex flex-col items-center justify-center">
-            <span className="text-sm sm:text-base lg:text-lg font-extrabold tracking-tight">
+          {/* Card 1: Total MP */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl py-7 sm:py-9 px-4 sm:px-5 shadow-[0_10px_28px_rgba(0,0,0,0.04)] border border-slate-100/90 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] hover:-translate-y-1 group h-full">
+            <div className="text-[#00a884] group-hover:scale-110 transition-transform duration-200">
+              <Users className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
+            </div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#00a884] tracking-tight mt-3 sm:mt-4 mb-1">
+              <AnimatedCounter key={`mp-${kpiAnimKey}`} target={612} delay={40} duration={1400} />+
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
               Total MP
             </span>
-            <span className="text-xl sm:text-2xl font-black font-mono">
-              <AnimatedCounter key={`mp-${kpiAnimKey}`} target={612} delay={40} duration={1400} />
-            </span>
           </div>
 
-          <div className="p-2 text-center flex flex-col items-center justify-center">
-            <span className="text-sm sm:text-base lg:text-lg font-extrabold tracking-tight">
+          {/* Card 2: Male */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl py-7 sm:py-9 px-4 sm:px-5 shadow-[0_10px_28px_rgba(0,0,0,0.04)] border border-slate-100/90 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] hover:-translate-y-1 group h-full">
+            <div className="text-[#e54b4b] group-hover:scale-110 transition-transform duration-200">
+              <User className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
+            </div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#e54b4b] tracking-tight mt-3 sm:mt-4 mb-1">
+              <AnimatedCounter key={`male-${kpiAnimKey}`} target={402} delay={100} duration={1400} />
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
               Male
             </span>
-            <span className="text-xl sm:text-2xl font-black font-mono">
-              <AnimatedCounter key={`male-${kpiAnimKey}`} target={402} delay={100} duration={1400} />
-            </span>
           </div>
 
-          <div className="p-2 text-center flex flex-col items-center justify-center">
-            <span className="text-sm sm:text-base lg:text-lg font-extrabold tracking-tight">
+          {/* Card 3: FeMale */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl py-7 sm:py-9 px-4 sm:px-5 shadow-[0_10px_28px_rgba(0,0,0,0.04)] border border-slate-100/90 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] hover:-translate-y-1 group h-full">
+            <div className="text-[#00a884] group-hover:scale-110 transition-transform duration-200">
+              <UserCheck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
+            </div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#00a884] tracking-tight mt-3 sm:mt-4 mb-1">
+              <AnimatedCounter key={`female-${kpiAnimKey}`} target={210} delay={160} duration={1400} />+
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
               FeMale
             </span>
-            <span className="text-xl sm:text-2xl font-black font-mono">
-              <AnimatedCounter key={`female-${kpiAnimKey}`} target={210} delay={160} duration={1400} />
-            </span>
           </div>
 
-          <div className="p-2 text-center flex flex-col items-center justify-center">
-            <span className="text-sm sm:text-base lg:text-lg font-extrabold tracking-tight">
+          {/* Card 4: Total Report */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl py-7 sm:py-9 px-4 sm:px-5 shadow-[0_10px_28px_rgba(0,0,0,0.04)] border border-slate-100/90 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] hover:-translate-y-1 group h-full">
+            <div className="text-[#00a884] group-hover:scale-110 transition-transform duration-200">
+              <ClipboardCheck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
+            </div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#00a884] tracking-tight mt-3 sm:mt-4 mb-1">
+              <AnimatedCounter key={`report-${kpiAnimKey}`} target={146} delay={220} duration={1400} />+
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
               Total Report
             </span>
-            <span className="text-xl sm:text-2xl font-black font-mono">
-              <AnimatedCounter key={`report-${kpiAnimKey}`} target={146} delay={220} duration={1400} />
-            </span>
           </div>
 
-          <div className="p-2 text-center flex flex-col items-center justify-center col-span-2 sm:col-span-1">
-            <span className="text-sm sm:text-base lg:text-lg font-extrabold tracking-tight">
+          {/* Card 5: Total SOP */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl py-7 sm:py-9 px-4 sm:px-5 shadow-[0_10px_28px_rgba(0,0,0,0.04)] border border-slate-100/90 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] hover:-translate-y-1 group col-span-2 sm:col-span-1 lg:col-span-1 h-full">
+            <div className="text-[#0284c7] group-hover:scale-110 transition-transform duration-200">
+              <BookOpenCheck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
+            </div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#0284c7] tracking-tight mt-3 sm:mt-4 mb-1">
+              <AnimatedCounter key={`sop-${kpiAnimKey}`} target={58} delay={280} duration={1400} />+
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
               Total SOP
-            </span>
-            <span className="text-xl sm:text-2xl font-black font-mono">
-              <AnimatedCounter key={`sop-${kpiAnimKey}`} target={58} delay={280} duration={1400} />
             </span>
           </div>
         </section>
@@ -684,9 +829,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 5. Navigation Row: Dashboard, Leaders, PCB, PCBA, Research */}
         <section
           id="home-nav-box"
-          className="bg-white rounded-2xl border border-[#cbd5e1] p-4 sm:p-5 shadow-sm"
+          className="w-full bg-white rounded-2xl border border-[#cbd5e1] p-4 sm:p-5 shadow-sm"
         >
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5 w-full">
             <button
               id="btn-nav-dashboard"
               onClick={() => handleNav('dashboard')}
@@ -722,7 +867,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               id="btn-nav-research"
               onClick={() => handleNav('research')}
-              className="py-3 px-4 bg-[#1c356b] hover:bg-[#152a55] text-white font-bold text-sm sm:text-base rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer text-center col-span-2 sm:col-span-1"
+              className="py-3 px-4 bg-[#1c356b] hover:bg-[#152a55] text-white font-bold text-sm sm:text-base rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer text-center col-span-2 sm:col-span-1 lg:col-span-1"
             >
               Research
             </button>
@@ -732,7 +877,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 6. Footer Area Box */}
         <section
           id="home-footer-area-box"
-          className="bg-white rounded-2xl border border-[#cbd5e1] p-6 sm:p-8 shadow-sm"
+          className="w-full bg-white rounded-2xl border border-[#cbd5e1] p-6 sm:p-8 shadow-sm"
         >
           <div
             id="footer-area-block"
@@ -860,6 +1005,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Global Contact Modal */}
       <ContactModal isOpen={contactOpen} onClose={() => setContactOpen(false)} />
+
+      {/* About Modal */}
+      <AboutModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+        initialTab={aboutTab}
+      />
+
+      {/* Product Modal */}
+      <ProductModal
+        isOpen={productOpen}
+        onClose={() => setProductOpen(false)}
+        onNavigate={handleNav}
+      />
 
       {/* Worker Talent of the Month Entry / Update Modal - Accessible ONLY to authorized logged-in users */}
       {isLoggedIn && talentModalOpen && (
