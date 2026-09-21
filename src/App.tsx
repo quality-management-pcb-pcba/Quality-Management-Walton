@@ -23,7 +23,7 @@
  *   interact with this AI pipeline to assist shop floor operators in real time.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lock, ShieldAlert, ArrowLeft } from 'lucide-react';
 import { PageType, NonConformanceItem, CapaItem, SopDocument } from './types';
 import {
@@ -98,11 +98,11 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
 
   /**
-   * @state sidebarCollapsed
-   * @type {boolean}
-   * Controls whether the sidebar is collapsed or expanded in mobile/desktop layouts.
+   * @state isSidebarOpen
+   * Controls whether the navigation sidebar is open or closed across desktop and mobile.
+   * Pressing the topbar menu button (#btn-sidebar-toggle) toggles it open and closed.
    */
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
   /**
    * @state showLoginModal
@@ -110,16 +110,6 @@ export default function App() {
    * Controls the visibility of the administrative login popup dialog.
    */
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
-
-  /**
-   * @state showSidebar
-   * @type {boolean}
-   * Controls whether the sidebar is visible inside the portal view.
-   * - When a user logs in, the sidebar is visible by default.
-   * - When a visitor clicks "Dashboard" from another page, the dashboard opens without the sidebar.
-   * - Only users with verified login permissions have authorized access to the sidebar.
-   */
-  const [showSidebar, setShowSidebar] = useState<boolean>(false);
 
   // ---------------------------------------------------------------------------------------
   // 2. GLOBAL FILTERS STATE
@@ -163,6 +153,15 @@ export default function App() {
   /** Holds the specific CAPA item being deeply inspected in the detail modal */
   const [inspectCapa, setInspectCapa] = useState<CapaItem | null>(null);
 
+  /** Reference to the primary scrolling container so navigating resets scroll position */
+  const mainScrollRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (mainScrollRef.current) {
+      mainScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [currentPage]);
+
   // ---------------------------------------------------------------------------------------
   // 5. ROUTING & BROWSER HISTORY SYNCHRONIZATION
   // ---------------------------------------------------------------------------------------
@@ -196,27 +195,17 @@ export default function App() {
     if (initialPage && initialPage !== 'home') {
       setCurrentPage(initialPage);
       setInPortal(true);
-      if (initialPage !== 'dashboard' && isLoggedIn) {
-        setShowSidebar(true);
-      }
     }
 
     const handlePopState = () => {
       const p = getPageFromUrl() || 'home';
       setCurrentPage(p);
       setInPortal(p !== 'home');
-      if (p === 'home') {
-        setShowSidebar(false);
-      } else if (p === 'dashboard') {
-        setShowSidebar(false);
-      } else {
-        setShowSidebar(isLoggedIn);
-      }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [isLoggedIn]);
+  }, []);
 
   // ---------------------------------------------------------------------------------------
   // 6. EVENT HANDLERS & NAVIGATION LOGIC
@@ -234,8 +223,7 @@ export default function App() {
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
     setCurrentPage('dashboard');
-    setShowSidebar(true);
-    setSidebarCollapsed(false);
+    setIsSidebarOpen(true);
     setInPortal(true);
     setShowLoginModal(false);
     try {
@@ -249,12 +237,10 @@ export default function App() {
    * WHAT IT DOES:
    * Called when an administrator clicks "Sign Out".
    * - Resets `isLoggedIn` to false.
-   * - Hides the administrative sidebar.
    * - Returns the application to the public 'home' landing page.
    */
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setShowSidebar(false);
     setCurrentPage('home');
     setInPortal(false);
     try {
@@ -273,7 +259,7 @@ export default function App() {
    * @param {object} [options] - Optional routing parameters.
    * @param {boolean} [options.withSidebar] - If true and logged in, shows the sidebar.
    */
-  const handleNavigate = (page: PageType, options?: { withSidebar?: boolean }) => {
+  const handleNavigate = (page: PageType, _options?: { withSidebar?: boolean }) => {
     try {
       const targetPath = page === 'home' ? '/' : `/${page}`;
       if (window.location.pathname !== targetPath) {
@@ -288,22 +274,18 @@ export default function App() {
       return;
     }
 
-    // Role-based sidebar visibility rule:
-    // 1. If clicking Dashboard from another page -> opens without the sidebar.
-    // 2. If logged in with explicit withSidebar flag -> opens with sidebar.
-    // 3. For other internal pages, sidebar is only visible if the user is an authorized logged-in admin.
-    if (page === 'dashboard') {
-      if (options?.withSidebar && isLoggedIn) {
-        setShowSidebar(true);
-      } else {
-        setShowSidebar(false);
-      }
-    } else {
-      setShowSidebar(isLoggedIn);
-    }
-
     setCurrentPage(page);
     setInPortal(true);
+  };
+
+  /**
+   * handleToggleSidebar
+   * -------------------
+   * WHAT IT DOES:
+   * Toggles the sidebar open or closed on each click of the topbar menu button (#btn-sidebar-toggle).
+   */
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
   };
 
   /**
@@ -362,7 +344,11 @@ export default function App() {
   const isShowingHome = !inPortal || currentPage === 'home';
 
   return (
-    <div className="min-h-screen bg-[#f4f6fb] text-[#0d1730] flex flex-col font-sans selection:bg-[#e35b2a] selection:text-white">
+    <div
+      className={`${
+        isShowingHome ? 'min-h-screen' : 'h-screen h-[100dvh] overflow-hidden'
+      } bg-[#f4f6fb] text-[#0d1730] flex flex-col font-sans selection:bg-[#e35b2a] selection:text-white`}
+    >
       {/* Top Application Header shown when in Portal view */}
       {!isShowingHome && (
         <Header
@@ -377,7 +363,8 @@ export default function App() {
           setSelectedProduct={setSelectedProduct}
           onTogglePortalView={() => setInPortal(!inPortal)}
           inPortal={inPortal}
-          onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onToggleSidebar={handleToggleSidebar}
+          isSidebarOpen={isSidebarOpen}
           onOpenNewNcModal={() => setShowNewNcModal(true)}
           onOpenNewCapaModal={() => setShowNewCapaModal(true)}
           onOpenNewDocModal={() => setShowNewDocModal(true)}
@@ -401,23 +388,21 @@ export default function App() {
           }}
         />
       ) : (
-        <div className="flex-1 flex overflow-hidden pt-[86px] sm:pt-[90px]">
-          {/* Internal Sidebar - Visible only to users who have authorized login access and when showSidebar is true */}
-          {showSidebar && isLoggedIn && (
-            <Sidebar
-              currentPage={currentPage}
-              onSelectPage={handleNavigate}
-              onNavigate={handleNavigate}
-              isOpen={!sidebarCollapsed}
-              collapsed={sidebarCollapsed}
-              onCloseMobile={() => setSidebarCollapsed(true)}
-              openNcCount={ncList.filter((n) => n.status === 'Open' || n.status === 'In Progress').length}
-              openCapaCount={capaList.filter((c) => c.status === 'Open' || c.status === 'In Progress').length}
-            />
-          )}
+        <div className="flex-1 flex overflow-hidden pt-[86px] sm:pt-[90px] min-h-0">
+          {/* Internal Navigation Sidebar */}
+          <Sidebar
+            currentPage={currentPage}
+            onSelectPage={handleNavigate}
+            onNavigate={handleNavigate}
+            isOpen={isSidebarOpen}
+            collapsed={!isSidebarOpen}
+            onCloseMobile={() => setIsSidebarOpen(false)}
+            openNcCount={ncList.filter((n) => n.status === 'Open' || n.status === 'In Progress').length}
+            openCapaCount={capaList.filter((c) => c.status === 'Open' || c.status === 'In Progress').length}
+          />
 
           {/* Dynamic Content Body */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#f4f6fb]">
+          <main ref={mainScrollRef} className="flex-1 h-full overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 bg-[#f4f6fb]">
             <div className="max-w-7xl mx-auto">
               {currentPage === 'dashboard' && (
                 <DashboardView
@@ -432,7 +417,8 @@ export default function App() {
                   onProductChange={setSelectedProduct}
                   isLoggedIn={isLoggedIn}
                   onOpenLoginModal={() => setShowLoginModal(true)}
-                  showSidebar={showSidebar && isLoggedIn}
+                  showSidebar={isSidebarOpen}
+                  onToggleSidebar={handleToggleSidebar}
                 />
               )}
 

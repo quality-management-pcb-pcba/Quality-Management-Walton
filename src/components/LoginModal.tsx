@@ -153,23 +153,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         />
 
         {/* Left Side: Interactive Cute Lamp Section */}
-        <div className="flex-1 flex flex-col items-center justify-center relative w-full select-none">
-          <div className="text-center mb-1 sm:mb-2 z-10">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center p-0.5 border border-white/20">
+        <div className="flex-1 flex flex-col items-start justify-start relative w-full select-none">
+          {/* Logo & Branding - Aligned Upper Left */}
+          <div className="w-full text-left mb-2 sm:mb-4 z-10 self-start">
+            <div className="flex items-center justify-start gap-3 sm:gap-4">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-white/10 flex items-center justify-center p-2 sm:p-2.5 border border-white/20 shadow-xl backdrop-blur-md shrink-0">
                 <WaltonSealLogo className="w-full h-full" animated={false} />
               </div>
-              <span className="text-xs font-bold tracking-wider uppercase text-slate-300">
-                WALTON QM USER LOGIN
-              </span>
+              <div className="flex flex-col text-left">
+                <span className="text-sm sm:text-base md:text-lg font-extrabold tracking-wider uppercase text-white drop-shadow-sm">
+                  WALTON QM USER LOGIN
+                </span>
+                <p className="text-xs sm:text-[13px] font-semibold text-cyan-400 tracking-wider uppercase mt-0.5">
+                  QUALITY MANAGEMENT - PCB &amp; PCBA
+                </p>
+              </div>
             </div>
-            <p className="text-[11px] font-medium text-slate-400 mt-0.5 tracking-wide uppercase">
-              QUALITY MANAGEMENT- PCB & PCBA
-            </p>
           </div>
 
           <svg
-            className="w-full max-w-[270px] sm:max-w-[310px] md:max-w-[330px] h-auto overflow-visible drop-shadow-[0_20px_30px_rgba(0,0,0,0.6)]"
+            className="w-full max-w-[270px] sm:max-w-[310px] md:max-w-[330px] h-auto overflow-visible drop-shadow-[0_20px_30px_rgba(0,0,0,0.6)] self-center mx-auto"
             viewBox="0 0 300 450"
             xmlns="http://www.w3.org/2000/svg"
           >

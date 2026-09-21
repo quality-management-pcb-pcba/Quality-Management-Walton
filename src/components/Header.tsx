@@ -38,6 +38,7 @@ import { ContactModal } from './modals/ContactModal';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
   onNavigate?: (page: PageId) => void;
   onOpenNewNcModal?: () => void;
   onOpenNewCapaModal?: () => void;
@@ -59,6 +60,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   onToggleSidebar = () => {},
+  isSidebarOpen = false,
   onNavigate = (_page: PageId) => {},
   onOpenNewNcModal = () => {},
   onOpenNewCapaModal = () => {},
@@ -125,17 +127,19 @@ export const Header: React.FC<HeaderProps> = ({
       >
       {/* Left branding & Mobile toggle */}
       <div className="flex items-center gap-3.5 sm:gap-5">
-        {isLoggedIn && (
-          <button
-            id="btn-sidebar-toggle"
-            onClick={onToggleSidebar}
-            className="p-2 text-white/80 hover:text-white rounded-md hover:bg-[#182a52] transition-colors cursor-pointer"
-            aria-label="Toggle Navigation Menu"
-            title="Toggle Navigation Menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        )}
+        <button
+          id="btn-sidebar-toggle"
+          onClick={onToggleSidebar}
+          className={`p-2 rounded-md transition-colors cursor-pointer ${
+            isSidebarOpen
+              ? 'bg-[#182a52] text-white ring-1 ring-[#e35b2a]/50'
+              : 'text-white/80 hover:text-white hover:bg-[#182a52]'
+          }`}
+          aria-label={isSidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+          title={isSidebarOpen ? "Close Navigation Sidebar" : "Open Navigation Sidebar"}
+        >
+          <Menu className="w-5 h-5" />
+        </button>
 
         <div
           className="flex items-center gap-3.5 cursor-pointer group"

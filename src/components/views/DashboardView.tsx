@@ -60,7 +60,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { AlertCircle, CheckCircle2, TrendingUp, ShieldAlert, ArrowUpRight, Calendar, Layers, Lock, ShieldCheck, Home } from 'lucide-react';
+import { AlertCircle, CheckCircle2, TrendingUp, ShieldAlert, ArrowUpRight, Calendar, Layers, Lock, ShieldCheck, Home, Menu } from 'lucide-react';
 import { PageId } from '../../types';
 
 interface DashboardViewProps {
@@ -77,6 +77,7 @@ interface DashboardViewProps {
   isLoggedIn?: boolean;
   onOpenLoginModal?: () => void;
   showSidebar?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -93,6 +94,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   isLoggedIn = false,
   onOpenLoginModal = () => {},
   showSidebar = false,
+  onToggleSidebar = () => {},
 }) => {
   const [localMonth, setLocalMonth] = useState<string>('August 2026');
   const [localProduct, setLocalProduct] = useState<string>('All Products');
@@ -162,67 +164,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div id="page-dashboard" className="space-y-6 animate-in fade-in duration-200">
-      {/* Access mode banner when viewing without authorized sidebar */}
-      {!showSidebar && (
-        <div className="bg-white border border-[#cbd5e1] rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-slate-100 text-slate-600 shrink-0">
-              <Lock className="w-5 h-5 text-slate-500" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#0d1730]">
-                  Public Dashboard View Mode
-                </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
-                  Sidebar Hidden
-                </span>
-              </div>
-              <p className="text-xs text-[#5b6480] mt-0.5">
-                {isLoggedIn
-                  ? 'Viewing dashboard directly without sidebar. You have login access.'
-                  : 'You are viewing the quality dashboard without sidebar access. Authorized login access is required for sidebar navigation and restricted sections.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-            <button
-              onClick={() => onNavigate('home')}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span>Back to Home</span>
-            </button>
-            {!isLoggedIn && (
-              <button
-                onClick={onOpenLoginModal}
-                className="px-3.5 py-1.5 bg-[#1c356b] hover:bg-[#152a55] text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
-              >
-                <Lock className="w-3.5 h-3.5 text-[#93c5fd]" />
-                <span>Sign In for Sidebar</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
             <h2 className="text-2xl font-bold text-[#0d1730]">Dashboard</h2>
-            {showSidebar ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider">
-                <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                <span>Authorized View</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
-                <Lock className="w-2.5 h-2.5 text-slate-500" />
-                <span>No Sidebar</span>
-              </span>
-            )}
+            <button
+              onClick={onToggleSidebar}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer"
+              title={showSidebar ? "Switch to icon rail" : "Expand sidebar to full"}
+            >
+              <Menu className="w-3.5 h-3.5 text-[#1c356b]" />
+              <span>{showSidebar ? 'Full Sidebar' : 'Icon Rail'}</span>
+            </button>
           </div>
           <div className="text-xs text-[#5b6480] mt-0.5">
             Production Overview · All PCB &amp; PCBA Lines
