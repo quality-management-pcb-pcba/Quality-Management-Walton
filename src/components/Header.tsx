@@ -32,8 +32,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { QmBadge } from './QmBadge';
-import { Menu, User, LogOut, Settings as SettingsIcon, Mail, Home, Lock, ShieldCheck } from 'lucide-react';
-import { PageId } from '../types';
+import { Menu, User, LogOut, Settings as SettingsIcon, Mail, Home, Lock, ShieldCheck, Users } from 'lucide-react';
+import { PageId, UserProfile } from '../types';
 import { ContactModal } from './modals/ContactModal';
 
 interface HeaderProps {
@@ -52,6 +52,8 @@ interface HeaderProps {
   onSelectProduct?: (product: string) => void;
   setSelectedProduct?: (product: string) => void;
   isLoggedIn?: boolean;
+  userEmail?: string;
+  userProfile?: UserProfile | null;
   onOpenLoginModal?: () => void;
   currentPage?: PageId;
   onTogglePortalView?: () => void;
@@ -74,6 +76,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectProduct,
   setSelectedProduct,
   isLoggedIn = false,
+  userEmail,
+  userProfile,
   onOpenLoginModal = () => {},
 }) => {
   /** Local state to toggle the administrator user dropdown menu */
@@ -168,24 +172,58 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center gap-2.5 bg-[#182a52] border border-[#2a3c6b] hover:border-[#9fb0d6] px-3 py-1.5 rounded-full transition-all text-left cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-full bg-white text-[#0d1730] flex items-center justify-center font-mono font-bold text-xs shrink-0 shadow-xs">
-                AR
+              <div className="w-8 h-8 rounded-full bg-[#e35b2a] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0 shadow-xs uppercase">
+                {userProfile?.name ? userProfile.name.slice(0, 2).toUpperCase() : userEmail ? userEmail.slice(0, 2).toUpperCase() : 'AR'}
               </div>
               <div className="pr-1 hidden sm:block">
-                <div className="text-xs font-bold text-white leading-tight">Atikur Rahman</div>
-                <div className="text-[10px] text-[#9fb0d6]">Quality Management</div>
+                <div className="text-xs font-bold text-white leading-tight truncate max-w-[140px]">
+                  {userProfile?.name || (userEmail ? userEmail.split('@')[0] : 'Atikur Rahman')}
+                </div>
+                <div className="text-[10px] text-[#9fb0d6] flex items-center gap-1">
+                  <span>{userProfile?.designation || 'Quality Management'}</span>
+                  {userProfile?.role && (
+                    <span className="px-1 py-0.2 bg-[#2a3c6b] text-white rounded text-[9px] uppercase font-bold">
+                      {userProfile.role}
+                    </span>
+                  )}
+                </div>
               </div>
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e2e7f2] rounded-xl shadow-xl py-1.5 z-50 text-[#141b30] text-xs">
+              <div className="absolute right-0 mt-2 w-64 bg-white border border-[#e2e7f2] rounded-xl shadow-xl py-1.5 z-50 text-[#141b30] text-xs">
                 <div className="px-3.5 py-2.5 border-b border-[#e2e7f2]">
-                  <p className="font-semibold text-sm text-[#0d1730]">Atikur Rahman</p>
-                  <p className="text-[11px] text-[#5b6480]">atiqur40736@waltonbd.com</p>
-                  <span className="inline-block mt-1 px-1.5 py-0.5 bg-[#e5f7ee] text-[#1c8a53] rounded text-[10px] font-mono font-semibold">
-                    ID: 40736 · Plant Lead
-                  </span>
+                  <p className="font-semibold text-sm text-[#0d1730] truncate">
+                    {userProfile?.name || (userEmail ? userEmail.split('@')[0] : 'Atikur Rahman')}
+                  </p>
+                  <p className="text-[11px] text-[#5b6480] truncate font-mono">{userEmail || 'atiqur40736@waltonbd.com'}</p>
+                  {userProfile?.employeeId && (
+                    <p className="text-[10.5px] text-slate-500 font-mono mt-0.5">ID: {userProfile.employeeId}</p>
+                  )}
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className="px-1.5 py-0.5 bg-[#e5f7ee] text-[#1c8a53] rounded text-[10px] font-semibold">
+                      Active
+                    </span>
+                    <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-semibold uppercase">
+                      {userProfile?.role || 'Admin'}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Admin User Management link */}
+                {(userProfile?.role === 'admin' || userProfile?.role === 'manager' || !userProfile) && (
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      onNavigate('users');
+                    }}
+                    className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-[#eef1f8] font-semibold text-[#0d1730] cursor-pointer"
+                  >
+                    <Users className="w-4 h-4 text-[#e35b2a]" />
+                    <span>User Management</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => {
                     setUserMenuOpen(false);

@@ -54,9 +54,37 @@ export type PageId =
   | 'complaints'
   | 'docs'
   | 'team'
-  | 'settings';
+  | 'settings'
+  | 'users';
 
 export type PageType = PageId;
+
+/**
+ * User Roles in Walton Quality Management System
+ */
+export type UserRole = 'admin' | 'manager' | 'qa_staff' | 'viewer';
+
+/**
+ * Account Status in Walton QMS
+ */
+export type UserStatus = 'active' | 'inactive';
+
+/**
+ * UserProfile Document Model (Stored in Firestore under users/{firebaseUID})
+ */
+export interface UserProfile {
+  uid: string;
+  employeeId: string;
+  name: string;
+  email: string;
+  department: string;
+  section: string;
+  designation: string;
+  role: UserRole;
+  status: UserStatus;
+  createdAt?: any;
+  updatedAt?: any;
+}
 
 /**
  * Department Interface

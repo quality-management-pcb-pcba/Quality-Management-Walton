@@ -151,8 +151,12 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
   const [remarks, setRemarks] = useState('');
 
   // Operator fields
-  const [aestheticOperator, setAestheticOperator] = useState('Md. Rony Khan(14873)');
-  const [functionalOperator, setFunctionalOperator] = useState('Md. Masud Rana(15065)');
+  const [aestheticOperator, setAestheticOperator] = useState<string>(() => {
+    return formData.operators[0] || '';
+  });
+  const [functionalOperator, setFunctionalOperator] = useState<string>(() => {
+    return formData.operators[0] || '';
+  });
 
   // Quantities maps: defectName -> qty
   const [aestheticQuantities, setAestheticQuantities] = useState<Record<string, number>>({});
@@ -281,6 +285,36 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
     const availableModels = formData.productModels[prod] || [];
     setSelectedModel(availableModels[0] || '');
   };
+
+  // Sync selected operators when master operators list is updated
+  useEffect(() => {
+    if (formData.operators.length > 0) {
+      if (!aestheticOperator || !formData.operators.includes(aestheticOperator)) {
+        setAestheticOperator(formData.operators[0]);
+      }
+      if (!functionalOperator || !formData.operators.includes(functionalOperator)) {
+        setFunctionalOperator(formData.operators[0]);
+      }
+    } else {
+      setAestheticOperator('');
+      setFunctionalOperator('');
+    }
+  }, [formData.operators, aestheticOperator, functionalOperator]);
+
+  // Sync selected product/model if removed from master list
+  useEffect(() => {
+    if (formData.products.length > 0) {
+      if (!selectedProduct || !formData.products.includes(selectedProduct)) {
+        const nextProd = formData.products[0];
+        setSelectedProduct(nextProd);
+        const models = formData.productModels[nextProd] || [];
+        setSelectedModel(models[0] || '');
+      }
+    } else {
+      setSelectedProduct('');
+      setSelectedModel('');
+    }
+  }, [formData.products, selectedProduct, formData.productModels]);
 
   // Aesthetics list
   const allAesthetics = useMemo(() => {
@@ -589,20 +623,30 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
       showToast('That operator already exists.', 'error');
       return;
     }
+    const updated = [...formData.operators, op].sort();
     setFormData((prev: typeof DEFAULT_FORM_DATA) => ({
       ...prev,
-      operators: [...prev.operators, op].sort(),
+      operators: updated,
     }));
+    setAestheticOperator(op);
+    setFunctionalOperator(op);
     setModalNewOperator('');
-    showToast(`Operator "${op}" added.`, 'success');
+    showToast(`Operator "${op}" added and selected.`, 'success');
   };
 
   const handleDeleteOperator = (op: string) => {
     if (!window.confirm(`Remove "${op}" from operators?`)) return;
+    const remaining = formData.operators.filter((o) => o !== op);
     setFormData((prev: typeof DEFAULT_FORM_DATA) => ({
       ...prev,
-      operators: prev.operators.filter((o) => o !== op),
+      operators: remaining,
     }));
+    if (aestheticOperator === op) {
+      setAestheticOperator(remaining[0] || '');
+    }
+    if (functionalOperator === op) {
+      setFunctionalOperator(remaining[0] || '');
+    }
     showToast(`Operator "${op}" removed.`, 'success');
   };
 
@@ -711,7 +755,7 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
             <select
               value={selectedProduct}
               onChange={(e) => handleProductChange(e.target.value)}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
               {formData.products.map((p: string) => (
                 <option key={p} value={p}>
@@ -728,13 +772,18 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
+              disabled={!selectedProduct}
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
-              {(formData.productModels[selectedProduct] || []).map((m: string) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
+              {(formData.productModels[selectedProduct] || []).length === 0 ? (
+                <option value="">No models yet — add via ⚙ Manage Lists</option>
+              ) : (
+                (formData.productModels[selectedProduct] || []).map((m: string) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>
@@ -763,16 +812,25 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
             Checking Operator
           </label>
           <div className="w-full sm:w-72">
-            <input
+            <select
               id="aestheticOperator"
-              list="operatorDataList"
-              type="text"
               value={aestheticOperator}
               onChange={(e) => setAestheticOperator(e.target.value)}
-              placeholder="Type or pick a name…"
-              autoComplete="off"
-              className="w-full px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none"
-            />
+              className="w-full px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none bg-white cursor-pointer"
+            >
+              {formData.operators.length === 0 ? (
+                <option value="">No operators yet — add via ⚙ Manage Lists</option>
+              ) : (
+                <>
+                  <option value="">Select Checking Operator…</option>
+                  {formData.operators.map((op: string) => (
+                    <option key={op} value={op}>
+                      {op}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
           </div>
         </div>
 
@@ -860,16 +918,25 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
             Checking Operator
           </label>
           <div className="w-full sm:w-72">
-            <input
+            <select
               id="functionalOperator"
-              list="operatorDataList"
-              type="text"
               value={functionalOperator}
               onChange={(e) => setFunctionalOperator(e.target.value)}
-              placeholder="Type or pick a name…"
-              autoComplete="off"
-              className="w-full px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none"
-            />
+              className="w-full px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none bg-white cursor-pointer"
+            >
+              {formData.operators.length === 0 ? (
+                <option value="">No operators yet — add via ⚙ Manage Lists</option>
+              ) : (
+                <>
+                  <option value="">Select Checking Operator…</option>
+                  {formData.operators.map((op: string) => (
+                    <option key={op} value={op}>
+                      {op}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
           </div>
         </div>
 
@@ -933,13 +1000,6 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
           </div>
         </div>
       </section>
-
-      {/* Datalist for Operator auto-complete */}
-      <datalist id="operatorDataList">
-        {formData.operators.map((op: string) => (
-          <option key={op} value={op} />
-        ))}
-      </datalist>
 
       {/* CARD 4: Remarks */}
       <section className="bg-white border border-[#e2e8f0] rounded-xl shadow-xs overflow-hidden print:hidden">

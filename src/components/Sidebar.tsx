@@ -34,7 +34,7 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { PageId } from '../types';
+import { PageId, UserProfile } from '../types';
 import {
   Home,
   LayoutDashboard,
@@ -54,6 +54,8 @@ import {
   ChevronDown,
   ChevronRight,
   Workflow,
+  ShieldCheck,
+  UserCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -74,6 +76,7 @@ interface SidebarProps {
   openNcrCount?: number;
   openNcCount?: number;
   openCapaCount?: number;
+  userProfile?: UserProfile | null;
 }
 
 interface NavItem {
@@ -273,6 +276,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Team & Training',
       icon: Users,
       description: 'Inspector certifications, shift rosters & skills matrix',
+    },
+    {
+      id: 'users' as PageId,
+      label: 'User Management',
+      icon: ShieldCheck,
+      description: 'Walton employee accounts, authentication & access roles',
     },
     {
       id: 'settings' as PageId,

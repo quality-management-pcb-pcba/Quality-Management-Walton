@@ -274,7 +274,9 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
   const [shift, setShift] = useState<string>('Day');
   const [product, setProduct] = useState<string>('Fridge');
   const [model, setModel] = useState<string>('SMT-255L-Freezer Display');
-  const [operator, setOperator] = useState<string>('Anik Sutradhar(50280)');
+  const [operator, setOperator] = useState<string>(() => {
+    return formData.operators[0] || 'Anik Sutradhar(50280)';
+  });
   const [remarks, setRemarks] = useState<string>('');
 
   // Fault quantities mapping
@@ -322,6 +324,32 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
       setModel('');
     }
   };
+
+  // Sync selected operator when master operators list is updated
+  useEffect(() => {
+    if (formData.operators.length > 0) {
+      if (!operator || !formData.operators.includes(operator)) {
+        setOperator(formData.operators[0]);
+      }
+    } else {
+      setOperator('');
+    }
+  }, [formData.operators, operator]);
+
+  // Sync selected product/model if removed from master list
+  useEffect(() => {
+    if (formData.products.length > 0) {
+      if (!product || !formData.products.includes(product)) {
+        const nextProd = formData.products[0];
+        setProduct(nextProd);
+        const models = formData.productModels[nextProd] || [];
+        setModel(models[0] || '');
+      }
+    } else {
+      setProduct('');
+      setModel('');
+    }
+  }, [formData.products, product, formData.productModels]);
 
   // Show Toast Helper
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -619,20 +647,26 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
       showToast('That operator already exists.', 'error');
       return;
     }
+    const updatedOps = [...formData.operators, val].sort();
     setFormData((prev: typeof DEFAULT_FORM_DATA) => ({
       ...prev,
-      operators: [...prev.operators, val].sort(),
+      operators: updatedOps,
     }));
+    setOperator(val);
     setNewOperatorInput('');
-    showToast(`Operator "${val}" added`, 'success');
+    showToast(`Operator "${val}" added and selected`, 'success');
   };
 
   const handleDeleteOperator = (op: string) => {
     if (!window.confirm(`Remove operator "${op}"?`)) return;
+    const remaining = formData.operators.filter((o: string) => o !== op);
     setFormData((prev: typeof DEFAULT_FORM_DATA) => ({
       ...prev,
-      operators: prev.operators.filter((o) => o !== op),
+      operators: remaining,
     }));
+    if (operator === op) {
+      setOperator(remaining[0] || '');
+    }
     showToast(`Operator "${op}" removed`, 'success');
   };
 
@@ -675,8 +709,8 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
                 Live Production Entry
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5">
-              PCB / PCBA AOI (Automated Optical Inspection)
+            <p id="aoi-header-subtitle" className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5">
+              PCBA AOI (Automatic Optical Inspection)
             </p>
           </div>
         </div>
@@ -842,21 +876,25 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
             Checking Operator
           </label>
           <div className="w-full sm:w-80 relative">
-            <input
+            <select
               id="aoi-input-operator"
-              type="text"
-              list="aoi-operator-list"
               value={operator}
               onChange={(e) => setOperator(e.target.value)}
-              placeholder="Type or pick a name…"
-              autoComplete="off"
-              className="w-full text-sm px-3.5 py-2 rounded-lg border-[1.5px] border-[#e2e8f0] focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/15 outline-none bg-white font-medium text-[#1e293b] transition-all"
-            />
-            <datalist id="aoi-operator-list">
-              {formData.operators.map((op: string) => (
-                <option key={op} value={op} />
-              ))}
-            </datalist>
+              className="w-full text-sm px-3.5 py-2.5 rounded-lg border-[1.5px] border-[#e2e8f0] focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/15 outline-none bg-white font-medium text-[#1e293b] transition-all cursor-pointer shadow-xs"
+            >
+              {formData.operators.length === 0 ? (
+                <option value="">No operators found — add via ⚙ Manage Lists</option>
+              ) : (
+                <>
+                  <option value="">Select Checking Operator…</option>
+                  {formData.operators.map((op: string) => (
+                    <option key={op} value={op}>
+                      {op}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
           </div>
         </div>
 

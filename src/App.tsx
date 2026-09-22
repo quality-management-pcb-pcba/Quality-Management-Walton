@@ -25,12 +25,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Lock, ShieldAlert, ArrowLeft } from 'lucide-react';
-import { PageType, NonConformanceItem, CapaItem, SopDocument } from './types';
+import { PageType, NonConformanceItem, CapaItem, SopDocument, UserProfile } from './types';
 import {
   INITIAL_NCRS,
   INITIAL_CAPAS,
   INITIAL_SOPS,
 } from './data/initialData';
+import { auth, signOut, onAuthStateChanged } from './services/firebase';
+import { getUserProfile, bootstrapUserProfile } from './services/userService';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { LandingPage } from './components/LandingPage';
@@ -53,6 +55,7 @@ import { QualityDevView } from './components/views/QualityDevView';
 import { TaskManagerView } from './components/views/TaskManagerView';
 import { ResearchView } from './components/views/ResearchView';
 import { SettingsView } from './components/views/SettingsView';
+import { UserManagementView } from './components/views/UserManagementView';
 
 import { NewNcModal } from './components/modals/NewNcModal';
 import { NewCapaModal } from './components/modals/NewCapaModal';
@@ -85,10 +88,58 @@ export default function App() {
   /**
    * @state isLoggedIn
    * @type {boolean}
-   * Indicates whether the user is authenticated as an authorized Walton Quality Administrator.
+   * Indicates whether the user is authenticated via Firebase Authentication.
    * Controls access to administrative editing tools, the sidebar navigation, and restricted actions.
    */
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  /**
+   * @state currentUserEmail
+   * Holds the email of the authenticated Firebase user.
+   */
+  const [currentUserEmail, setCurrentUserEmail] = useState<string>('atiqur40736@waltonbd.com');
+
+  /**
+   * @state currentUserProfile
+   * Holds the active Firestore employee profile for the authenticated employee.
+   */
+  const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null);
+
+  /**
+   * Listen to Firebase Authentication state changes across app lifecycle
+   */
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setIsLoggedIn(true);
+        if (user.email) {
+          setCurrentUserEmail(user.email);
+        }
+        try {
+          let profile = await getUserProfile(user.uid, user.email || undefined);
+          if (!profile && user.email) {
+            profile = await bootstrapUserProfile(user.uid, user.email);
+          }
+          if (profile) {
+            if (profile.status === 'inactive') {
+              await signOut(auth);
+              setIsLoggedIn(false);
+              setCurrentUserProfile(null);
+              return;
+            }
+            setCurrentUserProfile(profile);
+          }
+        } catch (err) {
+          console.warn('Profile fetch warning:', err);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setCurrentUserProfile(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   /**
    * @state currentPage
@@ -173,7 +224,7 @@ export default function App() {
         const validPages: PageType[] = [
           'home', 'dashboard', 'leaders', 'pcb', 'pcb-process', 'iqc', 'iqc-pcb', 'iqc-pcba',
           'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
-          'capa', 'complaints', 'docs', 'team', 'settings'
+          'capa', 'complaints', 'docs', 'team', 'users', 'settings'
         ];
         if (validPages.includes(hash as PageType)) return hash as PageType;
       }
@@ -182,7 +233,7 @@ export default function App() {
         const validPages: PageType[] = [
           'home', 'dashboard', 'leaders', 'pcb', 'pcb-process', 'iqc', 'iqc-pcb', 'iqc-pcba',
           'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
-          'capa', 'complaints', 'docs', 'team', 'settings'
+          'capa', 'complaints', 'docs', 'team', 'users', 'settings'
         ];
         if (validPages.includes(pathname as PageType)) return pathname as PageType;
       }
@@ -217,11 +268,18 @@ export default function App() {
    * WHAT IT DOES:
    * Called when a user successfully enters authorized credentials in the LoginModal.
    * - Marks `isLoggedIn` as true.
+   * - Saves authenticated user email and loaded UserProfile.
    * - Automatically directs the user to the 'dashboard' page with the sidebar visible.
    * - Expands the sidebar and closes the login dialog.
    */
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (email?: string, profile?: UserProfile) => {
     setIsLoggedIn(true);
+    if (email) {
+      setCurrentUserEmail(email);
+    }
+    if (profile) {
+      setCurrentUserProfile(profile);
+    }
     setCurrentPage('dashboard');
     setIsSidebarOpen(true);
     setInPortal(true);
@@ -236,11 +294,18 @@ export default function App() {
    * ------------
    * WHAT IT DOES:
    * Called when an administrator clicks "Sign Out".
-   * - Resets `isLoggedIn` to false.
+   * - Calls Firebase signOut.
+   * - Resets `isLoggedIn` and `currentUserProfile` to null.
    * - Returns the application to the public 'home' landing page.
    */
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Firebase signOut error:', err);
+    }
     setIsLoggedIn(false);
+    setCurrentUserProfile(null);
     setCurrentPage('home');
     setInPortal(false);
     try {
@@ -353,6 +418,8 @@ export default function App() {
       {!isShowingHome && (
         <Header
           isLoggedIn={isLoggedIn}
+          userEmail={currentUserEmail}
+          userProfile={currentUserProfile}
           onOpenLoginModal={() => setShowLoginModal(true)}
           onLogout={handleLogout}
           onNavigate={handleNavigate}
@@ -399,6 +466,7 @@ export default function App() {
             onCloseMobile={() => setIsSidebarOpen(false)}
             openNcCount={ncList.filter((n) => n.status === 'Open' || n.status === 'In Progress').length}
             openCapaCount={capaList.filter((c) => c.status === 'Open' || c.status === 'In Progress').length}
+            userProfile={currentUserProfile}
           />
 
           {/* Dynamic Content Body */}
@@ -513,6 +581,10 @@ export default function App() {
               {currentPage === 'leaders' && <LeadersView onNavigate={handleNavigate} />}
 
               {currentPage === 'research' && <ResearchView onNavigate={handleNavigate} />}
+
+              {currentPage === 'users' && (
+                <UserManagementView currentUserProfile={currentUserProfile} />
+              )}
 
               {currentPage === 'settings' && <SettingsView />}
             </div>

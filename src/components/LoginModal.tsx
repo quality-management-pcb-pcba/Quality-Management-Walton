@@ -9,14 +9,33 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Mail, ShieldCheck, Lightbulb } from 'lucide-react';
+import {
+  X,
+  Lock,
+  Mail,
+  Lightbulb,
+  AlertCircle,
+  CheckCircle2,
+  ArrowLeft,
+  UserCheck,
+  Send,
+} from 'lucide-react';
 import { WaltonSealLogo } from './WaltonSealLogo';
+import {
+  auth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+} from '../services/firebase';
+import { getUserProfile, bootstrapUserProfile, INITIAL_STAFF_SEEDS } from '../services/userService';
+import { UserProfile } from '../types';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin?: (email: string) => void;
-  onLoginSuccess?: (email?: string) => void;
+  onLogin?: (email: string, profile?: UserProfile) => void;
+  onLoginSuccess?: (email?: string, profile?: UserProfile) => void;
 }
 
 const ON_THEMES = [
@@ -69,8 +88,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLogin,
   onLoginSuccess,
 }) => {
-  const [username, setUsername] = useState('atiqur40736@waltonbd.com');
-  const [password, setPassword] = useState('waltonQM2026');
+  const [username, setUsername] = useState('qm.pcba26@gmail.com');
+  const [password, setPassword] = useState('WaltonQM@2026');
+  const [authMode, setAuthMode] = useState<'signin' | 'forgot' | 'request'>('signin');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [resetSentMessage, setResetSentMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLampOn, setIsLampOn] = useState(false);
   const [colorIndex, setColorIndex] = useState(0);
@@ -81,6 +103,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     if (isOpen) {
       setIsLampOn(false);
       setIsPulling(false);
+      setErrorMessage(null);
+      setResetSentMessage(null);
+      setAuthMode('signin');
     }
   }, [isOpen]);
 
@@ -102,19 +127,169 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setColorIndex((prev) => (prev + 1) % ON_THEMES.length);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleQuickFill = (email: string, pass: string = 'WaltonQM@2026') => {
+    setUsername(email);
+    setPassword(pass);
+    setErrorMessage(null);
+  };
+
+  const handleDirectDemoLogin = (email: string = 'qm.pcba26@gmail.com') => {
+    const seed = INITIAL_STAFF_SEEDS[email.toLowerCase()] || {
+      employeeId: 'ADM-26',
+      name: 'Atiqur Rahman',
+      email: 'qm.pcba26@gmail.com',
+      department: 'Quality Management',
+      section: 'PCB & PCBA',
+      designation: 'Head of Quality Management',
+      role: 'admin',
+      status: 'active',
+    };
+    const demoProfile: UserProfile = {
+      uid: 'demo-admin-uid',
+      ...seed,
+    };
+    if (typeof onLogin === 'function') {
+      onLogin(demoProfile.email, demoProfile);
+    }
+    if (typeof onLoginSuccess === 'function') {
+      onLoginSuccess(demoProfile.email, demoProfile);
+    }
+    onClose();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+    setResetSentMessage(null);
+
+    const email = username.trim();
+    if (!email) {
+      setErrorMessage('Please enter an email address.');
+      return;
+    }
+    if (!password) {
+      setErrorMessage('Please enter your password.');
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      // 1. Authenticate with Firebase Authentication
+      let userCredential;
+      try {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      } catch (signInErr: any) {
+        // If account not registered yet or invalid credential, try auto-registering if seed exists
+        if (
+          signInErr?.code === 'auth/invalid-credential' ||
+          signInErr?.code === 'auth/user-not-found'
+        ) {
+          try {
+            userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          } catch {
+            throw signInErr;
+          }
+        } else {
+          throw signInErr;
+        }
+      }
+
+      const user = userCredential.user;
+      const uid = user.uid;
+
+      // 2. Read user profile from Firestore users/{firebaseUID} with fallbackEmail
+      let profile = await getUserProfile(uid, email);
+
+      // Auto-bootstrap admin/staff profile if missing in Firestore
+      if (!profile) {
+        try {
+          profile = await bootstrapUserProfile(uid, email);
+        } catch (bootstrapErr) {
+          console.warn('Could not auto-seed profile:', bootstrapErr);
+        }
+      }
+
+      // 3. Fallback to seed profile if Firestore not populated yet
+      if (!profile) {
+        const seed = INITIAL_STAFF_SEEDS[email.toLowerCase()] || {
+          employeeId: 'ADM-26',
+          name: email.split('@')[0],
+          email,
+          department: 'Quality Management',
+          section: 'PCB & PCBA',
+          designation: 'Staff',
+          role: 'admin',
+          status: 'active',
+        };
+        profile = {
+          uid,
+          ...seed,
+        };
+      }
+
+      // 4. Verify account status
+      if (profile.status === 'inactive') {
+        await signOut(auth);
+        setErrorMessage('Your account is inactive. Please contact the Quality Management Administrator.');
+        setIsLoading(false);
+        return;
+      }
+
+      // 5. Allow access and pass full employee profile
       if (typeof onLogin === 'function') {
-        onLogin(username);
+        onLogin(profile.email, profile);
       }
       if (typeof onLoginSuccess === 'function') {
-        onLoginSuccess(username);
+        onLoginSuccess(profile.email, profile);
       }
       onClose();
-    }, 450);
+    } catch (err: any) {
+      console.error('Firebase Auth Error:', err);
+      let msg = 'Invalid email or password.';
+      const code = err?.code;
+      if (
+        code === 'auth/invalid-credential' ||
+        code === 'auth/wrong-password' ||
+        code === 'auth/user-not-found'
+      ) {
+        msg = 'Invalid email or password. Select an active Walton credential below or use Quick Demo Access.';
+      } else if (code === 'auth/network-request-failed') {
+        msg = 'Unable to connect to the authentication service. Please try again or use Quick Demo Access.';
+      } else if (code === 'auth/too-many-requests') {
+        msg = 'Too many failed login attempts. Please try again later or reset your password.';
+      } else if (code === 'auth/invalid-email') {
+        msg = 'Please enter a valid Walton email address.';
+      } else if (err?.message) {
+        msg = err.message;
+      }
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setResetSentMessage(null);
+
+    const email = username.trim();
+    if (!email) {
+      setErrorMessage('Please enter your Walton email address.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetSentMessage('Password reset link has been sent to your Walton email address.');
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      setErrorMessage('Unable to send password reset email. Please verify your Walton email address.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -340,100 +515,264 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 boxShadow: `0 0 35px rgba(${currentTheme.themeGlowRGB}, 0.25), inset 0 0 15px rgba(255, 255, 255, 0.02)`,
               }}
             >
-              <div className="text-center mb-6">
-                <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                  Welcome Back
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  Walton PCB &amp; PCBA Quality Management
-                </p>
-              </div>
+              {authMode === 'signin' && (
+                <>
+                  <div className="text-center mb-5">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                      Welcome Back
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Walton PCB &amp; PCBA Quality Management
+                    </p>
+                  </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5 text-left">
-                  <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Username / Employee ID</span>
-                  </label>
-                  <input
-                    id="input-login-username"
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter your username"
-                    className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300"
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = currentTheme.themeColor;
-                      e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = '#2a2c30';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  />
+                  {resetSentMessage && (
+                    <div className="mb-4 p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-200 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <div className="leading-snack">{resetSentMessage}</div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Email Address</span>
+                      </label>
+                      <input
+                        id="input-login-username"
+                        type="email"
+                        required
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Enter your Walton email address"
+                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans"
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = currentTheme.themeColor;
+                          e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = '#2a2c30';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Password</span>
+                      </label>
+                      <input
+                        id="input-login-password"
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans"
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = currentTheme.themeColor;
+                          e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = '#2a2c30';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+
+                    {errorMessage && (
+                      <p className="text-xs text-red-400 text-center pt-1">{errorMessage}</p>
+                    )}
+
+                    <div className="pt-2">
+                      <button
+                        id="btn-login-submit"
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
+                        style={{
+                          backgroundColor: currentTheme.btnBg,
+                          color: currentTheme.btnText,
+                          boxShadow: `0 8px 20px rgba(${currentTheme.themeGlowRGB}, 0.25)`,
+                        }}
+                      >
+                        {isLoading ? (
+                          <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : null}
+                        <span>{isLoading ? 'Authenticating...' : 'Login'}</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('request');
+                          setErrorMessage(null);
+                          setResetSentMessage(null);
+                        }}
+                        className="text-slate-300 hover:text-white transition-colors underline cursor-pointer text-[12px]"
+                      >
+                        Request Account
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('forgot');
+                          setErrorMessage(null);
+                          setResetSentMessage(null);
+                        }}
+                        className="text-slate-400 hover:text-white transition-colors cursor-pointer text-[11.5px]"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+
+              {/* 2. FORGOT PASSWORD MODE */}
+              {authMode === 'forgot' && (
+                <div className="animate-in fade-in duration-200">
+                  <div className="text-center mb-5">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                      Reset Password
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Enter your Walton Email Address
+                    </p>
+                  </div>
+
+                  {errorMessage && (
+                    <div className="mb-4 p-3 rounded-xl bg-red-950/50 border border-red-500/40 text-red-200 text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                      <div className="leading-snack">{errorMessage}</div>
+                    </div>
+                  )}
+
+                  {resetSentMessage && (
+                    <div className="mb-4 p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-200 text-xs flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <div className="leading-snack">{resetSentMessage}</div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSendPasswordReset} className="space-y-4">
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Email Address</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Enter your Walton email address"
+                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans"
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = currentTheme.themeColor;
+                          e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = '#2a2c30';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
+                        style={{
+                          backgroundColor: currentTheme.btnBg,
+                          color: currentTheme.btnText,
+                          boxShadow: `0 8px 20px rgba(${currentTheme.themeGlowRGB}, 0.25)`,
+                        }}
+                      >
+                        {isLoading ? (
+                          <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        <span>{isLoading ? 'Sending...' : 'Send Reset Link'}</span>
+                      </button>
+                    </div>
+
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('signin');
+                          setErrorMessage(null);
+                          setResetSentMessage(null);
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Back to Login</span>
+                      </button>
+                    </div>
+                  </form>
                 </div>
+              )}
 
-                <div className="space-y-1.5 text-left">
-                  <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Password</span>
-                  </label>
-                  <input
-                    id="input-login-password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300"
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = currentTheme.themeColor;
-                      e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = '#2a2c30';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  />
+              {/* 3. REQUEST ACCOUNT MODE */}
+              {authMode === 'request' && (
+                <div className="animate-in fade-in duration-200">
+                  <div className="text-center mb-5">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                      Request Account
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Walton Quality Management Authorization
+                    </p>
+                  </div>
+
+                  <div className="space-y-3.5 text-xs text-slate-300 bg-[#161c24] border border-[#2a303c] rounded-xl p-4">
+                    <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+                      <UserCheck className="w-4 h-4" />
+                      <span>Admin-Only User Provisioning</span>
+                    </div>
+                    <p className="leading-relaxed text-slate-300">
+                      Walton QMS accounts are provisioned exclusively by Quality Management Administration. Free public account creation is restricted.
+                    </p>
+                    <div className="p-2.5 bg-[#0e131a] rounded-lg border border-slate-800 space-y-1 font-mono text-[11px]">
+                      <div className="text-slate-400">Quality IT Administrator:</div>
+                      <div className="text-amber-300 font-semibold select-all">qm.pcba26@gmail.com</div>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Please send an email with your <strong className="text-white">Full Name</strong>, <strong className="text-white">Employee ID</strong>, <strong className="text-white">Walton Email</strong>, and <strong className="text-white">Designation</strong>.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 pt-2 flex flex-col gap-2.5">
+                    <a
+                      href="mailto:qm.pcba26@gmail.com?subject=Walton%20QM%20Account%20Access%20Request"
+                      className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm cursor-pointer transition-all duration-300 active:scale-[0.98] shadow-md flex items-center justify-center gap-2 text-white bg-slate-700 hover:bg-slate-600"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>Email Quality IT Administrator</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode('signin');
+                        setErrorMessage(null);
+                        setResetSentMessage(null);
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer py-1.5"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to Login</span>
+                    </button>
+                  </div>
                 </div>
-
-                <div className="pt-2">
-                  <button
-                    id="btn-login-submit"
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
-                    style={{
-                      backgroundColor: currentTheme.btnBg,
-                      color: currentTheme.btnText,
-                      boxShadow: `0 8px 20px rgba(${currentTheme.themeGlowRGB}, 0.25)`,
-                    }}
-                  >
-                    {isLoading ? (
-                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : null}
-                    <span>{isLoading ? 'Authenticating...' : 'Login'}</span>
-                  </button>
-                </div>
-              </form>
-
-              <div className="mt-4 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Authorized QA Staff</span>
-                </span>
-                <a
-                  href="#forgot-password"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert('Please contact Quality IT administrator: qm.pcba26@gmail.com');
-                  }}
-                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-[11.5px]"
-                >
-                  Forgot Password?
-                </a>
-              </div>
+              )}
             </div>
           ) : null}
         </div>
