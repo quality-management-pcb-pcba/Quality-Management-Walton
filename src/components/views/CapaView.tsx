@@ -65,7 +65,7 @@ export const CapaView: React.FC<CapaViewProps> = ({
   const [filterPriority, setFilterPriority] = useState('All');
 
   const totalCapas = capaList.length;
-  const openCapas = capaList.filter((c) => c.status === 'Open' || c.status === 'In Progress').length;
+  const openCapas = capaList.filter((c) => c.status !== 'Closed' && c.status !== 'Cancelled').length;
   const closedCapas = capaList.filter((c) => c.status === 'Closed').length;
   const overdueCapas = 3; // per industrial metrics
 

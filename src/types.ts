@@ -42,6 +42,7 @@ export type PageId =
   | 'iqc'
   | 'iqc-pcb'
   | 'iqc-pcba'
+  | 'esd'
   | 'rca'
   | 'pcba'
   | 'pcba-process'
@@ -54,6 +55,8 @@ export type PageId =
   | 'complaints'
   | 'docs'
   | 'team'
+  | 'team-database'
+  | 'team-entry'
   | 'settings'
   | 'users';
 
@@ -62,7 +65,18 @@ export type PageType = PageId;
 /**
  * User Roles in Walton Quality Management System
  */
-export type UserRole = 'admin' | 'manager' | 'qa_staff' | 'viewer';
+export type UserRole =
+  | 'admin'
+  | 'manager'
+  | 'qa_staff'
+  | 'viewer'
+  | 'QM_ADMIN'
+  | 'QM_USER'
+  | 'IQC_USER'
+  | 'PCBA_USER'
+  | 'PCB_USER'
+  | 'AUDITOR'
+  | 'VIEWER';
 
 /**
  * Account Status in Walton QMS
@@ -82,8 +96,12 @@ export interface UserProfile {
   designation: string;
   role: UserRole;
   status: UserStatus;
+  permissions?: string[];
+  photoURL?: string;
   createdAt?: any;
   updatedAt?: any;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 /**
@@ -117,6 +135,10 @@ export interface WorkerKpi {
   rank: number;
   line: string;
   role: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface NonConformanceItem {
@@ -133,6 +155,10 @@ export interface NonConformanceItem {
   reportedBy: string;
   description: string;
   containmentAction?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface CapaItem {
@@ -148,6 +174,10 @@ export interface CapaItem {
   rootCause: string;
   actionPlan: string;
   progressPercent: number;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface CustomerComplaint {
@@ -177,19 +207,30 @@ export interface CustomerComplaint {
   rcaRef?: string;
   createdAt: string;
   updatedAt: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface SopDocument {
   id: string;
   code: string;
   title: string;
-  category: 'IQC' | 'SMT' | 'AOI' | 'Wave Soldering' | 'Final QC' | 'ESD & Safety' | 'R&D';
+  category: 'IQC' | 'SMT' | 'AOI' | 'AOI-PCB' | 'AOI-PCBA' | 'MI' | 'Wave Soldering' | 'Final QC' | 'ESD & Safety' | 'R&D';
   revision: string;
   effectiveDate: string;
   status: 'Active' | 'Under Review' | 'Draft' | 'Archived';
   owner: string;
   remarks: string;
   fileSize: string;
+  fileName?: string;
+  fileUrl?: string;
+  storagePath?: string;
+  uploadedBy?: string;
+  uploadedByUid?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface TrainingRecord {
@@ -200,9 +241,14 @@ export interface TrainingRecord {
   department: string;
   participants: number;
   durationMinutes: number;
-  status: 'Not Started' | 'In-Progress' | 'Completed';
-  rating: 'Excellent' | 'Good' | 'Average';
+  status: 'Not Started' | 'In-Progress' | 'Completed' | 'Cancelled';
+  rating: 'Excellent' | 'Good' | 'Fair' | 'Average';
   date: string;
+  remarks?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface PcbProductData {

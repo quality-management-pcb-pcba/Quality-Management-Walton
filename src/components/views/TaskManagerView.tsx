@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PageId } from '../../types';
 import {
   ClipboardList,
@@ -29,7 +29,20 @@ import {
   Folder,
   Tag,
   Hash,
+  Trash2,
 } from 'lucide-react';
+import {
+  subscribeTasks,
+  createTask as createTaskInFirestore,
+  updateTask as updateTaskInFirestore,
+  deleteTask as deleteTaskInFirestore,
+  subscribeTaskSubtasks,
+  addTaskSubtask,
+  updateTaskSubtask,
+  deleteTaskSubtask,
+  TaskSubtaskRecord,
+} from '../../services/tasks';
+import { db, doc, setDoc, buildCreateAudit } from '../../services/firebase';
 
 interface TaskItem {
   id: string;
@@ -49,10 +62,14 @@ interface TaskItem {
 
 interface TaskManagerViewProps {
   onNavigate?: (page: PageId) => void;
+  onPendingCountChange?: (count: number) => void;
 }
+
+const TASKS_STORAGE_KEY = 'walton_qms_tasks_v1';
 
 export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
   onNavigate = (_page: PageId) => {},
+  onPendingCountChange,
 }) => {
   // Navigation tabs at the top
   const [activeTab, setActiveTab] = useState<'dashboard' | 'requisitions' | 'templates'>('dashboard');
@@ -81,9 +98,19 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
   const [newTaskSpace, setNewTaskSpace] = useState('SMT in PCBA-2023');
 
   // Initial Task Dataset directly replicating user screenshot
-  const [tasks, setTasks] = useState<TaskItem[]>([
-    {
-      id: 't-1',
+  const [tasks, setTasks] = useState<TaskItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(TASKS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return [
+      {
+        id: 't-1',
       title: 'M32LU3FGQ MP software check',
       token: 'MMSC-003796-A14',
       assignee: '38949',
@@ -311,15 +338,89 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
       space: 'SMT in PCBA-2023',
       category: 'Process Fault',
     },
-  ]);
+  ];
+  });
 
   // Calculations for Metrics Row
-  const totalTasksCount = 95; // Base indicator matching user mockup
+  const totalTasksCount = 78 + tasks.length; // 95 with default 17 tasks, scales dynamically
   const inProgressCount = tasks.filter((t) => t.status === 'IN PROGRESS').length;
   const onHoldCount = tasks.filter((t) => t.status === 'ON HOLD').length;
-  const overdueCount = tasks.filter((t) => t.isOverdue).length;
+  const pendingTasksCount = inProgressCount + onHoldCount;
+  const overdueTasks = tasks.filter((t) => t.isOverdue && t.status !== 'COMPLETED');
+  const overdueCount = overdueTasks.length;
   const criticalCount = 0;
   const doneLast7DaysCount = tasks.filter((t) => t.status === 'COMPLETED').length;
+
+  const [subtasks, setSubtasks] = useState<TaskSubtaskRecord[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+
+  // Subscribe to Firestore tasks collection and seed initial tasks if empty
+  useEffect(() => {
+    let seeded = false;
+    const unsub = subscribeTasks((liveTasks) => {
+      if (liveTasks.length > 0) {
+        setTasks(
+          liveTasks.map((t) => ({
+            id: t.id,
+            title: t.title,
+            token: t.token || t.taskId || t.id,
+            assignee: t.assignee || t.assignedTo || '38949',
+            priority: (t.priority === 'CRITICAL' ? 'HIGH' : t.priority) || 'HIGH',
+            status:
+              t.status === 'IN PROGRESS' || t.status === 'COMPLETED' || t.status === 'ON HOLD'
+                ? t.status
+                : 'IN PROGRESS',
+            progressDone: Number(t.progressDone) || 0,
+            progressTotal: Number(t.progressTotal) || 0,
+            deadline: t.deadline || 'Sep 18',
+            isOverdue: Boolean(t.isOverdue),
+            daysLate: t.daysLate,
+            space: t.space || 'SMT in PCBA-2023',
+            category: t.category || 'Quality Check',
+          }))
+        );
+      } else if (!seeded) {
+        seeded = true;
+        const audit = buildCreateAudit();
+        tasks.forEach((t) => {
+          setDoc(
+            doc(db, 'tasks', t.id),
+            {
+              ...t,
+              taskId: t.token,
+              assignedTo: t.assignee,
+              ...audit,
+            },
+            { merge: true }
+          ).catch(() => {});
+        });
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Subscribe to subtasks when a task detail modal is open
+  useEffect(() => {
+    if (!selectedTaskDetail) {
+      setSubtasks([]);
+      return;
+    }
+    const unsub = subscribeTaskSubtasks(selectedTaskDetail.id, (items) => {
+      setSubtasks(items);
+    });
+    return () => unsub();
+  }, [selectedTaskDetail]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+    } catch {
+      // ignore storage errors
+    }
+    if (onPendingCountChange) {
+      onPendingCountChange(pendingTasksCount);
+    }
+  }, [tasks, pendingTasksCount, onPendingCountChange]);
 
   // Filtered Task List
   const filteredTasks = useMemo(() => {
@@ -346,31 +447,45 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
 
   // Handle Quick Status Change
   const handleStatusToggle = (taskId: string, newStatus: 'IN PROGRESS' | 'COMPLETED' | 'ON HOLD') => {
+    let nextProgressDone = 0;
+    let nextOverdue = false;
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
           const isComp = newStatus === 'COMPLETED';
+          nextProgressDone = isComp && t.progressTotal > 0 ? t.progressTotal : t.progressDone;
+          nextOverdue = isComp ? false : Boolean(t.isOverdue);
           return {
             ...t,
             status: newStatus,
-            progressDone: isComp && t.progressTotal > 0 ? t.progressTotal : t.progressDone,
-            isOverdue: isComp ? false : t.isOverdue,
+            progressDone: nextProgressDone,
+            isOverdue: nextOverdue,
           };
         }
         return t;
       })
     );
+    updateTaskInFirestore(taskId, {
+      status: newStatus,
+      progressDone: nextProgressDone,
+      isOverdue: nextOverdue,
+      completedDate: newStatus === 'COMPLETED' ? new Date().toISOString().split('T')[0] : undefined,
+    }).catch((err) => {
+      console.warn('Firestore task status update notice:', err);
+    });
   };
 
   // Handle Add New Task
-  const handleCreateTask = (e: React.FormEvent) => {
+  const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
 
+    const tokenVal = newTaskToken || 'QM-' + Math.floor(100000 + Math.random() * 900000);
+    const tempId = 't-' + Date.now();
     const created: TaskItem = {
-      id: 't-' + Date.now(),
+      id: tempId,
       title: newTaskTitle.trim(),
-      token: newTaskToken || 'QM-' + Math.floor(100000 + Math.random() * 900000),
+      token: tokenVal,
       assignee: newTaskAssignee,
       priority: newTaskPriority,
       status: newTaskStatus,
@@ -381,11 +496,77 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
       category: 'Quality Check',
     };
 
-    setTasks([created, ...tasks]);
+    setTasks((prev) => [created, ...prev]);
     setNewTaskTitle('');
     setNewTaskToken('QM-' + Math.floor(100000 + Math.random() * 900000));
     setNewTaskTotalSubtasks(0);
     setIsCreateModalOpen(false);
+
+    try {
+      await createTaskInFirestore({
+        taskId: created.token,
+        title: created.title,
+        token: created.token,
+        assignee: created.assignee,
+        assignedTo: created.assignee,
+        priority: created.priority,
+        status: created.status,
+        progressDone: created.progressDone,
+        progressTotal: created.progressTotal,
+        deadline: created.deadline,
+        space: created.space,
+        department: 'PCBA',
+        category: created.category,
+      });
+    } catch (err) {
+      console.warn('Firestore task create notice:', err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    setSelectedTaskDetail(null);
+    try {
+      await deleteTaskInFirestore(taskId);
+    } catch (err) {
+      console.warn('Firestore task delete notice:', err);
+    }
+  };
+
+  const handleAddSubtask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTaskDetail || !newSubtaskTitle.trim()) return;
+    const titleToCreate = newSubtaskTitle.trim();
+    setNewSubtaskTitle('');
+    try {
+      await addTaskSubtask(selectedTaskDetail.id, {
+        title: titleToCreate,
+        assignedTo: selectedTaskDetail.assignee,
+      });
+      const nextTotal = Math.max(selectedTaskDetail.progressTotal, subtasks.length + 1);
+      await updateTaskInFirestore(selectedTaskDetail.id, { progressTotal: nextTotal });
+      setSelectedTaskDetail((prev) => (prev ? { ...prev, progressTotal: nextTotal } : null));
+    } catch (err) {
+      console.warn('Subtask create notice:', err);
+    }
+  };
+
+  const handleToggleSubtask = async (st: TaskSubtaskRecord) => {
+    if (!selectedTaskDetail) return;
+    const nextStatus = st.status === 'COMPLETED' ? 'TODO' : 'COMPLETED';
+    try {
+      await updateTaskSubtask(selectedTaskDetail.id, st.id, {
+        status: nextStatus,
+        progress: nextStatus === 'COMPLETED' ? 100 : 0,
+        completedAt: nextStatus === 'COMPLETED' ? new Date().toISOString() : undefined,
+      });
+      const delta = nextStatus === 'COMPLETED' ? 1 : -1;
+      const nextDone = Math.max(0, selectedTaskDetail.progressDone + delta);
+      await updateTaskInFirestore(selectedTaskDetail.id, { progressDone: nextDone });
+      setSelectedTaskDetail((prev) => (prev ? { ...prev, progressDone: nextDone } : null));
+    } catch (err) {
+      console.warn('Subtask toggle notice:', err);
+    }
   };
 
   // Requisitions Mock Data
@@ -420,21 +601,13 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
               </span>
             </div>
             <p className="text-xs text-white/80">
-              Daily Quality Engineering Tasks, Software Audits &amp; SMT Line Verifications
+              Quality Management - PCB &amp; PCBA * Daily Quality Engineering Tasks
             </p>
           </div>
         </div>
 
         {/* Header Actions */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-          <button
-            onClick={() => setIsTestReportsModalOpen(true)}
-            className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold rounded-xl border border-white/20 backdrop-blur-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-          >
-            <FileText className="w-3.5 h-3.5" />
-            <span>Test Reports</span>
-          </button>
-
           <button
             onClick={() => {
               setSearchQuery('');
@@ -448,28 +621,10 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh</span>
           </button>
-
-          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20 text-xs">
-            <div className="w-6 h-6 rounded-full bg-[#10b981] text-white flex items-center justify-center font-bold text-[10px]">
-              TM
-            </div>
-            <div className="text-left">
-              <div className="font-bold leading-tight">task_manager1</div>
-              <div className="text-[10px] text-white/70">Task Manager</div>
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('home')}
-            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white/90 hover:text-white text-xs font-medium rounded-xl border border-white/20 transition-all cursor-pointer flex items-center gap-1"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Logout</span>
-          </button>
         </div>
       </div>
 
-      {/* 2. SUB NAVIGATION PILLS: Dashboard | Requisitions | Templates (Matching Image 2) */}
+      {/* 2. SUB NAVIGATION PILLS: Dashboard (Matching Image 2) */}
       <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-[#cbd5e1] shadow-2xs w-fit">
         <button
           onClick={() => setActiveTab('dashboard')}
@@ -481,30 +636,6 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
           <span>Dashboard</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('requisitions')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'requisitions'
-              ? 'bg-linear-to-r from-[#4f46e5] to-[#6366f1] text-white shadow-xs'
-              : 'text-[#475569] hover:text-[#0d1730] hover:bg-[#f1f5f9]'
-          }`}
-        >
-          <FileText className="w-3.5 h-3.5" />
-          <span>Requisitions</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('templates')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-            activeTab === 'templates'
-              ? 'bg-linear-to-r from-[#4f46e5] to-[#6366f1] text-white shadow-xs'
-              : 'text-[#475569] hover:text-[#0d1730] hover:bg-[#f1f5f9]'
-          }`}
-        >
-          <ClipboardList className="w-3.5 h-3.5" />
-          <span>Templates</span>
         </button>
       </div>
 
@@ -526,7 +657,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
           {/* 6 TOP SUMMARY METRIC CARDS (Exact match with Image 2) */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             {/* TOTAL */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs text-center flex flex-col items-center justify-center">
               <div className="text-[11px] font-bold text-[#64748b] tracking-wider uppercase mb-1">
                 TOTAL
               </div>
@@ -536,7 +667,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
             </div>
 
             {/* IN PROGRESS */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs text-center flex flex-col items-center justify-center">
               <div className="text-[11px] font-bold text-[#64748b] tracking-wider uppercase mb-1">
                 IN PROGRESS
               </div>
@@ -546,7 +677,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
             </div>
 
             {/* ON HOLD */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs text-center flex flex-col items-center justify-center">
               <div className="text-[11px] font-bold text-[#64748b] tracking-wider uppercase mb-1">
                 ON HOLD
               </div>
@@ -556,7 +687,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
             </div>
 
             {/* OVERDUE */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs text-center flex flex-col items-center justify-center">
               <div className="text-[11px] font-bold text-[#64748b] tracking-wider uppercase mb-1">
                 OVERDUE
               </div>
@@ -566,7 +697,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
             </div>
 
             {/* CRITICAL */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs text-center flex flex-col items-center justify-center">
               <div className="text-[11px] font-bold text-[#64748b] tracking-wider uppercase mb-1">
                 CRITICAL
               </div>
@@ -576,7 +707,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
             </div>
 
             {/* DONE / 7D */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs text-center flex flex-col items-center justify-center">
               <div className="text-[11px] font-bold text-[#64748b] tracking-wider uppercase mb-1">
                 DONE / 7D
               </div>
@@ -634,41 +765,23 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                   NEEDS ATTENTION
                 </div>
                 <span className="text-[11px] font-bold text-[#ef4444] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fecaca]">
-                  4 Tasks Delayed
+                  {overdueCount} {overdueCount === 1 ? 'Task' : 'Tasks'} Delayed
                 </span>
               </div>
 
               {/* Needs Attention Items */}
               <div className="space-y-2">
-                {[
-                  {
-                    title: 'NEW Software check of sample TV(32KA1Q-Expressluck)',
-                    delay: 'Jan 15 · 241d late',
-                    color: 'border-l-[#2563eb]',
-                  },
-                  {
-                    title: 'M32LU3FGQ MP software check',
-                    delay: 'Sep 1 · 12d late',
-                    color: 'border-l-[#f97316]',
-                  },
-                  {
-                    title: 'Software Checking of W55SA3UGQ & M55LU3UGQ',
-                    delay: 'Sep 2 · 11d late',
-                    color: 'border-l-[#f97316]',
-                  },
-                  {
-                    title: 'New Expressluck 43inch TV with 1.5GB RAM',
-                    delay: 'Sep 9 · 4d late',
-                    color: 'border-l-[#2563eb]',
-                  },
-                ].map((item, idx) => (
+                {overdueTasks.map((item) => (
                   <div
-                    key={idx}
-                    className={`p-2.5 bg-[#f8fafc] hover:bg-[#f1f5f9] rounded-xl border-l-4 ${item.color} border-y border-r border-[#e2e8f0] flex items-center justify-between gap-3 text-xs transition-colors`}
+                    key={item.id}
+                    className={`p-2.5 bg-[#f8fafc] hover:bg-[#f1f5f9] rounded-xl border-l-4 ${
+                      item.status === 'ON HOLD' ? 'border-l-[#2563eb]' : 'border-l-[#f97316]'
+                    } border-y border-r border-[#e2e8f0] flex items-center justify-between gap-3 text-xs transition-colors`}
                   >
                     <span className="font-semibold text-[#1e293b] truncate">{item.title}</span>
                     <span className="text-[#ef4444] font-mono font-bold whitespace-nowrap text-[11px] bg-[#fee2e2] px-2 py-0.5 rounded">
-                      {item.delay}
+                      {item.deadline}
+                      {item.daysLate ? ` · ${item.daysLate}d late` : ' · Overdue'}
                     </span>
                   </div>
                 ))}
@@ -1134,7 +1247,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
               <h3 className="text-lg font-bold text-[#0d1730] flex items-center gap-2">
                 <Plus className="w-5 h-5 text-[#4f46e5]" />
-                <span>Create Quality Task</span>
+                <span>Create Task</span>
               </h3>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
@@ -1229,7 +1342,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#475569] mb-1">Space</label>
+                  <label className="block text-xs font-bold text-[#475569] mb-1">Assign By</label>
                   <input
                     type="text"
                     value={newTaskSpace}
@@ -1301,9 +1414,80 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
               </div>
             </div>
 
+            {/* Subtasks Checklist (Firestore tasks/{taskId}/subtasks) */}
+            <div className="space-y-2 border-t border-[#e2e8f0] pt-3">
+              <label className="block text-xs font-bold text-[#475569]">
+                Subtasks &amp; Action Checklist ({subtasks.filter((s) => s.status === 'COMPLETED').length}/{subtasks.length})
+              </label>
+              <form onSubmit={handleAddSubtask} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newSubtaskTitle}
+                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                  placeholder="Add a subtask checklist item..."
+                  className="flex-1 px-3 py-1.5 text-xs border border-[#cbd5e1] rounded-lg focus:outline-hidden focus:ring-1 focus:ring-[#4f46e5]"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 bg-[#4f46e5] text-white text-xs font-bold rounded-lg hover:bg-[#4338ca] cursor-pointer"
+                >
+                  + Add
+                </button>
+              </form>
+              {subtasks.length > 0 && (
+                <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                  {subtasks.map((st) => (
+                    <div
+                      key={st.id}
+                      className="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] text-xs"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSubtask(st)}
+                        className="flex items-center gap-2 text-left flex-1 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={st.status === 'COMPLETED'}
+                          readOnly
+                          className="rounded text-[#4f46e5] cursor-pointer"
+                        />
+                        <span
+                          className={
+                            st.status === 'COMPLETED'
+                              ? 'line-through text-[#94a3b8]'
+                              : 'text-[#0d1730] font-medium'
+                          }
+                        >
+                          {st.title}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteTaskSubtask(selectedTaskDetail.id, st.id).catch(() => {})}
+                        className="text-[#94a3b8] hover:text-[#ef4444] p-0.5 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Quick Status Changers */}
             <div>
-              <label className="block text-xs font-bold text-[#475569] mb-2">Update Task Status</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-[#475569]">Update Task Status</label>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteTask(selectedTaskDetail.id)}
+                  className="text-[11px] font-bold text-[#ef4444] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Task</span>
+                </button>
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => {

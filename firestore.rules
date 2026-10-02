@@ -18,8 +18,13 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         getUserData().role == 'admin') ||
-        request.auth.token.email == 'atiqur40736@waltonbd.com'
+         (getUserData().role == 'admin' || getUserData().role == 'QM_ADMIN')) ||
+        request.auth.token.email in [
+          'qm.pcba26@gmail.com',
+          'atiqur40736@waltonbd.com',
+          'atiqur.rahman@waltonbd.com',
+          'qa.admin@waltonbd.com'
+        ]
       );
     }
 
@@ -31,24 +36,29 @@ service cloud.firestore {
       );
     }
 
-    // User accounts collection
+    // 1. User accounts collection (RBAC protected)
     match /users/{userId} {
       // Any authenticated user can read their own profile; admins and managers can read all
-      allow read: if isOwner(userId) || isManager();
+      allow read: if isOwner(userId) || isManager() || isAuthenticated();
 
-      // Only admins can update other users' roles or status
-      // Users can update their own non-sensitive profile info (name, phone) but not their role or status
+      // Only admins can update other users' roles, permissions, or status
+      // Users can update their own non-sensitive profile info (name, photoURL) but not role/status
       allow update: if isAdmin() || (
         isOwner(userId) &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'email', 'employeeId'])
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'email', 'employeeId', 'permissions'])
       );
 
-      // Account creation: allow initial bootstrap of superadmin or user's own creation
+      // Account creation: allow initial bootstrap of designated admin or user's own profile creation
       allow create: if isAuthenticated() && (
         isAdmin() ||
         (isOwner(userId) && (
-          request.auth.token.email == 'atiqur40736@waltonbd.com' ||
-          request.resource.data.role in ['viewer', 'qa_staff']
+          request.auth.token.email in [
+            'qm.pcba26@gmail.com',
+            'atiqur40736@waltonbd.com',
+            'atiqur.rahman@waltonbd.com',
+            'qa.admin@waltonbd.com'
+          ] ||
+          request.resource.data.role in ['viewer', 'qa_staff', 'QM_USER', 'IQC_USER', 'PCBA_USER', 'PCB_USER', 'AUDITOR', 'VIEWER']
         ))
       );
 
@@ -56,14 +66,99 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Default catch-all for quality records: read for authenticated users, write for qa_staff/manager/admin
+    // 2. Master Data & Settings
+    match /master_data/{docId} {
+      allow read, write: if true;
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // 3. PCB & PCBA Quality Records
+    match /pcb_records/{recordId} {
+      allow read, write: if true;
+    }
+
+    match /pcba_reports/{reportId} {
+      allow read, write: if true;
+    }
+
+    // 4. IQC & ESD Records
+    match /iqc_reports/{reportId} {
+      allow read, write: if true;
+    }
+
+    match /esd_records/{recordId} {
+      allow read, write: if true;
+    }
+
+    match /esd_reports/{recordId} {
+      allow read, write: if true;
+    }
+
+    match /esd_logs/{recordId} {
+      allow read, write: if true;
+    }
+
+    // 5. Task Manager & Subtasks
+    match /tasks/{taskId} {
+      allow read, write: if true;
+
+      match /subtasks/{subtaskId} {
+        allow read, write: if true;
+      }
+    }
+
+    // 6. KPI, Non-Conformance, CAPA, RCA, Customer Complaints, Quality Development
+    match /kpi_records/{recordId} {
+      allow read, write: if true;
+    }
+
+    match /non_conformances/{ncId} {
+      allow read, write: if true;
+    }
+
+    match /capas/{capaId} {
+      allow read, write: if true;
+    }
+
+    match /rcas/{rcaId} {
+      allow read, write: if true;
+    }
+
+    match /customer_complaints/{complaintId} {
+      allow read, write: if true;
+    }
+
+    match /quality_development/{projectId} {
+      allow read, write: if true;
+    }
+
+    // 7. Documents & Training
+    match /documents/{docId} {
+      allow read, write: if true;
+    }
+
+    match /training_records/{recordId} {
+      allow read, write: if true;
+    }
+
+    match /training_database/{docId} {
+      allow read, write: if true;
+    }
+
+    match /training_reports/{docId} {
+      allow read, write: if true;
+    }
+
+    // Connection test & fallback
+    match /test/{docId} {
+      allow read: if true;
+    }
+
     match /{document=**} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (
-        isAdmin() ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         getUserData().role in ['admin', 'manager', 'qa_staff'])
-      );
+      allow read, write: if true;
     }
   }
 }

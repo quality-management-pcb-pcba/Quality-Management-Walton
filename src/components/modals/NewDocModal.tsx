@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SopDocument } from '../../types';
-import { X, FileText } from 'lucide-react';
+import { X, FileText, Upload } from 'lucide-react';
+import { uploadSopFileToStorage } from '../../services/documents';
 
 interface NewDocModalProps {
   isOpen: boolean;
@@ -11,14 +12,36 @@ interface NewDocModalProps {
 export const NewDocModal: React.FC<NewDocModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [code, setCode] = useState('SOP-PCBA-029');
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('SMT');
+  const [category, setCategory] = useState<SopDocument['category']>('SMT');
   const [owner, setOwner] = useState('Md. Atiqur Rahman');
   const [remarks, setRemarks] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsUploading(true);
+    let uploadedMeta: {
+      fileName?: string;
+      fileUrl?: string;
+      storagePath?: string;
+      fileSize?: string;
+    } = {};
+
+    if (selectedFile) {
+      try {
+        uploadedMeta = await uploadSopFileToStorage(selectedFile, code);
+      } catch (err) {
+        console.warn('Storage upload fallback:', err);
+        uploadedMeta = {
+          fileName: selectedFile.name,
+          fileSize: (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB',
+        };
+      }
+    }
+
     const newDoc: SopDocument = {
       id: `sop-${Date.now()}`,
       code,
@@ -28,9 +51,14 @@ export const NewDocModal: React.FC<NewDocModalProps> = ({ isOpen, onClose, onSub
       effectiveDate: new Date().toISOString().split('T')[0],
       owner,
       status: 'Active',
-      fileSize: '1.4 MB',
+      fileSize: uploadedMeta.fileSize || '1.4 MB',
+      fileName: uploadedMeta.fileName,
+      fileUrl: uploadedMeta.fileUrl,
+      storagePath: uploadedMeta.storagePath,
       remarks: remarks || 'Initial release for production ramp',
     };
+    setIsUploading(false);
+    setSelectedFile(null);
     onSubmit(newDoc);
     onClose();
   };
@@ -68,15 +96,17 @@ export const NewDocModal: React.FC<NewDocModalProps> = ({ isOpen, onClose, onSub
               <label className="block font-semibold text-[#5b6480] mb-1">Category</label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => setCategory(e.target.value as SopDocument['category'])}
                 className="w-full px-3 py-2 border border-[#e2e7f2] rounded-lg text-sm"
               >
                 <option value="IQC">IQC (Incoming Quality)</option>
                 <option value="SMT">SMT Placement</option>
-                <option value="AOI">AOI Optical Inspection</option>
+                <option value="AOI-PCB">AOI-PCB</option>
                 <option value="Wave Soldering">Wave Soldering</option>
                 <option value="Final QC">Final QC</option>
                 <option value="ESD & Safety">ESD &amp; Cleanroom</option>
+                <option value="AOI-PCBA">AOI-PCBA</option>
+                <option value="MI">MI</option>
               </select>
             </div>
           </div>
@@ -116,6 +146,22 @@ export const NewDocModal: React.FC<NewDocModalProps> = ({ isOpen, onClose, onSub
             />
           </div>
 
+          <div>
+            <label className="block font-semibold text-[#5b6480] mb-1">Attach Controlled Document (PDF/DOCX/XLSX)</label>
+            <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#cbd5e1] rounded-lg cursor-pointer hover:bg-[#f8fafc] text-xs text-[#5b6480]">
+              <Upload className="w-4 h-4 text-[#e35b2a]" />
+              <span className="truncate">
+                {selectedFile ? selectedFile.name : 'Choose file to upload to Firebase Storage (optional)'}
+              </span>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+            </label>
+          </div>
+
           <div className="pt-3 flex justify-end gap-2 border-t border-[#e2e7f2]">
             <button
               type="button"
@@ -126,9 +172,10 @@ export const NewDocModal: React.FC<NewDocModalProps> = ({ isOpen, onClose, onSub
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-[#e35b2a] hover:bg-[#c74a1f] text-white rounded-lg font-bold shadow-sm"
+              disabled={isUploading}
+              className="px-4 py-2 bg-[#e35b2a] hover:bg-[#c74a1f] text-white rounded-lg font-bold shadow-sm disabled:opacity-60"
             >
-              Publish Controlled SOP
+              {isUploading ? 'Uploading...' : 'Publish Controlled SOP'}
             </button>
           </div>
         </form>

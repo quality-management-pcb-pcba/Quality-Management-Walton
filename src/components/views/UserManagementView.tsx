@@ -255,6 +255,42 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   const inactiveCount = employees.filter((e) => e.status === 'inactive').length;
   const adminCount = employees.filter((e) => e.role === 'admin' || e.role === 'manager').length;
 
+  // STRICT ACCESS CONTROL GUARD:
+  // If the logged-in user is not an administrator, deny access strictly
+  if (currentUserProfile?.role !== 'admin') {
+    return (
+      <div id="page-user-management-denied" className="min-h-[500px] flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-red-200 p-6 sm:p-8 text-center shadow-xl">
+          <div className="w-16 h-16 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-200 shadow-inner">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-[#0d1730]">Administrator Clearance Required</h2>
+          <p className="text-xs text-[#5b6480] mt-2 leading-relaxed">
+            User Management, role assignment &amp; authentication roster governance is strictly restricted to Walton Quality Management Administrators.
+          </p>
+
+          <div className="my-5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-left space-y-1.5">
+            <div className="flex items-center justify-between text-slate-500 font-medium">
+              <span>Current Account:</span>
+              <span className="font-semibold text-slate-800">{currentUserProfile?.email || 'Operational Staff'}</span>
+            </div>
+            <div className="flex items-center justify-between pt-1 border-t border-slate-200">
+              <span className="text-slate-500">Clearance Level:</span>
+              <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-mono font-bold text-[10.5px] uppercase">
+                {currentUserProfile?.role || 'qa_staff'} (Staff Only)
+              </span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-left text-[11px] text-amber-800 flex items-start gap-2">
+            <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <span>Strict Role Separation: Operational staff accounts cannot view credentials, modify user rosters, or elevate permissions.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div id="page-user-management" className="space-y-6 animate-in fade-in duration-200">
       {/* Header Banner */}

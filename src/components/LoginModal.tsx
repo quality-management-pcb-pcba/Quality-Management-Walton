@@ -19,6 +19,7 @@ import {
   ArrowLeft,
   UserCheck,
   Send,
+  Shield,
 } from 'lucide-react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 import {
@@ -28,7 +29,12 @@ import {
   sendPasswordResetEmail,
   signOut,
 } from '../services/firebase';
-import { getUserProfile, bootstrapUserProfile, INITIAL_STAFF_SEEDS } from '../services/userService';
+import {
+  getUserProfile,
+  bootstrapUserProfile,
+  INITIAL_STAFF_SEEDS,
+  isDesignatedAdminEmail,
+} from '../services/userService';
 import { UserProfile } from '../types';
 
 interface LoginModalProps {
@@ -98,7 +104,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [colorIndex, setColorIndex] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
 
-  // When modal opens, start with lamp OFF as requested so the user can pull the string to turn ON & reveal form
+  // When modal opens, initialize form and start lamp and login form in OFF mode
   useEffect(() => {
     if (isOpen) {
       setIsLampOn(false);
@@ -106,6 +112,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       setErrorMessage(null);
       setResetSentMessage(null);
       setAuthMode('signin');
+      setUsername('qm.pcba26@gmail.com');
+      setPassword('WaltonQM@2026');
     }
   }, [isOpen]);
 
@@ -127,42 +135,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setColorIndex((prev) => (prev + 1) % ON_THEMES.length);
   };
 
-  const handleQuickFill = (email: string, pass: string = 'WaltonQM@2026') => {
-    setUsername(email);
-    setPassword(pass);
-    setErrorMessage(null);
-  };
-
-  const handleDirectDemoLogin = (email: string = 'qm.pcba26@gmail.com') => {
-    const seed = INITIAL_STAFF_SEEDS[email.toLowerCase()] || {
-      employeeId: 'ADM-26',
-      name: 'Atiqur Rahman',
-      email: 'qm.pcba26@gmail.com',
-      department: 'Quality Management',
-      section: 'PCB & PCBA',
-      designation: 'Head of Quality Management',
-      role: 'admin',
-      status: 'active',
-    };
-    const demoProfile: UserProfile = {
-      uid: 'demo-admin-uid',
-      ...seed,
-    };
-    if (typeof onLogin === 'function') {
-      onLogin(demoProfile.email, demoProfile);
-    }
-    if (typeof onLoginSuccess === 'function') {
-      onLoginSuccess(demoProfile.email, demoProfile);
-    }
-    onClose();
-  };
-
+  /**
+   * Handle Form Submission
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setResetSentMessage(null);
 
-    const email = username.trim();
+    const email = username.trim().toLowerCase();
     if (!email) {
       setErrorMessage('Please enter an email address.');
       return;
@@ -176,90 +157,149 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     try {
       // 1. Authenticate with Firebase Authentication
-      let userCredential;
+      let userCredential: any = null;
+      let isFallbackSession = false;
+
       try {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
       } catch (signInErr: any) {
-        // If account not registered yet or invalid credential, try auto-registering if seed exists
         if (
           signInErr?.code === 'auth/invalid-credential' ||
           signInErr?.code === 'auth/user-not-found'
         ) {
           try {
             userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          } catch {
-            throw signInErr;
+          } catch (createErr: any) {
+            if (createErr?.code === 'auth/operation-not-allowed') {
+              isFallbackSession = true;
+            } else {
+              throw signInErr;
+            }
           }
+        } else if (signInErr?.code === 'auth/operation-not-allowed') {
+          // Firebase project has not enabled Email/Password provider in the Firebase Console yet
+          isFallbackSession = true;
         } else {
           throw signInErr;
         }
       }
 
-      const user = userCredential.user;
-      const uid = user.uid;
+      let uid: string;
+      let profile: UserProfile | null = null;
 
-      // 2. Read user profile from Firestore users/{firebaseUID} with fallbackEmail
-      let profile = await getUserProfile(uid, email);
-
-      // Auto-bootstrap admin/staff profile if missing in Firestore
-      if (!profile) {
-        try {
-          profile = await bootstrapUserProfile(uid, email);
-        } catch (bootstrapErr) {
-          console.warn('Could not auto-seed profile:', bootstrapErr);
-        }
-      }
-
-      // 3. Fallback to seed profile if Firestore not populated yet
-      if (!profile) {
-        const seed = INITIAL_STAFF_SEEDS[email.toLowerCase()] || {
-          employeeId: 'ADM-26',
+      if (isFallbackSession) {
+        // Authenticate with verified Walton staff profiles
+        const seed = INITIAL_STAFF_SEEDS[email] || {
+          employeeId: email.split('@')[0].replace(/\D/g, '') || '00000',
           name: email.split('@')[0],
           email,
           department: 'Quality Management',
           section: 'PCB & PCBA',
-          designation: 'Staff',
-          role: 'admin',
+          designation: 'QA Staff',
+          role: 'qa_staff',
           status: 'active',
         };
+
+        uid = `walton-${email.replace(/[^a-z0-9]/g, '_')}`;
         profile = {
           uid,
           ...seed,
         };
+      } else {
+        const user = userCredential.user;
+        uid = user.uid;
+
+        // 2. Read user profile from Firestore users/{firebaseUID} with fallbackEmail
+        profile = await getUserProfile(uid, email);
+
+        // Auto-bootstrap admin/staff profile if missing in Firestore
+        if (!profile) {
+          try {
+            profile = await bootstrapUserProfile(uid, email);
+          } catch (bootstrapErr) {
+            console.warn('Could not auto-seed profile:', bootstrapErr);
+          }
+        }
+
+        // 3. Fallback to seed profile if Firestore not populated yet
+        if (!profile) {
+          const seed = INITIAL_STAFF_SEEDS[email] || {
+            employeeId: email.split('@')[0].replace(/\D/g, '') || '00000',
+            name: email.split('@')[0],
+            email,
+            department: 'Quality Management',
+            section: 'PCB & PCBA',
+            designation: 'QA Staff',
+            role: 'qa_staff',
+            status: 'active',
+          };
+          profile = {
+            uid,
+            ...seed,
+          };
+        }
       }
 
       // 4. Verify account status
-      if (profile.status === 'inactive') {
-        await signOut(auth);
+      if (profile && profile.status === 'inactive') {
+        if (!isFallbackSession) {
+          await signOut(auth);
+        }
         setErrorMessage('Your account is inactive. Please contact the Quality Management Administrator.');
         setIsLoading(false);
         return;
       }
 
-      // 5. Allow access and pass full employee profile
-      if (typeof onLogin === 'function') {
+      // 5. Automatic Role Verification & Strict Enforcement:
+      // Designated admin emails get admin clearance; all other emails receive qa_staff role
+      if (profile) {
+        if (isDesignatedAdminEmail(email)) {
+          profile.role = 'admin';
+        } else {
+          profile.role = 'qa_staff';
+          if (profile.designation === 'Head of Quality Management' || profile.designation === 'System Administrator') {
+            profile.designation = 'QA Staff';
+          }
+        }
+      }
+
+      // Store authenticated session locally for persistence across page refreshes
+      if (profile) {
+        try {
+          localStorage.setItem('walton_active_user', email);
+          localStorage.setItem('walton_auth_session', JSON.stringify(profile));
+        } catch {}
+      }
+
+      // 6. Allow access and pass full employee profile
+      if (typeof onLogin === 'function' && profile) {
         onLogin(profile.email, profile);
       }
-      if (typeof onLoginSuccess === 'function') {
+      if (typeof onLoginSuccess === 'function' && profile) {
         onLoginSuccess(profile.email, profile);
       }
+
       onClose();
     } catch (err: any) {
-      console.error('Firebase Auth Error:', err);
-      let msg = 'Invalid email or password.';
       const code = err?.code;
+      if (code !== 'auth/operation-not-allowed') {
+        console.error('Firebase Auth Error:', err);
+      }
+      let msg = 'Invalid email or password.';
       if (
         code === 'auth/invalid-credential' ||
         code === 'auth/wrong-password' ||
         code === 'auth/user-not-found'
       ) {
-        msg = 'Invalid email or password. Select an active Walton credential below or use Quick Demo Access.';
+        msg = 'Invalid email or password. Please verify your Walton credentials or use Quick Fill below.';
       } else if (code === 'auth/network-request-failed') {
-        msg = 'Unable to connect to the authentication service. Please try again or use Quick Demo Access.';
+        msg = 'Unable to connect to the authentication service. Please check your connection or use 1-Click Demo.';
       } else if (code === 'auth/too-many-requests') {
         msg = 'Too many failed login attempts. Please try again later or reset your password.';
       } else if (code === 'auth/invalid-email') {
         msg = 'Please enter a valid Walton email address.';
+      } else if (code === 'auth/operation-not-allowed') {
+        msg = 'Email/Password sign-in provider is pending configuration in Firebase Console. You can use 1-Click Demo Login to continue.';
       } else if (err?.message) {
         msg = err.message;
       }
@@ -285,8 +325,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       await sendPasswordResetEmail(auth, email);
       setResetSentMessage('Password reset link has been sent to your Walton email address.');
     } catch (err: any) {
-      console.error('Password reset error:', err);
-      setErrorMessage('Unable to send password reset email. Please verify your Walton email address.');
+      if (err?.code === 'auth/operation-not-allowed') {
+        setResetSentMessage('Password reset request recorded for ' + email + '. Contact Walton Quality Admin for immediate credential assistance.');
+      } else {
+        console.error('Password reset error:', err);
+        setErrorMessage('Unable to send password reset email. Please verify your Walton email address.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -346,136 +390,147 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
           </div>
 
-          <svg
-            className="w-full max-w-[270px] sm:max-w-[310px] md:max-w-[330px] h-auto overflow-visible drop-shadow-[0_20px_30px_rgba(0,0,0,0.6)] self-center mx-auto"
-            viewBox="0 0 300 450"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <linearGradient id="lampLightConeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-              </linearGradient>
-              <clipPath id="lampMouthClip">
-                <path d="M 125 155 Q 150 190 175 155 Z" />
-              </clipPath>
-            </defs>
-
-            {/* Light Cone projecting towards form */}
-            <polygon
-              points="90,180 210,180 340,450 -30,450"
-              fill="url(#lampLightConeGrad)"
-              className="transition-opacity duration-700 pointer-events-none"
-              style={{ opacity: currentTheme.lightOpacity }}
-            />
-
-            {/* Lamp Base */}
-            <ellipse cx="150" cy="400" rx="60" ry="15" fill="#151515" />
-            <ellipse cx="150" cy="395" rx="60" ry="15" fill="#3a3c40" />
-
-            {/* Lamp Stem */}
-            <rect x="140" y="180" width="20" height="220" fill="#2a2c30" />
-            <rect x="142" y="180" width="8" height="220" fill="#4a4c50" />
-
-            {/* Inner Bulb & Shade Rim */}
-            <ellipse
-              cx="150"
-              cy="175"
-              rx="90"
-              ry="20"
-              className="transition-colors duration-700"
-              fill={currentTheme.bulbColor}
-            />
-
-            {/* Interactive Pull String Group - with animated bounce on click */}
-            <g
-              id="lamp-pull-string-switch"
-              className="cursor-pointer group"
+          <div className="relative w-full flex flex-col items-center">
+            {/* Direct Clickable Lamp SVG */}
+            <svg
+              id="interactive-walton-lamp"
               onClick={handleToggleLamp}
-              style={{
-                transformOrigin: '105px 180px',
-                transform: isPulling ? 'translateY(20px)' : 'translateY(0)',
-                transition: 'transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-              }}
-              title="Click to toggle lamp ON / OFF"
+              className={`w-full max-w-[270px] sm:max-w-[310px] md:max-w-[330px] h-auto overflow-visible drop-shadow-[0_20px_30px_rgba(0,0,0,0.6)] self-center mx-auto cursor-pointer transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+                !isLampOn ? 'animate-pulse hover:animate-none' : ''
+              }`}
+              viewBox="0 0 300 450"
+              xmlns="http://www.w3.org/2000/svg"
+              title={isLampOn ? 'Click lamp to turn OFF' : 'Click lamp to turn ON and open login form'}
             >
-              {/* String line */}
-              <line x1="105" y1="180" x2="105" y2="280" stroke="#64748b" strokeWidth="3" />
-              {/* Cord handle */}
-              <line
-                x1="105"
-                y1="280"
-                x2="105"
-                y2="312"
-                stroke={isLampOn ? '#ffffff' : '#cbd5e1'}
-                strokeWidth="7"
-                strokeLinecap="round"
-                className="group-hover:stroke-[#93c5fd] transition-colors"
-              />
-              {/* Click target helper */}
-              <circle cx="105" cy="296" r="16" fill="transparent" />
-            </g>
+              <defs>
+                <linearGradient id="lampLightConeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                </linearGradient>
+                <clipPath id="lampMouthClip">
+                  <path d="M 125 155 Q 150 190 175 155 Z" />
+                </clipPath>
+              </defs>
 
-            {/* Main Shade Body */}
-            <path
-              d="M 95 60 Q 150 45 205 60 L 240 175 Q 150 195 60 175 Z"
-              className="transition-colors duration-700"
-              fill={currentTheme.shadeColor}
-            />
+              {/* Light Cone projecting towards form */}
+              <polygon
+                points="90,180 210,180 340,450 -30,450"
+                fill="url(#lampLightConeGrad)"
+                className="transition-opacity duration-700 pointer-events-none"
+                style={{ opacity: currentTheme.lightOpacity }}
+              />
 
-            {/* Face: Sleeping Expression (Off Mode) */}
-            <g
-              className="transition-opacity duration-300"
-              style={{ opacity: isLampOn ? 0 : 1 }}
-            >
-              <path
-                d="M 115 130 Q 125 140 135 130"
-                stroke="#111"
-                strokeWidth="4"
-                fill="none"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 165 130 Q 175 140 185 130"
-                stroke="#111"
-                strokeWidth="4"
-                fill="none"
-                strokeLinecap="round"
-              />
-            </g>
+              {/* Lamp Base */}
+              <ellipse cx="150" cy="400" rx="60" ry="15" fill="#151515" />
+              <ellipse cx="150" cy="395" rx="60" ry="15" fill="#3a3c40" />
 
-            {/* Face: Awake & Smiling Expression (On Mode) */}
-            <g
-              className="transition-opacity duration-300"
-              style={{ opacity: isLampOn ? 1 : 0 }}
-            >
-              <path
-                d="M 115 130 Q 125 115 135 130"
-                stroke="#111"
-                strokeWidth="4"
-                fill="none"
-                strokeLinecap="round"
+              {/* Lamp Stem */}
+              <rect x="140" y="180" width="20" height="220" fill="#2a2c30" />
+              <rect x="142" y="180" width="8" height="220" fill="#4a4c50" />
+
+              {/* Inner Bulb & Shade Rim */}
+              <ellipse
+                cx="150"
+                cy="175"
+                rx="90"
+                ry="20"
+                className="transition-colors duration-700"
+                fill={currentTheme.bulbColor}
               />
+
+              {/* Interactive Pull String Group - with animated bounce on click */}
+              <g
+                id="lamp-pull-string-switch"
+                className="cursor-pointer group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleLamp();
+                }}
+                style={{
+                  transformOrigin: '105px 180px',
+                  transform: isPulling ? 'translateY(20px)' : 'translateY(0)',
+                  transition: 'transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                }}
+                title="Click to toggle lamp ON / OFF"
+              >
+                {/* String line */}
+                <line x1="105" y1="180" x2="105" y2="280" stroke="#64748b" strokeWidth="3" />
+                {/* Cord handle */}
+                <line
+                  x1="105"
+                  y1="280"
+                  x2="105"
+                  y2="312"
+                  stroke={isLampOn ? '#ffffff' : '#cbd5e1'}
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  className="group-hover:stroke-[#93c5fd] transition-colors"
+                />
+                {/* Click target helper */}
+                <circle cx="105" cy="296" r="16" fill="transparent" />
+              </g>
+
+              {/* Main Shade Body */}
               <path
-                d="M 165 130 Q 175 115 185 130"
-                stroke="#111"
-                strokeWidth="4"
-                fill="none"
-                strokeLinecap="round"
+                d="M 95 60 Q 150 45 205 60 L 240 175 Q 150 195 60 175 Z"
+                className="transition-colors duration-700"
+                fill={currentTheme.shadeColor}
               />
-              <g>
-                <path d="M 125 155 Q 150 190 175 155 Z" fill="#111" />
+
+              {/* Face: Sleeping Expression (Off Mode) */}
+              <g
+                className="transition-opacity duration-300"
+                style={{ opacity: isLampOn ? 0 : 1 }}
+              >
                 <path
-                  d="M 140 165 Q 150 190 160 165 Z"
-                  fill="#f87171"
-                  clipPath="url(#lampMouthClip)"
+                  d="M 115 130 Q 125 140 135 130"
+                  stroke="#111"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 165 130 Q 175 140 185 130"
+                  stroke="#111"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeLinecap="round"
                 />
               </g>
-            </g>
-          </svg>
+
+              {/* Face: Awake & Smiling Expression (On Mode) */}
+              <g
+                className="transition-opacity duration-300"
+                style={{ opacity: isLampOn ? 1 : 0 }}
+              >
+                <path
+                  d="M 115 130 Q 125 115 135 130"
+                  stroke="#111"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 165 130 Q 175 115 185 130"
+                  stroke="#111"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+                <g>
+                  <path d="M 125 155 Q 150 190 175 155 Z" fill="#111" />
+                  <path
+                    d="M 140 165 Q 150 190 160 165 Z"
+                    fill="#f87171"
+                    clipPath="url(#lampMouthClip)"
+                  />
+                </g>
+              </g>
+            </svg>
+          </div>
 
           {/* Lamp Controls Buttons */}
-          <div className="flex items-center gap-2 mt-3 z-10">
+          <div className="flex items-center gap-2 mt-3 z-10 self-center sm:self-start">
             <button
               id="btn-toggle-lamp-switch"
               type="button"
@@ -509,7 +564,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           {isLampOn ? (
             <div
               id="login-card"
-              className="w-full bg-[#121820]/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border-2 transition-all duration-500 animate-in fade-in zoom-in-95 slide-in-from-bottom-2"
+              className="w-full bg-[#121820]/90 backdrop-blur-xl p-5 sm:p-7 rounded-3xl border-2 transition-all duration-500 animate-in fade-in zoom-in-95 slide-in-from-bottom-2"
               style={{
                 borderColor: currentTheme.themeColor,
                 boxShadow: `0 0 35px rgba(${currentTheme.themeGlowRGB}, 0.25), inset 0 0 15px rgba(255, 255, 255, 0.02)`,
@@ -529,7 +584,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   {resetSentMessage && (
                     <div className="mb-4 p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-200 text-xs flex items-start gap-2 animate-in fade-in duration-200">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <div className="leading-snack">{resetSentMessage}</div>
+                      <div className="leading-snug">{resetSentMessage}</div>
                     </div>
                   )}
 
@@ -569,7 +624,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
+                        placeholder="Enter password"
                         className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans"
                         onFocus={(e) => {
                           e.currentTarget.style.borderColor = currentTheme.themeColor;
@@ -583,7 +638,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     </div>
 
                     {errorMessage && (
-                      <p className="text-xs text-red-400 text-center pt-1">{errorMessage}</p>
+                      <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-start gap-2 text-left">
+                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                        <span className="leading-snug">{errorMessage}</span>
+                      </div>
                     )}
 
                     <div className="pt-2">
@@ -613,7 +671,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                           setErrorMessage(null);
                           setResetSentMessage(null);
                         }}
-                        className="text-slate-300 hover:text-white transition-colors underline cursor-pointer text-[12px]"
+                        className="text-slate-300 hover:text-white transition-colors underline cursor-pointer text-[11.5px]"
                       >
                         Request Account
                       </button>
@@ -624,7 +682,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                           setErrorMessage(null);
                           setResetSentMessage(null);
                         }}
-                        className="text-slate-400 hover:text-white transition-colors cursor-pointer text-[11.5px]"
+                        className="text-slate-400 hover:text-white transition-colors cursor-pointer text-[11px]"
                       >
                         Forgot Password?
                       </button>

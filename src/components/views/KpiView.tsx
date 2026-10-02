@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -12,12 +12,28 @@ import {
 import { WORKER_KPIS_DATA } from '../../data/initialData';
 import { WorkerKpi } from '../../types';
 import { Search, Trophy, Medal, Filter, Download, Plus, Check } from 'lucide-react';
+import { subscribeKpiRecords, createKpiRecord } from '../../services/kpi';
 
 export const KpiView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLine, setFilterLine] = useState('All');
   const [workers, setWorkers] = useState<WorkerKpi[]>(WORKER_KPIS_DATA);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  useEffect(() => {
+    let seeded = false;
+    const unsub = subscribeKpiRecords((liveWorkers) => {
+      if (liveWorkers.length > 0) {
+        setWorkers(liveWorkers);
+      } else if (!seeded) {
+        seeded = true;
+        WORKER_KPIS_DATA.forEach((w) => {
+          createKpiRecord(w).catch(() => {});
+        });
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // New evaluation form state
   const [newName, setNewName] = useState('');
@@ -75,6 +91,7 @@ export const KpiView: React.FC = () => {
     // re-rank
     const reRanked = updated.map((w, idx) => ({ ...w, rank: idx + 1 }));
     setWorkers(reRanked);
+    createKpiRecord(newWorker).catch(() => {});
     setShowAddModal(false);
     setNewName('');
     setNewId('');

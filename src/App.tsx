@@ -32,7 +32,22 @@ import {
   INITIAL_SOPS,
 } from './data/initialData';
 import { auth, signOut, onAuthStateChanged } from './services/firebase';
-import { getUserProfile, bootstrapUserProfile } from './services/userService';
+import { getUserProfile, bootstrapUserProfile, isDesignatedAdminEmail } from './services/userService';
+import {
+  subscribeNonConformances,
+  createNonConformance,
+  updateNonConformance,
+} from './services/nonConformance';
+import {
+  subscribeCapas,
+  createCapa,
+  updateCapa,
+} from './services/capa';
+import {
+  subscribeDocumentRecords,
+  createDocumentRecord,
+} from './services/documents';
+import { subscribeTasks } from './services/tasks';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { LandingPage } from './components/LandingPage';
@@ -50,6 +65,7 @@ import { LeadersView } from './components/views/LeadersView';
 import { PCBProcessFlowView } from './components/views/PCBProcessFlowView';
 import { PCBAProcessFlowView } from './components/views/PCBAProcessFlowView';
 import { IqcView } from './components/views/IqcView';
+import { EsdView } from './components/views/EsdView';
 import { RcaView } from './components/views/RcaView';
 import { QualityDevView } from './components/views/QualityDevView';
 import { TaskManagerView } from './components/views/TaskManagerView';
@@ -109,6 +125,24 @@ export default function App() {
    * Listen to Firebase Authentication state changes across app lifecycle
    */
   useEffect(() => {
+    // Check for active local Walton session immediately on mount
+    try {
+      const savedSession = localStorage.getItem('walton_auth_session');
+      if (savedSession) {
+        const parsed = JSON.parse(savedSession);
+        if (parsed && parsed.email) {
+          // Strictly enforce: users who are not designated admins can never have 'admin' role
+          const savedPortal = localStorage.getItem('walton_login_portal');
+          if (savedPortal === 'staff' || !isDesignatedAdminEmail(parsed.email)) {
+            parsed.role = 'qa_staff';
+          }
+          setIsLoggedIn(true);
+          setCurrentUserEmail(parsed.email);
+          setCurrentUserProfile(parsed);
+        }
+      }
+    } catch {}
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsLoggedIn(true);
@@ -123,16 +157,50 @@ export default function App() {
           if (profile) {
             if (profile.status === 'inactive') {
               await signOut(auth);
+              try {
+                localStorage.removeItem('walton_auth_session');
+                localStorage.removeItem('walton_active_user');
+                localStorage.removeItem('walton_login_portal');
+              } catch {}
               setIsLoggedIn(false);
               setCurrentUserProfile(null);
               return;
             }
+
+            // Strictly enforce: non-designated admin email can never get admin role
+            const savedPortal = localStorage.getItem('walton_login_portal');
+            if (savedPortal === 'staff' || !isDesignatedAdminEmail(profile.email)) {
+              profile.role = 'qa_staff';
+            }
+
             setCurrentUserProfile(profile);
+            try {
+              localStorage.setItem('walton_active_user', profile.email);
+              localStorage.setItem('walton_auth_session', JSON.stringify(profile));
+            } catch {}
           }
         } catch (err) {
           console.warn('Profile fetch warning:', err);
         }
       } else {
+        // If Firebase Auth has no user, verify if an active local session exists
+        try {
+          const savedSession = localStorage.getItem('walton_auth_session');
+          if (savedSession) {
+            const parsed = JSON.parse(savedSession);
+            if (parsed && parsed.email) {
+              const savedPortal = localStorage.getItem('walton_login_portal');
+              if (savedPortal === 'staff' || !isDesignatedAdminEmail(parsed.email)) {
+                parsed.role = 'qa_staff';
+              }
+              setIsLoggedIn(true);
+              setCurrentUserEmail(parsed.email);
+              setCurrentUserProfile(parsed);
+              return;
+            }
+          }
+        } catch {}
+
         setIsLoggedIn(false);
         setCurrentUserProfile(null);
       }
@@ -153,7 +221,7 @@ export default function App() {
    * Controls whether the navigation sidebar is open or closed across desktop and mobile.
    * Pressing the topbar menu button (#btn-sidebar-toggle) toggles it open and closed.
    */
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   /**
    * @state showLoginModal
@@ -184,6 +252,76 @@ export default function App() {
 
   /** List of Standard Operating Procedures & Quality Manuals */
   const [sopList, setSopList] = useState<SopDocument[]>(INITIAL_SOPS);
+
+  /** Count of pending (In Progress + On Hold) tasks in Task Manager */
+  const [pendingTaskCount, setPendingTaskCount] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('walton_qms_tasks_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((t) => t.status !== 'COMPLETED').length;
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return 5;
+  });
+
+  /**
+   * Synchronize NCRs, CAPAs, SOP Documents, and Task badge counts with Cloud Firestore
+   */
+  useEffect(() => {
+    let seededNcrs = false;
+    const unsubNc = subscribeNonConformances((items) => {
+      if (items.length > 0) {
+        setNcList(items);
+      } else if (!seededNcrs) {
+        seededNcrs = true;
+        INITIAL_NCRS.forEach((nc) => {
+          createNonConformance(nc).catch(() => {});
+        });
+      }
+    });
+
+    let seededCapas = false;
+    const unsubCapa = subscribeCapas((items) => {
+      if (items.length > 0) {
+        setCapaList(items);
+      } else if (!seededCapas) {
+        seededCapas = true;
+        INITIAL_CAPAS.forEach((c) => {
+          createCapa(c).catch(() => {});
+        });
+      }
+    });
+
+    let seededDocs = false;
+    const unsubDocs = subscribeDocumentRecords((docs) => {
+      if (docs.length > 0) {
+        setSopList(docs);
+      } else if (!seededDocs) {
+        seededDocs = true;
+        INITIAL_SOPS.forEach((s) => {
+          createDocumentRecord(s).catch(() => {});
+        });
+      }
+    });
+
+    const unsubTasks = subscribeTasks((liveTasks) => {
+      if (liveTasks.length > 0) {
+        setPendingTaskCount(liveTasks.filter((t) => t.status !== 'COMPLETED').length);
+      }
+    });
+
+    return () => {
+      unsubNc();
+      unsubCapa();
+      unsubDocs();
+      unsubTasks();
+    };
+  }, []);
 
   // ---------------------------------------------------------------------------------------
   // 4. MODAL VISIBILITY STATE
@@ -223,8 +361,8 @@ export default function App() {
       if (hash) {
         const validPages: PageType[] = [
           'home', 'dashboard', 'leaders', 'pcb', 'pcb-process', 'iqc', 'iqc-pcb', 'iqc-pcba',
-          'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
-          'capa', 'complaints', 'docs', 'team', 'users', 'settings'
+          'esd', 'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
+          'capa', 'complaints', 'docs', 'team', 'team-database', 'team-entry', 'users', 'settings'
         ];
         if (validPages.includes(hash as PageType)) return hash as PageType;
       }
@@ -232,8 +370,8 @@ export default function App() {
       if (pathname) {
         const validPages: PageType[] = [
           'home', 'dashboard', 'leaders', 'pcb', 'pcb-process', 'iqc', 'iqc-pcb', 'iqc-pcba',
-          'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
-          'capa', 'complaints', 'docs', 'team', 'users', 'settings'
+          'esd', 'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
+          'capa', 'complaints', 'docs', 'team', 'team-database', 'team-entry', 'users', 'settings'
         ];
         if (validPages.includes(pathname as PageType)) return pathname as PageType;
       }
@@ -278,10 +416,15 @@ export default function App() {
       setCurrentUserEmail(email);
     }
     if (profile) {
+      // Enforce strict separation
+      const savedPortal = localStorage.getItem('walton_login_portal');
+      if (savedPortal === 'staff' || !isDesignatedAdminEmail(profile.email)) {
+        profile.role = 'qa_staff';
+      }
       setCurrentUserProfile(profile);
     }
     setCurrentPage('dashboard');
-    setIsSidebarOpen(true);
+    setIsSidebarOpen(false);
     setInPortal(true);
     setShowLoginModal(false);
     try {
@@ -304,6 +447,11 @@ export default function App() {
     } catch (err) {
       console.error('Firebase signOut error:', err);
     }
+    try {
+      localStorage.removeItem('walton_auth_session');
+      localStorage.removeItem('walton_active_user');
+      localStorage.removeItem('walton_login_portal');
+    } catch {}
     setIsLoggedIn(false);
     setCurrentUserProfile(null);
     setCurrentPage('home');
@@ -360,7 +508,10 @@ export default function App() {
    * @param {NonConformanceItem} item - The new non-conformance record created by the user.
    */
   const handleAddNc = (item: NonConformanceItem) => {
-    setNcList([item, ...ncList]);
+    setNcList((prev) => [item, ...prev.filter((n) => n.id !== item.id)]);
+    createNonConformance(item).catch((err) => {
+      console.warn('Firestore NCR create notice:', err);
+    });
   };
 
   /**
@@ -371,7 +522,10 @@ export default function App() {
    * @param {NonConformanceItem['status']} newStatus - The new status to apply.
    */
   const handleUpdateNcStatus = (id: string, newStatus: NonConformanceItem['status']) => {
-    setNcList(ncList.map((n) => (n.id === id ? { ...n, status: newStatus } : n)));
+    setNcList((prev) => prev.map((n) => (n.id === id ? { ...n, status: newStatus } : n)));
+    updateNonConformance(id, { status: newStatus }).catch((err) => {
+      console.warn('Firestore NCR status update notice:', err);
+    });
   };
 
   /**
@@ -381,7 +535,10 @@ export default function App() {
    * @param {CapaItem} item - The newly created CAPA record.
    */
   const handleAddCapa = (item: CapaItem) => {
-    setCapaList([item, ...capaList]);
+    setCapaList((prev) => [item, ...prev.filter((c) => c.id !== item.id)]);
+    createCapa(item).catch((err) => {
+      console.warn('Firestore CAPA create notice:', err);
+    });
   };
 
   /**
@@ -392,7 +549,10 @@ export default function App() {
    * @param {CapaItem['status']} newStatus - The updated status string.
    */
   const handleUpdateCapaStatus = (id: string, newStatus: CapaItem['status']) => {
-    setCapaList(capaList.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
+    setCapaList((prev) => prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c)));
+    updateCapa(id, { status: newStatus }).catch((err) => {
+      console.warn('Firestore CAPA status update notice:', err);
+    });
   };
 
   /**
@@ -402,7 +562,10 @@ export default function App() {
    * @param {SopDocument} item - The new document record.
    */
   const handleAddDoc = (item: SopDocument) => {
-    setSopList([item, ...sopList]);
+    setSopList((prev) => [item, ...prev.filter((d) => d.id !== item.id)]);
+    createDocumentRecord(item).catch((err) => {
+      console.warn('Firestore Document create notice:', err);
+    });
   };
 
   /** Determines whether the public Landing Page should be rendered */
@@ -463,9 +626,11 @@ export default function App() {
             onNavigate={handleNavigate}
             isOpen={isSidebarOpen}
             collapsed={!isSidebarOpen}
+            onOpenSidebar={() => setIsSidebarOpen(true)}
             onCloseMobile={() => setIsSidebarOpen(false)}
-            openNcCount={ncList.filter((n) => n.status === 'Open' || n.status === 'In Progress').length}
-            openCapaCount={capaList.filter((c) => c.status === 'Open' || c.status === 'In Progress').length}
+            pendingTaskCount={pendingTaskCount}
+            openNcCount={ncList.filter((n) => n.status !== 'Closed').length}
+            openCapaCount={capaList.filter((c) => c.status !== 'Closed' && c.status !== 'Cancelled').length}
             userProfile={currentUserProfile}
           />
 
@@ -477,8 +642,8 @@ export default function App() {
                   onNavigate={handleNavigate}
                   onOpenNewNcModal={() => setShowNewNcModal(true)}
                   onOpenNewCapaModal={() => setShowNewCapaModal(true)}
-                  openNcCount={ncList.filter((n) => n.status === 'Open').length}
-                  openCapaCount={capaList.filter((c) => c.status === 'Open' || c.status === 'In Progress').length}
+                  openNcCount={ncList.filter((n) => n.status !== 'Closed').length}
+                  openCapaCount={capaList.filter((c) => c.status !== 'Closed' && c.status !== 'Cancelled').length}
                   selectedMonth={selectedMonth}
                   onMonthChange={setSelectedMonth}
                   selectedProduct={selectedProduct}
@@ -513,6 +678,14 @@ export default function App() {
                 />
               )}
 
+              {currentPage === 'esd' && (
+                <EsdView
+                  onNavigate={handleNavigate}
+                  isLoggedIn={isLoggedIn}
+                  onOpenLoginModal={() => setShowLoginModal(true)}
+                />
+              )}
+
               {currentPage === 'rca' && (
                 <RcaView
                   onNavigate={handleNavigate}
@@ -538,7 +711,10 @@ export default function App() {
               )}
 
               {currentPage === 'tasks' && (
-                <TaskManagerView onNavigate={handleNavigate} />
+                <TaskManagerView
+                  onNavigate={handleNavigate}
+                  onPendingCountChange={setPendingTaskCount}
+                />
               )}
 
               {currentPage === 'kpi' && <KpiView />}
@@ -576,7 +752,14 @@ export default function App() {
                 />
               )}
 
-              {currentPage === 'team' && <TeamView />}
+              {(currentPage === 'team' ||
+                currentPage === 'team-database' ||
+                currentPage === 'team-entry') && (
+                <TeamView
+                  selectedSubsection={currentPage === 'team-entry' ? 'entry' : 'database'}
+                  onNavigate={handleNavigate}
+                />
+              )}
 
               {currentPage === 'leaders' && <LeadersView onNavigate={handleNavigate} />}
 

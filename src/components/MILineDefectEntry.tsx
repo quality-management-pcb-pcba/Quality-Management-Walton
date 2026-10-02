@@ -24,6 +24,7 @@ import {
   FileText,
   Filter,
 } from 'lucide-react';
+import { saveMultiplePcbaReports } from '../services/pcbaReportService';
 
 export interface MIDefectRecord {
   id: string;
@@ -406,7 +407,7 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
     (Object.values(functionalQuantities) as number[]).reduce((a, b) => a + b, 0);
 
   // Save Defect Data
-  const handleSaveDefectData = () => {
+  const handleSaveDefectData = async () => {
     if (isSubmitting) return;
 
     if (!selectedDate) {
@@ -440,45 +441,62 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const newEntries: MIDefectRecord[] = [];
-      const timestamp = Date.now();
+    try {
+      const pcbaPayload: any[] = [];
 
       // Aesthetic rows
-      (Object.entries(aestheticQuantities) as [string, number][]).forEach(([name, qty], index) => {
-        newEntries.push({
-          id: `mi-${timestamp}-aes-${index}`,
+      (Object.entries(aestheticQuantities) as [string, number][]).forEach(([name, qty]) => {
+        pcbaPayload.push({
           line: lineName,
           date: selectedDate,
           shift: selectedShift,
           product: selectedProduct,
           model: selectedModel,
-          aesthetic: name,
-          func: '',
+          type: 'Aesthetic' as const,
+          desc: name,
           qty,
+          status: 'Open' as const,
           operator: aestheticOperator.trim(),
-          remarks: remarks.trim(),
-          createdAt: timestamp + index,
+          remarks: remarks.trim() || '—',
+          source: 'MI Line Defect Entry',
         });
       });
 
       // Functional rows
-      (Object.entries(functionalQuantities) as [string, number][]).forEach(([name, qty], index) => {
-        newEntries.push({
-          id: `mi-${timestamp}-func-${index}`,
+      (Object.entries(functionalQuantities) as [string, number][]).forEach(([name, qty]) => {
+        pcbaPayload.push({
           line: lineName,
           date: selectedDate,
           shift: selectedShift,
           product: selectedProduct,
           model: selectedModel,
-          aesthetic: '',
-          func: name,
+          type: 'Function' as const,
+          desc: name,
           qty,
+          status: 'Open' as const,
           operator: functionalOperator.trim(),
-          remarks: remarks.trim(),
-          createdAt: timestamp + 100 + index,
+          remarks: remarks.trim() || '—',
+          source: 'MI Line Defect Entry',
         });
       });
+
+      // Store defect records in Firestore collection "pcba_reports"
+      const savedIds = await saveMultiplePcbaReports(pcbaPayload);
+
+      const newEntries: MIDefectRecord[] = pcbaPayload.map((doc, index) => ({
+        id: (savedIds && savedIds[index]) || `mi-${Date.now()}-${index}`,
+        line: doc.line,
+        date: doc.date,
+        shift: doc.shift || selectedShift,
+        product: doc.product || selectedProduct,
+        model: doc.model,
+        aesthetic: doc.type === 'Aesthetic' ? doc.desc : '',
+        func: doc.type === 'Function' ? doc.desc : '',
+        qty: doc.qty,
+        operator: doc.operator || (doc.type === 'Aesthetic' ? aestheticOperator : functionalOperator),
+        remarks: doc.remarks || remarks.trim(),
+        createdAt: Date.now() + index,
+      }));
 
       setRecords((prev) => [...newEntries, ...prev]);
 
@@ -486,13 +504,14 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
       setAestheticQuantities({});
       setFunctionalQuantities({});
       setRemarks('');
-      setIsSubmitting(false);
 
-      showToast(
-        `Saved ${newEntries.length} defect row${newEntries.length > 1 ? 's' : ''} successfully.`,
-        'success'
-      );
-    }, 450);
+      showToast('PCBA Report Saved Successfully', 'success');
+    } catch (err: any) {
+      console.error('Failed to save to Firestore pcba_reports:', err);
+      showToast('Failed to save PCBA report: ' + (err?.message || 'Database error'), 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // CSV Download

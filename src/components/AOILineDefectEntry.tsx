@@ -19,7 +19,9 @@ import {
   ChevronDown,
   ArrowRight,
   Database,
+  CloudCheck,
 } from 'lucide-react';
+import { saveMultiplePcbaReports } from '../services/pcbaReportService';
 
 export interface AOIDefectRecord {
   id: string;
@@ -146,13 +148,17 @@ function getTodayString(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// Initial seed defect entries for SMT Line-01
+// Initial seed defect entries ONLY for SMT Line-01
 function getSeedDefectRecords(line: string): AOIDefectRecord[] {
+  // SMT Line-01 has sample demonstration entries; SMT Line-02, Line-03, Line-04, Line-05 start clean
+  if (line !== 'SMT Line-01') {
+    return [];
+  }
   const today = getTodayString();
   return [
     {
       id: 'aoi-seed-1',
-      line,
+      line: 'SMT Line-01',
       date: today,
       shift: 'Day',
       product: 'Fridge',
@@ -165,7 +171,7 @@ function getSeedDefectRecords(line: string): AOIDefectRecord[] {
     },
     {
       id: 'aoi-seed-2',
-      line,
+      line: 'SMT Line-01',
       date: today,
       shift: 'Day',
       product: 'AC',
@@ -178,7 +184,7 @@ function getSeedDefectRecords(line: string): AOIDefectRecord[] {
     },
     {
       id: 'aoi-seed-3',
-      line,
+      line: 'SMT Line-01',
       date: getTodayString(),
       shift: 'Morning',
       product: 'LED',
@@ -191,7 +197,7 @@ function getSeedDefectRecords(line: string): AOIDefectRecord[] {
     },
     {
       id: 'aoi-seed-4',
-      line,
+      line: 'SMT Line-01',
       date: '2026-09-15',
       shift: 'Night',
       product: 'Fan',
@@ -204,7 +210,7 @@ function getSeedDefectRecords(line: string): AOIDefectRecord[] {
     },
     {
       id: 'aoi-seed-5',
-      line,
+      line: 'SMT Line-01',
       date: '2026-09-15',
       shift: 'Day',
       product: 'Fridge',
@@ -217,7 +223,7 @@ function getSeedDefectRecords(line: string): AOIDefectRecord[] {
     },
     {
       id: 'aoi-seed-6',
-      line,
+      line: 'SMT Line-01',
       date: '2026-09-14',
       shift: 'General',
       product: 'TV',
@@ -229,6 +235,28 @@ function getSeedDefectRecords(line: string): AOIDefectRecord[] {
       createdAt: Date.now() - 86400000 * 2.2,
     },
   ];
+}
+
+// Strictly retrieve records that belong ONLY to targetLine, preventing cross-line contamination
+function getLineRecordsFromStorage(targetLine: string): AOIDefectRecord[] {
+  try {
+    const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        // Enforce strict line matching: exclude any record belonging to another line
+        const lineSpecific = parsed.filter((r) => r && r.line === targetLine);
+        // Exclude accidental duplicate seed entries if this is not SMT Line-01
+        if (targetLine !== 'SMT Line-01') {
+          return lineSpecific.filter((r) => !r.id?.startsWith('aoi-seed-'));
+        }
+        return lineSpecific;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  return getSeedDefectRecords(targetLine);
 }
 
 export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
@@ -252,21 +280,23 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     localStorage.setItem('aoi_defect_master_lists', JSON.stringify(formData));
   }, [formData]);
 
-  // Defect records persisted in localStorage
+  // Defect records strictly persisted in localStorage per line
   const [records, setRecords] = useState<AOIDefectRecord[]>(() => {
-    const saved = localStorage.getItem(`aoi_defect_records_${lineName}`);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return getSeedDefectRecords(lineName);
-      }
-    }
-    return getSeedDefectRecords(lineName);
+    return getLineRecordsFromStorage(lineName);
   });
 
+  // Keep records isolated and in sync with the selected line
   useEffect(() => {
-    localStorage.setItem(`aoi_defect_records_${lineName}`, JSON.stringify(records));
+    setRecords(getLineRecordsFromStorage(lineName));
+    setFaultQuantities({});
+    setRemarks('');
+  }, [lineName]);
+
+  // Persist records ONLY if they match current lineName
+  useEffect(() => {
+    if (records.every((r) => r.line === lineName)) {
+      localStorage.setItem(`aoi_defect_records_${lineName}`, JSON.stringify(records));
+    }
   }, [records, lineName]);
 
   // Form Fields
@@ -404,7 +434,7 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
   );
 
   // Save Defect Data
-  const handleSaveDefectData = () => {
+  const handleSaveDefectData = async () => {
     if (isSubmitting) return;
 
     if (!date) {
@@ -434,58 +464,60 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const newEntries: AOIDefectRecord[] = [];
-      const timestamp = Date.now();
+    try {
+      const pcbaPayload = (Object.entries(faultQuantities) as [string, number][]).map(([fault, qty]) => ({
+        date,
+        shift,
+        product,
+        model,
+        line: lineName,
+        type: 'Aesthetic' as const,
+        desc: fault,
+        qty,
+        status: 'Open' as const,
+        operator: operator.trim(),
+        remarks: remarks.trim() || '—',
+        source: 'AOI Line Defect Entry',
+      }));
 
-      (Object.entries(faultQuantities) as [string, number][]).forEach(([fault, qty], index) => {
-        newEntries.push({
-          id: `aoi-${timestamp}-${index}`,
-          line: lineName,
-          date,
-          shift,
-          product,
-          model,
-          fault,
-          qty,
-          operator: operator.trim(),
-          remarks: remarks.trim() || '—',
-          createdAt: timestamp + index,
-        });
+      // Store defect records in Firestore collection "pcba_reports"
+      const savedIds = await saveMultiplePcbaReports(pcbaPayload);
+
+      const newEntries: AOIDefectRecord[] = pcbaPayload.map((doc, index) => ({
+        id: (savedIds && savedIds[index]) || `aoi-${Date.now()}-${index}`,
+        line: lineName,
+        date: doc.date,
+        shift: doc.shift || shift,
+        product: doc.product || product,
+        model: doc.model,
+        fault: doc.desc,
+        qty: doc.qty,
+        operator: doc.operator || operator.trim(),
+        remarks: doc.remarks || remarks.trim() || '—',
+        createdAt: Date.now() + index,
+      }));
+
+      setRecords((prev) => {
+        const lineFiltered = prev.filter((r) => r.line === lineName);
+        const updated = [...newEntries, ...lineFiltered];
+        try {
+          localStorage.setItem(`aoi_defect_records_${lineName}`, JSON.stringify(updated));
+        } catch (e) {
+          // ignore storage quota error
+        }
+        return updated;
       });
-
-      // Also persist to general PCBA report database if present
-      try {
-        const globalSaved = localStorage.getItem('pcba_report_database_records');
-        const globalRecords = globalSaved ? JSON.parse(globalSaved) : [];
-        newEntries.forEach((entry) => {
-          globalRecords.unshift({
-            id: entry.id,
-            date: entry.date,
-            line: entry.line,
-            model: entry.model,
-            type: 'Aesthetic',
-            desc: entry.fault,
-            qty: entry.qty,
-            status: 'Open',
-          });
-        });
-        localStorage.setItem('pcba_report_database_records', JSON.stringify(globalRecords));
-      } catch (e) {
-        // Continue
-      }
-
-      setRecords((prev) => [...newEntries, ...prev]);
-      setIsSubmitting(false);
 
       // Reset faults and remarks, keeping common info intact for fast data entry
       setFaultQuantities({});
       setRemarks('');
-      showToast(
-        `Saved ${newEntries.length} defect row${newEntries.length > 1 ? 's' : ''} successfully.`,
-        'success'
-      );
-    }, 450);
+      showToast('PCBA Report Saved Successfully', 'success');
+    } catch (err: any) {
+      console.error('Failed to save to Firestore pcba_reports:', err);
+      showToast('Failed to save PCBA report: ' + (err?.message || 'Database error'), 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Filtered rows for Details Report

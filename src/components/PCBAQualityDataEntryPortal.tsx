@@ -22,6 +22,9 @@ import {
   ArrowLeft,
   AlertCircle,
   ExternalLink,
+  CloudCheck,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 
 import { AOILineDefectEntry } from './AOILineDefectEntry';
@@ -29,6 +32,13 @@ import { MILineDefectEntry } from './MILineDefectEntry';
 import { MILineChargerDefectEntry } from './MILineChargerDefectEntry';
 import { DailyQMReportSMT } from './DailyQMReportSMT';
 import { DailyQMReportMI } from './DailyQMReportMI';
+import {
+  savePcbaReport,
+  updatePcbaReport,
+  deletePcbaReport,
+  subscribeToPcbaReports,
+  saveMultiplePcbaReports,
+} from '../services/pcbaReportService';
 
 export interface PCBAQualityDataEntryPortalProps {
   onClose: () => void;
@@ -46,6 +56,14 @@ export interface ReportRecord {
   desc: string;
   qty: number;
   status: 'Open' | 'In Progress' | 'Closed';
+  createdBy?: string;
+  createdAt?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+  shift?: string;
+  product?: string;
+  operator?: string;
+  remarks?: string;
 }
 
 const LINES = [
@@ -173,23 +191,77 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
       onClose();
     }
   };
-  // Stored state for reports
-  const [data, setData] = useState<ReportRecord[]>(() => {
-    const saved = localStorage.getItem('pcba_report_database_records');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return generateSeedData();
-      }
-    }
-    return generateSeedData();
-  });
+  // Firestore Data State
+  const [data, setData] = useState<ReportRecord[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Save to localStorage
+  // Real-time Firestore sync & Auto-collection creation
   useEffect(() => {
-    localStorage.setItem('pcba_report_database_records', JSON.stringify(data));
-  }, [data]);
+    setIsLoading(true);
+    let isSubscribed = true;
+
+    const unsubscribe = subscribeToPcbaReports(
+      async (records) => {
+        if (!isSubscribed) return;
+        if (records.length === 0) {
+          // Collection is empty or just created: Auto-seed initial realistic data to Firestore
+          try {
+            const seed = generateSeedData();
+            await saveMultiplePcbaReports(
+              seed.map((s) => ({
+                date: s.date,
+                line: s.line,
+                model: s.model,
+                type: s.type,
+                desc: s.desc,
+                qty: s.qty,
+                status: s.status,
+                source: 'Initial Database Seed',
+              }))
+            );
+          } catch (seedErr) {
+            console.warn('Initial seeding skipped:', seedErr);
+            setData([]);
+            setIsLoading(false);
+          }
+        } else {
+          setData(
+            records.map((r) => ({
+              id: r.id || `rep-${Math.random()}`,
+              date: r.date || fmtDate(new Date()),
+              line: r.line || 'SMT Line-01',
+              model: r.model || 'Standard PCBA',
+              type: (r.type as any) === 'Function' ? 'Function' : 'Aesthetic',
+              desc: r.desc || '—',
+              qty: Number(r.qty) || 1,
+              status: (r.status as any) || 'Open',
+              createdBy: r.createdBy,
+              createdAt: r.createdAt,
+              updatedBy: r.updatedBy,
+              updatedAt: r.updatedAt,
+              shift: r.shift,
+              product: r.product,
+              operator: r.operator,
+              remarks: r.remarks,
+            }))
+          );
+          setIsLoading(false);
+        }
+      },
+      (error) => {
+        console.error('Firestore listener error:', error);
+        setIsLoading(false);
+        showToast('Firestore connection error: ' + (error.message || 'Check database permissions'), 'error');
+      }
+    );
+
+    return () => {
+      isSubscribed = false;
+      unsubscribe();
+    };
+  }, []);
 
   // Sidebar collapsible state
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
@@ -250,13 +322,13 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
   const [formError, setFormError] = useState<string | null>(null);
 
   // Toast State
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
     setTimeout(() => {
-      setToastMsg(null);
-    }, 2500);
+      setToast(null);
+    }, 3500);
   };
 
   const toggleGroup = (groupId: string) => {
@@ -370,55 +442,71 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
     setModalOpen(true);
   };
 
-  const handleSaveReport = (e: React.FormEvent) => {
+  const handleSaveReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mModel.trim()) {
       setFormError('Model / Part No. is required');
       return;
     }
 
-    if (editingRecord) {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === editingRecord.id
-            ? {
-                ...item,
-                date: mDate,
-                line: mLine,
-                model: mModel.trim(),
-                type: mType,
-                qty: Math.max(1, mQty),
-                status: mStatus,
-                desc: mDesc.trim() || '—',
-              }
-            : item
-        )
-      );
-      showToast('Report updated successfully');
-    } else {
-      const newRecord: ReportRecord = {
-        id: `rep-${Date.now()}`,
-        date: mDate || fmtDate(new Date()),
-        line: mLine,
-        model: mModel.trim(),
-        type: mType,
-        qty: Math.max(1, mQty),
-        status: mStatus,
-        desc: mDesc.trim() || '—',
-      };
-      setData((prev) => [newRecord, ...prev]);
-      showToast('New report added successfully');
-    }
+    setIsSaving(true);
+    setFormError(null);
 
-    setModalOpen(false);
+    try {
+      if (editingRecord) {
+        // Update existing record in Firestore collection pcba_reports
+        await updatePcbaReport(editingRecord.id, {
+          date: mDate,
+          line: mLine,
+          model: mModel.trim(),
+          type: mType,
+          qty: Math.max(1, mQty),
+          status: mStatus,
+          desc: mDesc.trim() || '—',
+        });
+        showToast('PCBA Report Saved Successfully', 'success');
+      } else {
+        // Create new record in Firestore collection pcba_reports
+        await savePcbaReport({
+          date: mDate || fmtDate(new Date()),
+          line: mLine,
+          model: mModel.trim(),
+          type: mType,
+          qty: Math.max(1, mQty),
+          status: mStatus,
+          desc: mDesc.trim() || '—',
+          source: 'portal',
+        });
+        showToast('PCBA Report Saved Successfully', 'success');
+      }
+      setModalOpen(false);
+    } catch (err: any) {
+      console.error('Failed to save PCBA report to Firestore:', err);
+      const errMsg = err?.message || 'Failed to save PCBA report to Firestore';
+      setFormError(errMsg);
+      showToast('Error: ' + errMsg, 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeleteRecord = (id: string) => {
+  const handleDeleteRecord = async (id: string) => {
     const item = data.find((r) => r.id === id);
     if (!item) return;
-    if (window.confirm(`Delete the "${item.desc}" report for ${item.model}?`)) {
-      setData((prev) => prev.filter((r) => r.id !== id));
-      showToast('Report record deleted');
+    const confirmed = window.confirm(
+      `Confirm Deletion: Are you sure you want to delete this PCBA report?\n\n• Line: ${item.line}\n• Model: ${item.model}\n• Defect: ${item.desc}\n\nThis will remove the record permanently from Firestore collection "pcba_reports".`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    try {
+      await deletePcbaReport(id);
+      showToast('PCBA report deleted successfully', 'success');
+    } catch (err: any) {
+      console.error('Failed to delete PCBA report from Firestore:', err);
+      showToast('Failed to delete report: ' + (err?.message || 'Firestore error'), 'error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -492,6 +580,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                   const isActive = activeNav.type === 'line' && activeNav.value === l;
                   const isMILine01 = l === 'MI Line-01';
                   const isMICharger = l === 'MI Line - Charger' || l === 'MI Line-02';
+                  const isSMT = l.startsWith('SMT');
                   const isSMTLine01 = l === 'SMT Line-01';
                   return (
                     <button
@@ -546,12 +635,12 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                             ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
                             : isMILine01
                             ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
-                            : isSMTLine01
+                            : isSMT
                             ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                             : 'bg-white/5 text-[#8b93b4]'
                         }`}
                       >
-                        {isSMTLine01
+                        {isSMT
                           ? 'AOI Entry'
                           : isMICharger
                           ? 'Charger Entry'
@@ -784,16 +873,19 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
           {activeNav.type === 'line' ? (
             activeNav.value.includes('Charger') || activeNav.value === 'MI Line-02' ? (
               <MILineChargerDefectEntry
+                key={activeNav.value}
                 lineName={activeNav.value}
                 onNavigateToDatabase={() => handleSelectNav('database', 'Database')}
               />
             ) : activeNav.value.startsWith('MI') ? (
               <MILineDefectEntry
+                key={activeNav.value}
                 lineName={activeNav.value}
                 onNavigateToDatabase={() => handleSelectNav('database', 'Database')}
               />
             ) : (
               <AOILineDefectEntry
+                key={activeNav.value}
                 lineName={activeNav.value}
                 onNavigateToDatabase={() => handleSelectNav('database', 'Database')}
               />
@@ -950,8 +1042,12 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                   <Database className="w-4 h-4 text-[#2b62e8]" />
                   <span>Auto Database</span>
                 </h2>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Firestore: pcba_reports</span>
+                </div>
                 <span className="bg-[#eef1f7] text-[#5b6478] text-[11.5px] font-bold px-2.5 py-1 rounded-full">
-                  Total Records: {data.length}
+                  Total: {data.length}
                 </span>
                 {filteredData.length !== data.length && (
                   <span className="bg-[#e9eefc] text-[#2b62e8] text-[11.5px] font-bold px-2 py-0.5 rounded-full">
@@ -972,7 +1068,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
 
             {/* Scrollable Table Area */}
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse min-w-[920px]">
+              <table className="w-full border-collapse min-w-[960px]">
                 <thead>
                   <tr className="bg-[#f7f8fc] border-b border-[#e4e8f1] text-[#5b6478] text-[11.5px] font-bold tracking-wider uppercase text-left">
                     <th className="py-3 px-4 w-14">SL</th>
@@ -983,13 +1079,26 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                     <th className="py-3 px-4">Defect Description</th>
                     <th className="py-3 px-4 text-center">Qty</th>
                     <th className="py-3 px-4 text-center">Status</th>
+                    <th className="py-3 px-4">Created By</th>
                     <th className="py-3 px-4 text-center w-24">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#eef0f6] text-[13px]">
-                  {pageRows.length === 0 ? (
+                  {isLoading ? (
                     <tr>
-                      <td colSpan={9} className="text-center py-12 text-[#9399ab] font-medium text-[13.5px]">
+                      <td colSpan={10} className="text-center py-16">
+                        <div className="flex flex-col items-center justify-center gap-2.5">
+                          <Loader2 className="w-8 h-8 text-[#2b62e8] animate-spin" />
+                          <span className="text-sm font-semibold text-[#122065]">
+                            Loading records from Firestore (<code className="font-mono text-[#2b62e8]">pcba_reports</code>)...
+                          </span>
+                          <span className="text-xs text-[#64748b]">Real-time cloud database synchronization</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : pageRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="text-center py-12 text-[#9399ab] font-medium text-[13.5px]">
                         No matching reports found in database.
                       </td>
                     </tr>
@@ -1011,7 +1120,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                               {r.type}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-[#17203a] max-w-[240px] truncate" title={r.desc}>
+                          <td className="py-3 px-4 text-[#17203a] max-w-[220px] truncate" title={r.desc}>
                             {r.desc}
                           </td>
                           <td className="py-3 px-4 text-center font-mono font-bold text-[#17203a]">
@@ -1030,6 +1139,9 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                               {r.status}
                             </span>
                           </td>
+                          <td className="py-3 px-4 text-[11.5px] text-[#64748b] font-mono truncate max-w-[130px]" title={r.createdBy || 'System'}>
+                            {r.createdBy ? r.createdBy.split('@')[0] : 'qa-team'}
+                          </td>
                           <td className="py-3 px-4 text-center">
                             <div className="flex items-center justify-center gap-1.5">
                               <button
@@ -1042,11 +1154,16 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                               </button>
                               <button
                                 type="button"
+                                disabled={deletingId === r.id}
                                 onClick={() => handleDeleteRecord(r.id)}
-                                className="w-[30px] h-[30px] rounded-[7px] bg-[#f4363c] hover:bg-[#d9282e] text-white flex items-center justify-center transition-colors cursor-pointer"
+                                className="w-[30px] h-[30px] rounded-[7px] bg-[#f4363c] hover:bg-[#d9282e] disabled:bg-[#fca5a5] text-white flex items-center justify-center transition-colors cursor-pointer"
                                 title="Delete Report"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                {deletingId === r.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                )}
                               </button>
                             </div>
                           </td>
@@ -1252,16 +1369,25 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
               <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-[#e4e8f1]">
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-[#eef1f7] hover:bg-[#e3e7f1] text-[#17203a] font-bold text-[13px] transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-[#eef1f7] hover:bg-[#e3e7f1] disabled:opacity-50 text-[#17203a] font-bold text-[13px] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#2b62e8] hover:bg-[#1d4fcc] text-white font-bold text-[13px] transition-colors cursor-pointer shadow-xs active:scale-[0.98]"
+                  disabled={isSaving}
+                  className="px-5 py-2 rounded-lg bg-[#2b62e8] hover:bg-[#1d4fcc] disabled:bg-[#93c5fd] text-white font-bold text-[13px] transition-colors cursor-pointer shadow-xs active:scale-[0.98] flex items-center gap-2"
                 >
-                  {editingRecord ? 'Update Report' : 'Save Report'}
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving to Firestore…</span>
+                    </>
+                  ) : (
+                    <span>{editingRecord ? 'Update Report' : 'Save Report'}</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -1272,10 +1398,18 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
       {/* ========================================================================= */}
       {/* TOAST NOTIFICATION                                                        */}
       {/* ========================================================================= */}
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 bg-[#182347] text-white px-4 py-3 rounded-[9px] text-[13px] font-semibold shadow-xl flex items-center gap-2.5 z-50 animate-in slide-in-from-bottom-3 duration-200">
-          <Check className="w-4 h-4 text-[#5ede8c] shrink-0" />
-          <span>{toastMsg}</span>
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 px-4 py-3 rounded-[9px] text-[13px] font-semibold shadow-2xl flex items-center gap-2.5 z-50 animate-in slide-in-from-bottom-3 duration-200 text-white ${
+            toast.type === 'success' ? 'bg-[#0f6b38] border border-[#34a853]' : 'bg-[#c5221f] border border-[#ea4335]'
+          }`}
+        >
+          {toast.type === 'success' ? (
+            <Check className="w-4 h-4 text-[#a8f5c4] shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-[#fcdad7] shrink-0" />
+          )}
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

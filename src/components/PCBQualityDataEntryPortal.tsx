@@ -1,43 +1,155 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, Settings, Database, X } from 'lucide-react';
+import { WaltonSealLogo } from './WaltonSealLogo';
 import {
-  FileText,
-  Download,
-  X,
-  Plus,
-  Trash2,
-  BarChart3,
-  Layers,
-  Cpu,
-  CheckSquare,
-  Database,
-  Calendar,
-  AlertCircle,
-  CheckCircle2,
-  TrendingUp,
-  Search,
-  Check,
-  Filter,
-  Microscope,
-  Zap,
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+  savePcbSheetRowsToFirestore,
+  loadPcbSheetRowsFromFirestore,
+  createPcbRecord,
+} from '../services/pcbRecords';
 
 export interface PCBQualityDataEntryPortalProps {
   onClose: () => void;
+  onNavigateHome?: () => void;
+  initialGate?: 'FQC' | 'AOI' | 'ETEST';
+  initialNav?: 'report-entry' | 'defect-entry';
+  initialLine?: string;
 }
+
+type SheetKey = 'visual' | 'aoi' | 'receive' | 'delivery';
+type PageKey = 'home' | 'database' | SheetKey;
+
+interface PageConfig {
+  name: string;
+  badge: string;
+  badgeClass: string;
+  cols: string[];
+  req: string[];
+  storageKey: string;
+  hint?: string;
+}
+
+const MODELS: string[] = [
+  '0.5 Feet Double Pad',
+  '1 Feet DTDL',
+  '12V DC+ Deep',
+  '12VDC Square LED',
+  '17" LPF SMD Fan',
+  '2 Feet 20W',
+  '4 Feet (2P50C)',
+  '4 Feet (40W DTDL)',
+  'A8E4-138-R16 (XPC)',
+  'Advance Trading',
+  'Akij Button',
+  'Akij Toy Controller-V1.0',
+  'Arat Technology AR2',
+  'BJIT Safpro',
+  'Battery Changeable',
+  'Battery changeable PCB-12W',
+  'Beverage Cooler (337)',
+  'Beverage Cooler L290-V3',
+  'CFL_V07',
+  'Cherger Controller',
+  'Common Toy LED Controller (Talukder)',
+  'Common Toy LED Driver (Akij)',
+  'Common Toy LED Driver (Talukder)',
+  'Dissolve Display',
+  'Dutch IPS',
+  'Dutch IPS PCB',
+  'EPS-Power IPS',
+  'Electronic Thermostat V2',
+  'FC Panel (RFPL-619L)',
+  'Fiona M2',
+  'Fiona WH138 V1.2.2',
+  'Frost Controller with Indicator',
+  'Garber N 9721',
+  'Genarel IPS 8 mos',
+  'General IPS',
+  'General IPS HIP 4082 & F26LCD',
+  'Gerber N9721 Sohag',
+  'Glory + Luxur',
+  'Golden Wheel Controller',
+  'Golden Wheel Toy Controller',
+  'HN Power Sukam',
+  'Happy Walker V-NC-1 (RFL)',
+  'IOT SCDIS With Indicator',
+  'Ionizer Blue',
+  'Ionizer LED (RPIL 619L)',
+  'Ionizer LED (SBS 656)',
+  'KHI 12/24 Sinewave',
+  'Keya Home IPS',
+  'Keya Homes IPS',
+  'Ligal Power',
+  'Ligal Power Ips',
+  'Ma Electronics',
+  'Masudur Key Pad',
+  'Mobile Charger 2A',
+  'Mobile Charger 500mA',
+  'Modern Power',
+  'Modern Power IPS',
+  'Moon Light PCB-0.5w',
+  'Multi 3 Model',
+  'Multi 3 Model Compressor & Freeze',
+  'Multi 3Model GAS DIP+SNM+Low',
+  'Multi 3Model IPS',
+  'Multi 6 Model',
+  'Multi ARFA+General IPS+TSK Power',
+  'Multi Gardian Masadur+Shahinur+SW+Gerber N9721(sohag)',
+  'Multi HN Dsp',
+  'Multi RH-M1&RH-M2',
+  'Multi Robin 2 Model',
+  'Multi Sun Power Model-1 & GILDAN_HMI',
+  'Multi sun power gardian',
+  'PC Panel (RPPL-619L)',
+  'Piano P1-V1.2',
+  'R-LED-PCCL',
+  'RL-RS35-V04',
+  'Redmin Toy Controller',
+  'Reed Sensor',
+  'Remote New',
+  'Rice Cooker',
+  'Rotary Step Switch',
+  'SBS 656 (RPDHL+RFDHL)',
+  'SBS-RFPL 619L',
+  'SC DIS-with Indicator',
+  'SC Power Board',
+  'SK 200111',
+  'SK Alif Elections',
+  'SK Alif Sukam',
+  'SK PS 22 M1',
+  'SK PS 22 M2',
+  'SK-Alif Electronics(SK200903+4+5+6)',
+  'SMPS US V3',
+  'SNM',
+  'SP 12W Round',
+  'SS 22',
+  'ST010 EPAC',
+  'Safety Plus-1725',
+  'Samcon',
+  'Samcon B-0966',
+  'Samcon B-9762',
+  'Samcon B-9766',
+  'Samcon B-9889',
+  'Smart Controller',
+  'Smile & Micky (RFL)',
+  'Smps Us small',
+  'Solar (2912)',
+  'Spot Down 7W LED',
+  'Spot Down 7W round',
+  'Square LED (RLSS) 3 Chip',
+  'Sun Power M 2',
+  'Sun Power Model-2',
+  'Sun Power Model-2 PCB',
+  'T.S Power Ips',
+  'TKG Button (Talukder)',
+  'TS Power',
+  'TV Socket',
+  'Tip Top Electronics',
+  'Trust Regulator',
+  'UHK Trade SS Regulator',
+  'WR-343-CTW-LED-V2',
+  'WRDC2S2',
+  'Wybli-WDC 26098',
+];
 
 const MONTHS = [
   'January',
@@ -54,1192 +166,1602 @@ const MONTHS = [
   'December',
 ];
 
-// PCB FABRICATION STATION CONFIGURATIONS
-export const PCB_STATION_CONFIGS: Record<
-  string,
-  {
-    group: 'aoi' | 'etest' | 'fqc' | 'lab';
-    label: string;
-    shifts: string[];
-    boardTypes: string[];
-    faults: string[];
-    operators: string[];
-  }
-> = {
-  'PCB-AOI-01': {
-    group: 'aoi',
-    label: 'Bare Board AOI-01',
-    shifts: ['Day', 'Evening', 'Morning', 'Night'],
-    boardTypes: ['Single Sided FR-1', 'Double Sided FR-4', 'Multi-Layer 4L FR-4', 'Metal Core MCPCB'],
-    faults: [
-      'Open Circuit / Track Break',
-      'Short Circuit / Copper Bridge',
-      'Thin Track / Over-etch',
-      'Copper Residue / Under-etch',
-      'Hole Breakout / Misregistration',
-      'Pad Missing / Damaged',
-      'Pinhole in Track',
-      'Spur / Protrusion',
-      'Mouse Bite / Nick',
+const PAGES: Record<SheetKey, PageConfig> = {
+  visual: {
+    name: 'Visual Check',
+    badge: 'AOI',
+    badgeClass: 'bg-[#2f6fd0]',
+    cols: [
+      'Date',
+      'Month',
+      'Model',
+      'Total Check',
+      'Pass QTY',
+      'Fail QTY',
+      'Fail percentage',
+      'Product',
+      'Layer',
     ],
-    operators: ['Md. Jahangir Alam (52109)', 'Tanvir Hossain (58210)', 'Kamrul Islam (54190)', 'Rashedul Hasan (49821)'],
+    req: ['Date', 'Model', 'Total Check'],
+    storageKey: 'walton-fqc-visual',
   },
-  'PCB-AOI-02': {
-    group: 'aoi',
-    label: 'Bare Board AOI-02',
-    shifts: ['Day', 'Evening', 'Morning', 'Night'],
-    boardTypes: ['Double Sided FR-4', 'Multi-Layer 4L FR-4', 'Multi-Layer 6L FR-4'],
-    faults: [
-      'Short Circuit / Copper Bridge',
-      'Open Circuit / Track Break',
-      'Thin Track / Over-etch',
-      'Via Hole Breakout',
-      'Copper Residue',
-      'Annular Ring Violation',
-      'Etch Void',
+  aoi: {
+    name: 'AOI',
+    badge: 'Panel',
+    badgeClass: 'bg-[#2f6fd0]',
+    cols: [
+      'Date',
+      'Month',
+      'Model',
+      'Pass (Panel)',
+      'Short',
+      'Open',
+      'Fail (Panel)',
+      'Total Check (Panel)',
+      'Pass Ratio',
+      'Fail Ratio',
+      'Product',
+      'Layer',
     ],
-    operators: ['Aminul Islam (55401)', 'Saidur Rahman (53982)', 'Rakib Mia (61209)', 'Faruk Hossain (59218)'],
+    req: ['Date', 'Model'],
+    storageKey: 'walton-fqc-aoi',
+    hint: 'Fail(Panel), Total, Pass/Fail Ratio calculate automatically',
   },
-  'PCB-ETEST-01': {
-    group: 'etest',
-    label: 'Flying Probe E-Test',
-    shifts: ['Day', 'Morning', 'Evening', 'Night'],
-    boardTypes: ['Multi-Layer 4L FR-4', 'Multi-Layer 6L FR-4', 'Double Sided FR-4'],
-    faults: [
-      'Net Open Fail',
-      'Net Short Fail',
-      'High Resistance Track',
-      'Spark Discharge / Insulation Fail',
-      '4-Wire Kelvin Milliohm Fail',
-      'Buried Via Open',
-    ],
-    operators: ['Engr. Mehedi Hasan (47102)', 'Shofiqul Islam (49281)', 'Al-Amin (51829)'],
+  receive: {
+    name: 'Receive',
+    badge: 'IQC',
+    badgeClass: 'bg-[#1e9e6b]',
+    cols: ['Date', 'Month', 'Model', 'Receive QTY', 'Product', 'Layer', 'Material'],
+    req: ['Date', 'Model', 'Receive QTY'],
+    storageKey: 'walton-fqc-receive',
   },
-  'PCB-ETEST-02': {
-    group: 'etest',
-    label: 'Universal Grid E-Test',
-    shifts: ['Day', 'Evening', 'Morning', 'Night'],
-    boardTypes: ['Single Sided FR-1', 'Double Sided FR-4', 'MCPCB LED'],
-    faults: [
-      'Universal Pin Open',
-      'Universal Pin Short',
-      'High Leakage Current',
-      'Pin Contact Error',
-      'Fixture Alignment Fail',
-    ],
-    operators: ['Mustafizur Rahman (44192)', 'Kawsar Ahmed (53102)', 'Sujon Kumar (48912)'],
-  },
-  'PCB-FQC-01': {
-    group: 'fqc',
-    label: 'FQC Visual & Dimensional',
-    shifts: ['Day', 'Evening', 'Morning', 'Night'],
-    boardTypes: ['Single Sided FR-1', 'Double Sided FR-4', 'Multi-Layer 4L FR-4', 'MCPCB LED'],
-    faults: [
-      'Solder Mask on Pad',
-      'Solder Mask Blister / Peel',
-      'Legend Misprint / Smudge',
-      'Warpage / Board Bow & Twist',
-      'Hole Blocked / Solder Mask in Hole',
-      'V-Cut Depth Defect',
-      'Routing Dimension Out of Spec',
-      'Oxidation / Surface Tarnish',
-      'Scratch on Surface / Track',
-      'Delamination / Blister',
-      'Burr on Edge',
-    ],
-    operators: ['Mst. Fatema Begum (38192)', 'Nasrin Akter (41029)', 'Sumon Chandra (45910)', 'Ripon Ali (52891)'],
-  },
-  'PCB-LAB-01': {
-    group: 'lab',
-    label: 'Wet Process Chemical Lab',
-    shifts: ['Day', 'Night'],
-    boardTypes: ['Double Sided FR-4', 'Multi-Layer 4L FR-4', 'Multi-Layer 6L FR-4'],
-    faults: [
-      'Copper Plating Hole Void (Cross-Section)',
-      'Through-Hole Copper Thickness < 20um',
-      'Surface Copper Thickness Out of Spec',
-      'Etch Factor Under-spec',
-      'Micro-Etch Rate Deviation',
-      'Thermal Stress Delamination (288°C 10s)',
-      'Ionic Contamination Test Fail',
-    ],
-    operators: ['QC Chemist - Mahmudul Hasan (39108)', 'Lab Specialist - Shariful Islam (42109)'],
+  delivery: {
+    name: 'Delivery',
+    badge: 'OQC',
+    badgeClass: 'bg-[#e08e2b]',
+    cols: ['Date', 'Month', 'Model', 'Delivery QTY', 'Product', 'Layer', 'Material'],
+    req: ['Date', 'Model', 'Delivery QTY'],
+    storageKey: 'walton-fqc-delivery',
   },
 };
 
-export interface PCBItemEntry {
-  id: string;
-  date: string;
-  shift: string;
-  station: string;
-  boardType: string;
-  model: string;
-  layerCount: string;
-  prodType: string;
-  fault: string;
-  qty: number;
-  operator: string;
-  remarks?: string;
-  addedAt: string;
+const SHEET_KEYS: SheetKey[] = ['visual', 'aoi', 'receive', 'delivery'];
+
+function num(v: unknown): number {
+  const n = parseFloat(String(v ?? ''));
+  return isNaN(n) ? 0 : n;
 }
 
-const SEED_PCB_ENTRIES: PCBItemEntry[] = [
-  {
-    id: 'pcb-seed-1',
-    date: '2026-09-11',
-    shift: 'Morning',
-    station: 'PCB-AOI-01',
-    boardType: 'Double Sided FR-4',
-    model: 'WFB-FRIDGE-MAIN-V3.2',
-    layerCount: '2-Layer',
-    prodType: 'Mass Production',
-    fault: 'Short Circuit / Copper Bridge',
-    qty: 18,
-    operator: 'Md. Jahangir Alam (52109)',
-    remarks: 'Micro-short detected on connector fanout pitch 0.5mm',
-    addedAt: '2026-09-11T08:15:00Z',
-  },
-  {
-    id: 'pcb-seed-2',
-    date: '2026-09-11',
-    shift: 'Day',
-    station: 'PCB-AOI-01',
-    boardType: 'Double Sided FR-4',
-    model: 'WAC-INVERTER-CONTROLLER',
-    layerCount: '2-Layer',
-    prodType: 'Mass Production',
-    fault: 'Thin Track / Over-etch',
-    qty: 12,
-    operator: 'Tanvir Hossain (58210)',
-    remarks: 'Acid etcher conveyor speed recalibrated (-5%)',
-    addedAt: '2026-09-11T10:30:00Z',
-  },
-  {
-    id: 'pcb-seed-3',
-    date: '2026-09-10',
-    shift: 'Day',
-    station: 'PCB-FQC-01',
-    boardType: 'Single Sided FR-1',
-    model: 'WLED-9W-DRIVER-BOARD',
-    layerCount: '1-Layer',
-    prodType: 'Mass Production',
-    fault: 'Solder Mask on Pad',
-    qty: 25,
-    operator: 'Mst. Fatema Begum (38192)',
-    remarks: 'LPI screen alignment pins adjusted',
-    addedAt: '2026-09-10T14:20:00Z',
-  },
-  {
-    id: 'pcb-seed-4',
-    date: '2026-09-10',
-    shift: 'Evening',
-    station: 'PCB-ETEST-01',
-    boardType: 'Multi-Layer 4L FR-4',
-    model: 'WTV-43-SMART-ANDROID-PCB',
-    layerCount: '4-Layer',
-    prodType: 'Mass Production',
-    fault: 'Net Short Fail',
-    qty: 9,
-    operator: 'Engr. Mehedi Hasan (47102)',
-    remarks: 'Inner layer 2 ground plane clearance checked',
-    addedAt: '2026-09-10T19:00:00Z',
-  },
-  {
-    id: 'pcb-seed-5',
-    date: '2026-09-09',
-    shift: 'Day',
-    station: 'PCB-FQC-01',
-    boardType: 'Double Sided FR-4',
-    model: 'WCH-FAST-33W-POWER-PCB',
-    layerCount: '2-Layer',
-    prodType: 'Trial Production',
-    fault: 'Warpage / Board Bow & Twist',
-    qty: 14,
-    operator: 'Nasrin Akter (41029)',
-    remarks: 'Post-cure baking rack spacing standardized',
-    addedAt: '2026-09-09T11:45:00Z',
-  },
-];
+function pct(n: number, d: number): string {
+  return d ? ((n / d) * 100).toFixed(2) + '%' : '0.00%';
+}
 
-const COLORS = ['#20b6a4', '#8e5fc9', '#e0a83f', '#4f9ddb', '#e0483f', '#7c8798', '#4fae5f', '#e08a3f'];
+function getMonthFromDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return '';
+  return MONTHS[d.getMonth()] || '';
+}
 
-export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps> = ({ onClose }) => {
-  // Main Navigation Category: 'aoi' | 'etest' | 'fqc' | 'lab' | 'db' | 'sop'
-  const [activeCategory, setActiveCategory] = useState<'aoi' | 'etest' | 'fqc' | 'lab' | 'db'>('aoi');
-  const [activeStationKey, setActiveStationKey] = useState<string>('PCB-AOI-01');
+function downloadCSV(text: string, filename: string) {
+  const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
-  // Sub Tab: 'entry' or 'dash'
-  const [subTab, setSubTab] = useState<'entry' | 'dash'>('entry');
-
-  // Period
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-
-  // Search in table
-  const [tableSearch, setTableSearch] = useState<string>('');
-
-  // Notification Toast
-  const [notification, setNotification] = useState<string | null>(null);
-
-  // Stored state for PCB entries
-  const [pcbEntries, setPcbEntries] = useState<Record<string, PCBItemEntry[]>>(() => {
-    const saved = localStorage.getItem('pcb_fabrication_entries_db');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return { 'PCB-AOI-01': SEED_PCB_ENTRIES };
-      }
+export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps> = ({
+  onClose,
+  initialGate,
+  initialNav,
+}) => {
+  const defaultPage = useMemo<PageKey>(() => {
+    if (initialNav === 'defect-entry') {
+      if (initialGate === 'AOI') return 'aoi';
+      return 'visual';
     }
-    return { 'PCB-AOI-01': SEED_PCB_ENTRIES };
+    return 'home';
+  }, [initialGate, initialNav]);
+
+  const [activePage, setActivePage] = useState<PageKey>(defaultPage);
+  const [groupCollapsed, setGroupCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Store for all 4 sheets persisted in localStorage under exact keys from attached file
+  const [store, setStore] = useState<Record<SheetKey, Record<string, string>[]>>(() => {
+    const init: Record<SheetKey, Record<string, string>[]> = {
+      visual: [],
+      aoi: [],
+      receive: [],
+      delivery: [],
+    };
+    SHEET_KEYS.forEach((k) => {
+      try {
+        const raw = localStorage.getItem(PAGES[k].storageKey);
+        if (raw) init[k] = JSON.parse(raw);
+      } catch {}
+    });
+    return init;
   });
 
-  // Save to localStorage
+  // Load sheets from Firestore on mount if available
   useEffect(() => {
-    localStorage.setItem('pcb_fabrication_entries_db', JSON.stringify(pcbEntries));
-  }, [pcbEntries]);
+    SHEET_KEYS.forEach((k) => {
+      loadPcbSheetRowsFromFirestore(k).then((rows) => {
+        if (rows && rows.length > 0) {
+          setStore((prev) => ({
+            ...prev,
+            [k]: rows,
+          }));
+        }
+      });
+    });
+  }, []);
 
-  const showToast = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => {
-      setNotification(null);
-    }, 3500);
-  };
-
-  const currentStationConfig = PCB_STATION_CONFIGS[activeStationKey] || PCB_STATION_CONFIGS['PCB-AOI-01'];
-
-  // Form states
-  const [formDate, setFormDate] = useState<string>(new Date().toISOString().slice(0, 10));
-  const [formShift, setFormShift] = useState<string>('Day');
-  const [formBoardType, setFormBoardType] = useState<string>('Double Sided FR-4');
-  const [formModel, setFormModel] = useState<string>('');
-  const [formLayerCount, setFormLayerCount] = useState<string>('2-Layer');
-  const [formProdType, setFormProdType] = useState<string>('Mass Production');
-  const [formFault, setFormFault] = useState<string>('');
-  const [formQty, setFormQty] = useState<number>(1);
-  const [formOperator, setFormOperator] = useState<string>('');
-  const [formRemarks, setFormRemarks] = useState<string>('');
-
-  // Update defaults when station changes
+  // Persist each sheet whenever store changes
   useEffect(() => {
-    if (currentStationConfig) {
-      if (currentStationConfig.shifts?.length) setFormShift(currentStationConfig.shifts[0]);
-      if (currentStationConfig.boardTypes?.length) setFormBoardType(currentStationConfig.boardTypes[0]);
-      if (currentStationConfig.faults?.length) setFormFault(currentStationConfig.faults[0]);
-      if (currentStationConfig.operators?.length) setFormOperator(currentStationConfig.operators[0]);
-    }
-  }, [activeStationKey]);
+    SHEET_KEYS.forEach((k) => {
+      try {
+        localStorage.setItem(PAGES[k].storageKey, JSON.stringify(store[k]));
+      } catch {}
+    });
+  }, [store]);
 
-  // Handle Add Entry
-  const handleAddEntry = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newEntry: PCBItemEntry = {
-      id: `pcb-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      date: formDate,
-      shift: formShift,
-      station: activeStationKey,
-      boardType: formBoardType,
-      model: formModel.trim() || 'General PCB Panel',
-      layerCount: formLayerCount,
-      prodType: formProdType,
-      fault: formFault || 'General Defect',
-      qty: Number(formQty) || 1,
-      operator: formOperator || 'PCB QC Specialist',
-      remarks: formRemarks.trim(),
-      addedAt: new Date().toISOString(),
+  // Entry form state
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const [formValues, setFormValues] = useState<Record<string, string>>(() => ({
+    Date: todayStr,
+    Month: getMonthFromDate(todayStr),
+  }));
+  const [formError, setFormError] = useState(false);
+  const [confirmClearSheet, setConfirmClearSheet] = useState<SheetKey | null>(null);
+
+  // Database filter state
+  const [dbType, setDbType] = useState<string>('');
+  const [dbSearch, setDbSearch] = useState<string>('');
+
+  // Manage Master Lists state
+  const [masterLists, setMasterLists] = useState<{
+    products: string[];
+    models: string[];
+    layers: string[];
+    materials: string[];
+  }>(() => {
+    const defaultLists = {
+      products: ['External S', 'External', 'Fridge', 'LED Light', 'Advance Trading', 'TV', 'Fan'],
+      models: [...MODELS],
+      layers: ['Single Side', 'Double Side'],
+      materials: ['FR-4 (SL)', 'FR-4 (DL)', 'Aluminum', 'CEM-1'],
     };
+    try {
+      const saved = localStorage.getItem('walton-fqc-master-lists');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          products: parsed.products || defaultLists.products,
+          models: parsed.models || defaultLists.models,
+          layers: parsed.layers || defaultLists.layers,
+          materials: parsed.materials || defaultLists.materials,
+        };
+      }
+    } catch {}
+    return defaultLists;
+  });
 
-    const currentList = pcbEntries[activeStationKey] || [];
-    setPcbEntries({
-      ...pcbEntries,
-      [activeStationKey]: [newEntry, ...currentList],
+  useEffect(() => {
+    try {
+      localStorage.setItem('walton-fqc-master-lists', JSON.stringify(masterLists));
+    } catch {}
+  }, [masterLists]);
+
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState<
+    'products' | 'models' | 'layers' | 'materials'
+  >('models');
+  const [newListItemInput, setNewListItemInput] = useState('');
+
+  const handleAddListItem = () => {
+    const val = newListItemInput.trim();
+    if (!val) return;
+    setMasterLists((prev) => {
+      if (prev[activeModalTab].includes(val)) return prev;
+      return {
+        ...prev,
+        [activeModalTab]: [...prev[activeModalTab], val],
+      };
     });
-
-    setFormQty(1);
-    setFormRemarks('');
-    showToast(`Logged ${newEntry.qty} pcs "${newEntry.fault}" on ${currentStationConfig.label}!`);
+    setNewListItemInput('');
   };
 
-  // Delete Entry
-  const handleDeleteEntry = (id: string) => {
-    const currentList = pcbEntries[activeStationKey] || [];
-    setPcbEntries({
-      ...pcbEntries,
-      [activeStationKey]: currentList.filter((item) => item.id !== id),
-    });
-    showToast('PCB defect record removed.');
+  const handleRemoveListItem = (tab: 'products' | 'models' | 'layers' | 'materials', item: string) => {
+    setMasterLists((prev) => ({
+      ...prev,
+      [tab]: prev[tab].filter((x) => x !== item),
+    }));
   };
 
-  // CSV Export
-  const exportCSV = () => {
-    const list = pcbEntries[activeStationKey] || [];
-    if (!list.length) {
-      showToast('No entries to export for this station.');
+  // Reset form when switching entry sheets
+  const handleSelectPage = (page: PageKey) => {
+    setActivePage(page);
+    setSidebarOpen(false);
+    setFormError(false);
+    setConfirmClearSheet(null);
+    if (page !== 'home' && page !== 'database') {
+      const today = new Date().toISOString().slice(0, 10);
+      setFormValues({
+        Date: today,
+        Month: getMonthFromDate(today),
+      });
+    }
+  };
+
+  const updateField = (key: string, value: string, sheet: SheetKey) => {
+    setFormError(false);
+    setFormValues((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === 'Date') {
+        next['Month'] = getMonthFromDate(value);
+      }
+      if (sheet === 'visual' && (key === 'Total Check' || key === 'Fail QTY')) {
+        const t = num(next['Total Check']);
+        const fail = num(next['Fail QTY']);
+        const pass = Math.max(0, t - fail);
+        next['Pass QTY'] = t ? String(pass) : '';
+        next['Fail percentage'] = t ? pct(fail, t) : '';
+      }
+      if (sheet === 'aoi' && (key === 'Pass (Panel)' || key === 'Short' || key === 'Open')) {
+        const pv = num(next['Pass (Panel)']);
+        const shv = num(next['Short']);
+        const opv = num(next['Open']);
+        const fail = shv + opv;
+        const total = pv + fail;
+        next['Fail (Panel)'] = total ? String(fail) : '';
+        next['Total Check (Panel)'] = total ? String(total) : '';
+        next['Pass Ratio'] = total ? pct(pv, total) : '';
+        next['Fail Ratio'] = total ? pct(fail, total) : '';
+      }
+      return next;
+    });
+  };
+
+  const handleAddEntry = (sheet: SheetKey) => {
+    const cfg = PAGES[sheet];
+    const row: Record<string, string> = {};
+    cfg.cols.forEach((c) => {
+      row[c] = formValues[c] ?? '';
+    });
+    const missing = cfg.req.some((c) => !row[c] && row[c] !== '0');
+    if (missing) {
+      setFormError(true);
       return;
     }
-    const headers = [
-      'Date',
-      'Shift',
-      'Station',
-      'Board Type',
-      'Model/Panel ID',
-      'Layer Count',
-      'Production Type',
-      'Fault Type',
-      'Quantity',
-      'QC Inspector',
-      'Remarks',
-    ];
-    const rows = list.map((e) => [
-      e.date,
-      e.shift,
-      currentStationConfig.label,
-      e.boardType,
-      e.model,
-      e.layerCount,
-      e.prodType,
-      e.fault,
-      e.qty,
-      e.operator,
-      e.remarks || '',
-    ]);
-
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((r) => r.map((cell) => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))].join(
-        '\n'
-      );
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `${activeStationKey}_DefectLog_${MONTHS[selectedMonth]}_${selectedYear}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('PCB Quality CSV Exported successfully!');
+    setFormError(false);
+    setStore((prev) => {
+      const nextRows = [...prev[sheet], row];
+      savePcbSheetRowsToFirestore(sheet, nextRows).catch(() => {});
+      return {
+        ...prev,
+        [sheet]: nextRows,
+      };
+    });
+    createPcbRecord({
+      sheet,
+      date: row['Date'] || todayStr,
+      model: row['Model'] || '',
+      checkQty: num(row['Total Check'] || row['Total Check (Panel)'] || row['Receive QTY'] || row['Delivery QTY']),
+      faultQty: num(row['Fail QTY'] || row['Fail (Panel)']),
+      faultRate: parseFloat(String(row['Fail percentage'] || row['Fail Ratio'] || '0')),
+      ...row,
+    }).catch(() => {});
+    // Reset fields while keeping Date & Month
+    setFormValues({
+      Date: formValues['Date'] || todayStr,
+      Month: formValues['Month'] || getMonthFromDate(todayStr),
+    });
   };
 
-  // Current List & Filtered List
-  const currentList = pcbEntries[activeStationKey] || [];
-  const filteredList = useMemo(() => {
-    if (!tableSearch.trim()) return currentList;
-    const q = tableSearch.toLowerCase();
-    return currentList.filter(
-      (e) =>
-        e.fault.toLowerCase().includes(q) ||
-        e.model.toLowerCase().includes(q) ||
-        e.boardType.toLowerCase().includes(q) ||
-        e.operator.toLowerCase().includes(q) ||
-        e.shift.toLowerCase().includes(q) ||
-        (e.remarks && e.remarks.toLowerCase().includes(q))
+  const handleResetForm = () => {
+    setFormError(false);
+    setFormValues((prev) => ({
+      Date: prev['Date'] || todayStr,
+      Month: prev['Month'] || getMonthFromDate(todayStr),
+    }));
+  };
+
+  const handleRemoveRow = (sheet: SheetKey, idx: number) => {
+    setStore((prev) => {
+      const nextRows = prev[sheet].filter((_, i) => i !== idx);
+      savePcbSheetRowsToFirestore(sheet, nextRows).catch(() => {});
+      return {
+        ...prev,
+        [sheet]: nextRows,
+      };
+    });
+  };
+
+  const handleClearLog = (sheet: SheetKey) => {
+    setStore((prev) => {
+      savePcbSheetRowsToFirestore(sheet, []).catch(() => {});
+      return {
+        ...prev,
+        [sheet]: [],
+      };
+    });
+    setConfirmClearSheet(null);
+  };
+
+  const handleExportCSV = (sheet: SheetKey) => {
+    const cfg = PAGES[sheet];
+    const rows = store[sheet];
+    if (!rows.length) return;
+    const lines = [cfg.cols.join(',')];
+    rows.forEach((r) => {
+      lines.push(
+        cfg.cols
+          .map((c) => {
+            let v = r[c] !== undefined ? String(r[c]) : '';
+            if (v.includes(',') || v.includes('"')) {
+              v = '"' + v.replace(/"/g, '""') + '"';
+            }
+            return v;
+          })
+          .join(',')
+      );
+    });
+    downloadCSV(
+      lines.join('\n'),
+      `walton-fqc-${sheet}-${new Date().toISOString().slice(0, 10)}.csv`
     );
-  }, [currentList, tableSearch]);
+  };
 
-  const totalQty = currentList.reduce((acc, curr) => acc + curr.qty, 0);
-
-  // Quick fault chips
-  const quickFaultChips = useMemo(() => {
-    return (currentStationConfig.faults || []).slice(0, 4);
-  }, [currentStationConfig]);
-
-  // Analytics
-  const faultStats = useMemo(() => {
-    const map: Record<string, number> = {};
-    currentList.forEach((e) => {
-      map[e.fault] = (map[e.fault] || 0) + e.qty;
+  // Home KPI calculations
+  const homeStats = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    let totalRecords = 0;
+    let todayRecords = 0;
+    let totalFail = 0;
+    let totalChecked = 0;
+    SHEET_KEYS.forEach((k) => {
+      store[k].forEach((r) => {
+        totalRecords++;
+        if (r.Date === today) todayRecords++;
+        if (k === 'visual') {
+          totalChecked += num(r['Total Check']);
+          totalFail += num(r['Fail QTY']);
+        }
+        if (k === 'aoi') {
+          totalChecked += num(r['Total Check (Panel)']);
+          totalFail += num(r['Fail (Panel)']);
+        }
+      });
     });
-    return Object.entries(map)
-      .map(([fault, qty]) => ({ fault, qty }))
-      .sort((a, b) => b.qty - a.qty);
-  }, [currentList]);
+    return {
+      totalRecords,
+      todayRecords,
+      totalChecked,
+      failRate: totalChecked ? pct(totalFail, totalChecked) : '0.00%',
+    };
+  }, [store]);
 
-  const dailyStats = useMemo(() => {
-    const map: Record<string, number> = {};
-    currentList.forEach((e) => {
-      map[e.date] = (map[e.date] || 0) + e.qty;
+  // All Database rows combined & sorted
+  const allDbRows = useMemo(() => {
+    const all: {
+      type: string;
+      typeKey: SheetKey;
+      date: string;
+      model: string;
+      qty: string;
+      fail: string;
+      product: string;
+      layerMat: string;
+    }[] = [];
+    SHEET_KEYS.forEach((k) => {
+      store[k].forEach((r) => {
+        const qty =
+          r['Total Check'] ||
+          r['Total Check (Panel)'] ||
+          r['Receive QTY'] ||
+          r['Delivery QTY'] ||
+          '';
+        const fail =
+          r['Fail QTY'] !== undefined
+            ? r['Fail QTY']
+            : r['Fail (Panel)'] !== undefined
+            ? r['Fail (Panel)']
+            : '—';
+        const layerMat = r['Material']
+          ? `${r['Layer'] || ''} / ${r['Material']}`
+          : r['Layer'] || '—';
+        all.push({
+          type: PAGES[k].name,
+          typeKey: k,
+          date: r.Date || '',
+          model: r.Model || '',
+          qty: String(qty),
+          fail: String(fail),
+          product: r.Product || '—',
+          layerMat,
+        });
+      });
     });
-    return Object.entries(map)
-      .map(([date, qty]) => ({ date, qty }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }, [currentList]);
+    all.sort((a, b) => (a.date < b.date ? 1 : -1));
+    return all;
+  }, [store]);
 
-  const boardTypeStats = useMemo(() => {
-    const map: Record<string, number> = {};
-    currentList.forEach((e) => {
-      map[e.boardType] = (map[e.boardType] || 0) + e.qty;
+  const filteredDbRows = useMemo(() => {
+    let rows = allDbRows;
+    if (dbType) {
+      rows = rows.filter((r) => r.typeKey === dbType);
+    }
+    if (dbSearch.trim()) {
+      const q = dbSearch.trim().toLowerCase();
+      rows = rows.filter((r) => r.model.toLowerCase().includes(q));
+    }
+    return rows;
+  }, [allDbRows, dbType, dbSearch]);
+
+  const handleExportDatabase = () => {
+    if (!allDbRows.length) return;
+    const lines = [['Type', 'Date', 'Model', 'Qty', 'Fail', 'Product', 'Layer/Material'].join(',')];
+    allDbRows.forEach((r) => {
+      lines.push(
+        [r.type, r.date, r.model, r.qty, r.fail, r.product, r.layerMat]
+          .map((v) => {
+            const s = String(v || '');
+            return s.includes(',') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s;
+          })
+          .join(',')
+      );
     });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
-  }, [currentList]);
-
-  const operatorStats = useMemo(() => {
-    const map: Record<string, number> = {};
-    currentList.forEach((e) => {
-      const op = e.operator ? e.operator.split('(')[0].trim() : 'Unknown';
-      map[op] = (map[op] || 0) + e.qty;
-    });
-    return Object.entries(map)
-      .map(([operator, qty]) => ({ operator, qty }))
-      .sort((a, b) => b.qty - a.qty)
-      .slice(0, 8);
-  }, [currentList]);
-
-  // Total saved entries across all PCB stations
-  const totalAllPcbEntries = useMemo(() => {
-    return Object.values(pcbEntries).reduce((acc: number, list: PCBItemEntry[]) => acc + (list?.length || 0), 0);
-  }, [pcbEntries]);
+    downloadCSV(
+      lines.join('\n'),
+      `walton-fqc-database-${new Date().toISOString().slice(0, 10)}.csv`
+    );
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-[#eef1f7] text-[#1c2536] rounded-2xl shadow-2xl border border-[#cbd5e1] w-full max-w-7xl max-h-[94vh] overflow-hidden flex flex-col font-sans">
-        
-        {/* ========================================================================= */}
-        {/* HEADER: PCB QUALITY PORTAL (FABRICATION & BARE BOARD)                      */}
-        {/* ========================================================================= */}
-        <div className="bg-gradient-to-r from-[#0e2a4d] to-[#153a68] text-white px-5 py-3.5 flex items-center justify-between border-b-[3px] border-[#2563eb] flex-wrap gap-3 shadow-sm">
-          {/* Branding & Station Indicator */}
-          <div className="flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2563eb] to-[#1d4ed8] text-white font-extrabold flex items-center justify-center text-sm shadow-md tracking-wider">
-              PCB
+    <div className="fixed inset-0 z-50 flex bg-[#eef2f7] text-[#1c2733] font-sans text-[13.5px] leading-[1.45] overflow-hidden">
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ============ SIDEBAR ============ */}
+      <aside
+        id="sidebar"
+        className={`w-[250px] shrink-0 bg-[#0e1b30] text-[#cfd9ea] flex flex-col h-full overflow-y-auto z-50 transition-transform duration-200 fixed lg:static top-0 bottom-0 left-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        <div>
+          {/* Brand */}
+          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#223355]">
+            <div className="w-[52px] h-[52px] shrink-0 flex items-center justify-center filter drop-shadow-md">
+              <WaltonSealLogo className="w-full h-full object-contain select-none" />
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-base leading-snug tracking-tight">PCB Fabrication Quality Portal</h3>
-                <span className="text-[11px] bg-white/10 border border-white/20 text-[#c9d3e6] px-2.5 py-0.5 rounded-full font-mono font-medium">
-                  {currentStationConfig.label}
-                </span>
-                <span className="text-[10px] bg-[#2563eb]/25 border border-[#2563eb]/50 text-[#93c5fd] px-2 py-0.5 rounded-full font-mono font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#2563eb] animate-pulse" />
-                  BARE BOARD QC
-                </span>
-              </div>
-              <p className="text-[11px] text-[#a9b6cf] leading-tight mt-0.5">
-                Walton Digi-Tech Industries Ltd · Bare Board AOI, E-Test, FQC &amp; Chemical Audit
+              <h1 className="text-[16px] m-0 text-white font-extrabold tracking-wide leading-tight">
+                Walton
+              </h1>
+              <p className="m-0 mt-0.5 text-[10.5px] text-[#9db0cc] font-medium leading-[1.3]">
+                Quality Management
+                <br />
+                PCB &amp; PCBA
               </p>
             </div>
           </div>
 
-          {/* Right Toolbar: Period Quick Picker, Export & Close Button */}
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Period selector */}
-            <div className="flex items-center gap-1.5 bg-[#0b203b] border border-white/15 px-3 py-1.5 rounded-xl text-xs text-white shadow-inner">
-              <Calendar className="w-3.5 h-3.5 text-[#2563eb]" />
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="bg-transparent font-medium text-xs focus:outline-none cursor-pointer text-white"
-              >
-                {MONTHS.map((m, idx) => (
-                  <option key={m} value={idx} className="bg-[#0e2a4d] text-white">
-                    {m}
-                  </option>
-                ))}
-              </select>
-              <span className="text-white/30">/</span>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="bg-transparent font-mono text-xs focus:outline-none cursor-pointer text-white"
-              >
-                {[2025, 2026, 2027].map((y) => (
-                  <option key={y} value={y} className="bg-[#0e2a4d] text-white">
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Quick Export CSV Action in Header */}
-            <button
-              onClick={exportCSV}
-              className="px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-              title="Download Excel CSV report"
+          {/* Group: Daily FQC Report */}
+          <div className="pt-2.5 px-2 pb-1">
+            <div
+              onClick={() => setGroupCollapsed(!groupCollapsed)}
+              className="flex items-center gap-[7px] px-2.5 py-2 text-[11.5px] font-bold text-[#e7ecf5] cursor-pointer rounded-md select-none hover:bg-[#17294a]"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Export CSV</span>
-            </button>
-
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[#c9d3e6] hover:text-white transition-all cursor-pointer flex items-center justify-center shadow-xs"
-              title="Close Portal"
-              aria-label="Close Portal"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* PRIMARY MODULE NAVIGATION TABS */}
-        <div className="bg-[#123157] px-4 flex gap-1 overflow-x-auto border-b border-[#1e4475] shrink-0">
-          <button
-            onClick={() => {
-              setActiveCategory('aoi');
-              setActiveStationKey('PCB-AOI-01');
-            }}
-            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-[3px] transition-all cursor-pointer flex items-center gap-2 ${
-              activeCategory === 'aoi'
-                ? 'text-white border-[#2563eb] bg-white/10'
-                : 'text-[#c9d3e6] border-transparent hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Cpu className="w-4 h-4 text-[#60a5fa]" />
-            <span>Bare Board AOI</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/15 text-white">
-              2 M/C
-            </span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveCategory('etest');
-              setActiveStationKey('PCB-ETEST-01');
-            }}
-            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-[3px] transition-all cursor-pointer flex items-center gap-2 ${
-              activeCategory === 'etest'
-                ? 'text-white border-[#2563eb] bg-white/10'
-                : 'text-[#c9d3e6] border-transparent hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Zap className="w-4 h-4 text-[#e0a83f]" />
-            <span>Electrical Test (E-Test)</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/15 text-white">
-              Probe &amp; Grid
-            </span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveCategory('fqc');
-              setActiveStationKey('PCB-FQC-01');
-            }}
-            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-[3px] transition-all cursor-pointer flex items-center gap-2 ${
-              activeCategory === 'fqc'
-                ? 'text-white border-[#2563eb] bg-white/10'
-                : 'text-[#c9d3e6] border-transparent hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <CheckSquare className="w-4 h-4 text-[#20b6a4]" />
-            <span>FQC Visual &amp; Dimension</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/15 text-white">
-              Final Gate
-            </span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveCategory('lab');
-              setActiveStationKey('PCB-LAB-01');
-            }}
-            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-[3px] transition-all cursor-pointer flex items-center gap-2 ${
-              activeCategory === 'lab'
-                ? 'text-white border-[#2563eb] bg-white/10'
-                : 'text-[#c9d3e6] border-transparent hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Microscope className="w-4 h-4 text-[#8e5fc9]" />
-            <span>Wet Process Lab</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/15 text-white">
-              Cross-Section
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveCategory('db')}
-            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-[3px] transition-all cursor-pointer flex items-center gap-2 ${
-              activeCategory === 'db'
-                ? 'text-white border-[#2563eb] bg-white/10'
-                : 'text-[#c9d3e6] border-transparent hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Database className="w-4 h-4 text-[#4f9ddb]" />
-            <span>Database ({totalAllPcbEntries})</span>
-          </button>
-        </div>
-
-        {/* MAIN WORKSPACE */}
-        <div className="p-3 sm:p-5 overflow-y-auto space-y-4 flex-1">
-          
-          {/* Toast Notification Banner */}
-          {notification && (
-            <div className="bg-[#e5f7ee] border border-[#a3e6c0] px-4 py-2.5 rounded-xl flex items-center justify-between text-xs font-semibold text-[#16a34a] shadow-xs animate-in fade-in slide-in-from-top-1">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#16a34a] shrink-0" />
-                <span>{notification}</span>
-              </div>
-              <button
-                onClick={() => setNotification(null)}
-                className="text-[#16a34a] hover:text-[#14532d] text-xs font-bold cursor-pointer"
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
               >
-                ✕
-              </button>
+                <rect x="3" y="4" width="18" height="17" rx="2" />
+                <path d="M8 2v4M16 2v4M3 10h18" />
+                <path d="M8.5 14.5l2 2 4-4.5" />
+              </svg>
+              <span>Daily FQC Report</span>
+              <svg
+                className={`ml-auto transition-transform duration-150 shrink-0 ${
+                  groupCollapsed ? '-rotate-90' : ''
+                }`}
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
             </div>
-          )}
 
-          {/* ACTIVE STATION SELECTION & WORKSPACE */}
-          {activeCategory !== 'db' && (
-            <div className="space-y-4">
-              {/* Station Carousel & SubTab Switcher */}
-              <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-[#e2e6ee] shadow-2xs flex flex-wrap items-center justify-between gap-3">
-                
-                {/* Station Pills */}
-                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full">
-                  <span className="text-[11px] font-bold text-[#7c8798] uppercase tracking-wider mr-1 hidden sm:inline">
-                    Stations:
-                  </span>
-                  {Object.keys(PCB_STATION_CONFIGS)
-                    .filter((k) => PCB_STATION_CONFIGS[k].group === activeCategory)
-                    .map((k) => {
-                      const count = (pcbEntries[k] || []).length;
-                      const isSelected = activeStationKey === k;
-                      return (
-                        <button
-                          key={k}
-                          onClick={() => setActiveStationKey(k)}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                            isSelected
-                              ? 'bg-[#0e2a4d] text-white shadow-sm ring-2 ring-[#2563eb]/30'
-                              : 'bg-[#f1f5f9] text-[#5b6480] hover:bg-[#e2e8f0] hover:text-[#0d1730]'
-                          }`}
-                        >
-                          <span>{PCB_STATION_CONFIGS[k].label}</span>
-                          <span
-                            className={`px-1.5 py-0.2 rounded-md font-mono text-[10px] ${
-                              isSelected
-                                ? 'bg-[#2563eb] text-white'
-                                : 'bg-[#cbd5e1] text-[#475569]'
-                            }`}
-                          >
-                            {count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                </div>
-
-                {/* SubTab Switcher */}
-                <div className="inline-flex rounded-xl border border-[#cbd5e1] p-1 bg-[#f1f5f9] shrink-0">
-                  <button
-                    onClick={() => setSubTab('entry')}
-                    className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                      subTab === 'entry'
-                        ? 'bg-white text-[#0e2a4d] shadow-xs'
-                        : 'text-[#7c8798] hover:text-[#0e2a4d]'
-                    }`}
-                  >
-                    <span>📝 Defect Entry</span>
-                  </button>
-                  <button
-                    onClick={() => setSubTab('dash')}
-                    className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                      subTab === 'dash'
-                        ? 'bg-white text-[#0e2a4d] shadow-xs'
-                        : 'text-[#7c8798] hover:text-[#0e2a4d]'
-                    }`}
-                  >
-                    <BarChart3 className="w-3.5 h-3.5 text-[#2563eb]" />
-                    <span>📊 Analytics</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* VIEW 1: DATA ENTRY SPLIT PANE */}
-              {subTab === 'entry' && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-                  {/* LEFT: ENTRY FORM */}
-                  <div className="lg:col-span-5 bg-white rounded-2xl border border-[#e2e6ee] p-4 sm:p-5 shadow-2xs space-y-4">
-                    <div className="flex items-center justify-between pb-2 border-b border-[#e2e6ee]">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-[#2563eb]/10 text-[#2563eb]">
-                          <Plus className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-xs text-[#0e2a4d] uppercase tracking-wider">
-                            Log PCB Defect Record
-                          </h4>
-                          <p className="text-[11px] text-[#7c8798]">
-                            Station: <strong className="text-[#0e2a4d]">{currentStationConfig.label}</strong>
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-mono bg-[#f5f6fa] border border-[#e2e6ee] px-2 py-0.5 rounded-md text-[#7c8798]">
-                        Quick-Log
-                      </span>
-                    </div>
-
-                    <form onSubmit={handleAddEntry} className="space-y-3.5">
-                      {/* Date & Shift */}
-                      <div className="space-y-1.5">
-                        <label className="block text-[11px] font-bold text-[#5b6480]">Inspection Date</label>
-                        <input
-                          type="date"
-                          required
-                          value={formDate}
-                          onChange={(e) => setFormDate(e.target.value)}
-                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-3 py-1.5 font-mono text-xs text-[#1c2536] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30 focus:border-[#2563eb]"
-                        />
-                      </div>
-
-                      {/* Shift Pills */}
-                      <div className="space-y-1.5">
-                        <label className="block text-[11px] font-bold text-[#5b6480]">Shop Floor Shift</label>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {currentStationConfig.shifts.map((s) => (
-                            <button
-                              key={s}
-                              type="button"
-                              onClick={() => setFormShift(s)}
-                              className={`py-1.5 px-2 text-[11px] font-bold rounded-lg border transition-all cursor-pointer text-center ${
-                                formShift === s
-                                  ? 'bg-[#153a68] border-[#153a68] text-white shadow-2xs'
-                                  : 'bg-[#f8fafc] border-[#e2e6ee] text-[#5b6480] hover:bg-[#eef1f8]'
-                              }`}
-                            >
-                              {s}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Board Type & Layer Count */}
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-bold text-[#5b6480]">Board Substrate</label>
-                          <select
-                            value={formBoardType}
-                            onChange={(e) => setFormBoardType(e.target.value)}
-                            className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-2.5 py-1.5 font-mono text-xs text-[#1c2536] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30"
-                          >
-                            {currentStationConfig.boardTypes.map((b) => (
-                              <option key={b} value={b}>
-                                {b}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-bold text-[#5b6480]">Layer Count</label>
-                          <select
-                            value={formLayerCount}
-                            onChange={(e) => setFormLayerCount(e.target.value)}
-                            className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-2.5 py-1.5 font-mono text-xs text-[#1c2536] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30"
-                          >
-                            <option value="1-Layer">1-Layer (Single)</option>
-                            <option value="2-Layer">2-Layer (Double)</option>
-                            <option value="4-Layer">4-Layer (Multi)</option>
-                            <option value="6-Layer">6-Layer (Multi)</option>
-                            <option value="MCPCB">MCPCB (Aluminum)</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Model / Part Number & Production Type */}
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-bold text-[#5b6480]">Model / Part No.</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. WFB-FRIDGE-MAIN"
-                            value={formModel}
-                            onChange={(e) => setFormModel(e.target.value)}
-                            className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-3 py-1.5 font-mono text-xs text-[#1c2536] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-bold text-[#5b6480]">Production Run</label>
-                          <select
-                            value={formProdType}
-                            onChange={(e) => setFormProdType(e.target.value)}
-                            className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-2.5 py-1.5 font-mono text-xs text-[#1c2536] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30"
-                          >
-                            <option value="Mass Production">Mass Production</option>
-                            <option value="Trial Production">Trial Production</option>
-                            <option value="Prototype Run">Prototype Run</option>
-                            <option value="Rework / Strip">Rework / Strip</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Defect Fault Type Selector */}
-                      <div className="space-y-1.5">
-                        <label className="block text-[11px] font-bold text-[#5b6480]">
-                          Defect / Failure Mode ({currentStationConfig.faults.length} Types)
-                        </label>
-                        <select
-                          required
-                          value={formFault}
-                          onChange={(e) => setFormFault(e.target.value)}
-                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-3 py-2 font-mono text-xs text-[#1c2536] font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30"
-                        >
-                          {currentStationConfig.faults.map((f) => (
-                            <option key={f} value={f}>
-                              {f}
-                            </option>
-                          ))}
-                        </select>
-
-                        {/* Quick Chips for Top Defects */}
-                        {quickFaultChips.length > 0 && (
-                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                            <span className="text-[10px] text-[#7c8798] font-bold">Quick:</span>
-                            {quickFaultChips.map((chip) => (
-                              <button
-                                key={chip}
-                                type="button"
-                                onClick={() => setFormFault(chip)}
-                                className={`text-[10px] px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
-                                  formFault === chip
-                                    ? 'bg-[#2563eb] text-white border-[#2563eb] font-bold'
-                                    : 'bg-[#f1f5f9] text-[#5b6480] border-[#cbd5e1] hover:bg-[#e2e8f0]'
-                                }`}
-                              >
-                                {chip.split('/')[0].trim()}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Quantity Stepper & Operator */}
-                      <div className="grid grid-cols-2 gap-2.5 items-end">
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-bold text-[#5b6480]">Defect Qty (Pcs)</label>
-                          <div className="flex items-center">
-                            <button
-                              type="button"
-                              onClick={() => setFormQty(Math.max(1, formQty - 1))}
-                              className="px-2.5 py-1.5 bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#1c2536] rounded-l-xl font-bold text-xs cursor-pointer"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min="1"
-                              required
-                              value={formQty}
-                              onChange={(e) => setFormQty(Math.max(1, Number(e.target.value)))}
-                              className="w-full bg-[#f8fafc] border-y border-[#cbd5e1] py-1.5 font-mono text-xs text-center font-bold text-[#1c2536] focus:outline-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setFormQty(formQty + 1)}
-                              className="px-2.5 py-1.5 bg-[#e2e8f0] hover:bg-[#cbd5e1] text-[#1c2536] rounded-r-xl font-bold text-xs cursor-pointer"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-bold text-[#5b6480]">QC Inspector</label>
-                          <select
-                            value={formOperator}
-                            onChange={(e) => setFormOperator(e.target.value)}
-                            className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-2.5 py-1.5 font-mono text-xs text-[#1c2536] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30"
-                          >
-                            {currentStationConfig.operators.map((op) => (
-                              <option key={op} value={op}>
-                                {op}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Remarks */}
-                      <div className="space-y-1">
-                        <label className="block text-[11px] font-bold text-[#5b6480]">Analysis &amp; Remarks (Optional)</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Panel location X3-Y2, etch bath specific gravity normal"
-                          value={formRemarks}
-                          onChange={(e) => setFormRemarks(e.target.value)}
-                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-xl px-3 py-1.5 text-xs text-[#1c2536] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563eb]/30"
-                        />
-                      </div>
-
-                      {/* Submit Button */}
-                      <button
-                        type="submit"
-                        className="w-full py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer active:scale-98"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Log PCB Defect Record</span>
-                      </button>
-                    </form>
-                  </div>
-
-                  {/* RIGHT: LIVE DEFECT REGISTRY TABLE */}
-                  <div className="lg:col-span-7 bg-white rounded-2xl border border-[#e2e6ee] p-4 sm:p-5 shadow-2xs space-y-3 flex flex-col justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#e2e6ee]">
-                        <div>
-                          <h4 className="font-bold text-xs text-[#0e2a4d] uppercase tracking-wider flex items-center gap-2">
-                            <span>Inspection Log</span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#2563eb]/10 text-[#2563eb]">
-                              {filteredList.length} Entries
-                            </span>
-                          </h4>
-                          <p className="text-[11px] text-[#7c8798]">
-                            Total Defects Logged: <strong className="text-[#d64545] font-mono">{totalQty} pcs</strong>
-                          </p>
-                        </div>
-
-                        {/* Search & CSV */}
-                        <div className="flex items-center gap-2">
-                          <div className="relative">
-                            <Search className="w-3.5 h-3.5 text-[#7c8798] absolute left-2.5 top-1/2 -translate-y-1/2" />
-                            <input
-                              type="text"
-                              placeholder="Search defect, model..."
-                              value={tableSearch}
-                              onChange={(e) => setTableSearch(e.target.value)}
-                              className="pl-8 pr-3 py-1 bg-[#f8fafc] border border-[#cbd5e1] rounded-lg text-xs font-mono text-[#1c2536] w-44 focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={exportCSV}
-                            className="p-1.5 bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#0e2a4d] rounded-lg text-xs font-bold transition-all cursor-pointer"
-                            title="Export Station CSV"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Spreadsheet Table */}
-                      <div className="overflow-x-auto max-h-[440px] mt-2 border border-[#e2e6ee] rounded-xl">
-                        <table className="w-full text-left text-xs">
-                          <thead className="bg-[#0e2a4d] text-white sticky top-0 z-10 font-bold uppercase tracking-wider text-[10px]">
-                            <tr>
-                              <th className="py-2.5 px-3">Date / Shift</th>
-                              <th className="py-2.5 px-3">Model / Substrate</th>
-                              <th className="py-2.5 px-3">Defect Fault Mode</th>
-                              <th className="py-2.5 px-3 text-center">Qty</th>
-                              <th className="py-2.5 px-3">Inspector</th>
-                              <th className="py-2.5 px-2 text-center">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#e2e6ee]">
-                            {filteredList.length === 0 ? (
-                              <tr>
-                                <td colSpan={6} className="py-8 text-center text-[#7c8798]">
-                                  No defect records found for this station.
-                                </td>
-                              </tr>
-                            ) : (
-                              filteredList.map((row) => (
-                                <tr key={row.id} className="hover:bg-[#f8fafc] transition-colors">
-                                  <td className="py-2.5 px-3">
-                                    <div className="font-mono text-[#0e2a4d] font-semibold text-[11px]">{row.date}</div>
-                                    <span className="text-[10px] px-1.5 py-0.2 rounded font-mono bg-[#f1f5f9] text-[#5b6480]">
-                                      {row.shift}
-                                    </span>
-                                  </td>
-                                  <td className="py-2.5 px-3">
-                                    <div className="font-bold text-[#0e2a4d] text-[11px]">{row.model}</div>
-                                    <div className="text-[10px] text-[#7c8798]">{row.boardType} · {row.layerCount}</div>
-                                  </td>
-                                  <td className="py-2.5 px-3">
-                                    <div className="font-semibold text-[#c74a1f] text-[11px]">{row.fault}</div>
-                                    {row.remarks && (
-                                      <div className="text-[10px] text-[#7c8798] truncate max-w-[160px] italic">
-                                        {row.remarks}
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="py-2.5 px-3 text-center">
-                                    <span className="px-2 py-0.5 rounded-full font-mono font-bold text-xs bg-[#fbe6e6] text-[#d64545]">
-                                      {row.qty}
-                                    </span>
-                                  </td>
-                                  <td className="py-2.5 px-3 text-[11px] text-[#5b6480]">
-                                    {row.operator.split('(')[0].trim()}
-                                  </td>
-                                  <td className="py-2.5 px-2 text-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteEntry(row.id)}
-                                      className="p-1 rounded text-[#7c8798] hover:text-[#d64545] hover:bg-red-50 transition-colors cursor-pointer"
-                                      title="Delete Entry"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* Bottom Summary Footer */}
-                    <div className="pt-2 border-t border-[#e2e6ee] flex items-center justify-between text-xs text-[#5b6480]">
-                      <span>Showing {filteredList.length} of {currentList.length} items</span>
-                      <span className="font-mono font-bold text-[#0e2a4d]">
-                        Total Logged Faults: <strong className="text-[#d64545]">{totalQty} pcs</strong>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* VIEW 2: ANALYTICS DASHBOARD */}
-              {subTab === 'dash' && (
-                <div className="space-y-4">
-                  {/* KPI Cards */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="p-3.5 bg-white rounded-xl border border-[#e2e6ee] shadow-2xs">
-                      <span className="text-[10px] font-bold text-[#7c8798] uppercase tracking-wider">Total Defect Pcs</span>
-                      <div className="text-2xl font-bold font-mono text-[#d64545] mt-1">{totalQty}</div>
-                      <span className="text-[10px] text-[#7c8798]">Across all records</span>
-                    </div>
-                    <div className="p-3.5 bg-white rounded-xl border border-[#e2e6ee] shadow-2xs">
-                      <span className="text-[10px] font-bold text-[#7c8798] uppercase tracking-wider">Records Logged</span>
-                      <div className="text-2xl font-bold font-mono text-[#2563eb] mt-1">{currentList.length}</div>
-                      <span className="text-[10px] text-[#7c8798]">Inspection sessions</span>
-                    </div>
-                    <div className="p-3.5 bg-white rounded-xl border border-[#e2e6ee] shadow-2xs">
-                      <span className="text-[10px] font-bold text-[#7c8798] uppercase tracking-wider">Distinct Defect Modes</span>
-                      <div className="text-2xl font-bold font-mono text-[#8e5fc9] mt-1">{faultStats.length}</div>
-                      <span className="text-[10px] text-[#7c8798]">Failure modes flagged</span>
-                    </div>
-                    <div className="p-3.5 bg-white rounded-xl border border-[#e2e6ee] shadow-2xs">
-                      <span className="text-[10px] font-bold text-[#7c8798] uppercase tracking-wider">Top Failure Mode</span>
-                      <div className="text-sm font-bold text-[#0e2a4d] mt-1 truncate">
-                        {faultStats[0]?.fault || 'None'}
-                      </div>
-                      <span className="text-[10px] text-[#d64545] font-mono font-bold">
-                        {faultStats[0]?.qty ? `${faultStats[0].qty} pcs (${((faultStats[0].qty / (totalQty || 1)) * 100).toFixed(1)}%)` : '0 pcs'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Charts Row: Pareto Chart & Daily Trend */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Pareto Bar Chart */}
-                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#e2e6ee] shadow-2xs">
-                      <h4 className="font-bold text-xs text-[#0e2a4d] uppercase tracking-wider mb-1">
-                        Defect Pareto Analysis — Top Failure Modes
-                      </h4>
-                      <p className="text-[11px] text-[#7c8798] mb-3">Dominant PCB failure mechanisms</p>
-                      <div className="h-60 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={faultStats.slice(0, 6)} layout="vertical" margin={{ left: 20, right: 20, top: 10, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis type="number" stroke="#7c8798" fontSize={10} />
-                            <YAxis dataKey="fault" type="category" stroke="#7c8798" fontSize={10} width={130} />
-                            <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e6ee', fontSize: '11px' }} />
-                            <Bar dataKey="qty" fill="#2563eb" radius={[0, 4, 4, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-
-                    {/* Daily Defect Progression */}
-                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#e2e6ee] shadow-2xs">
-                      <h4 className="font-bold text-xs text-[#0e2a4d] uppercase tracking-wider mb-1">
-                        Daily Defect Progression
-                      </h4>
-                      <p className="text-[11px] text-[#7c8798] mb-3">Defect volume timeline</p>
-                      <div className="h-60 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={dailyStats} margin={{ left: 0, right: 20, top: 10, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis dataKey="date" stroke="#7c8798" fontSize={10} />
-                            <YAxis stroke="#7c8798" fontSize={10} />
-                            <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e6ee', fontSize: '11px' }} />
-                            <Line type="monotone" dataKey="qty" stroke="#e0483f" strokeWidth={2.5} dot={{ r: 4, fill: '#e0483f' }} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* VIEW 3: DATABASE REGISTRY */}
-          {activeCategory === 'db' && (
-            <div className="bg-white rounded-2xl border border-[#e2e6ee] p-5 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#e2e6ee]">
-                <div>
-                  <h4 className="font-bold text-sm text-[#0e2a4d] uppercase tracking-wider">
-                    All PCB Stations Database Registry
-                  </h4>
-                  <p className="text-xs text-[#7c8798]">Summary of saved defect entries across all bare board process gates</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const allData = Object.entries(pcbEntries).flatMap(([stn, list]) =>
-                      (list as PCBItemEntry[]).map((item) => ({ ...item, stationName: PCB_STATION_CONFIGS[stn]?.label || stn }))
-                    );
-                    const headers = ['Station', 'Date', 'Shift', 'Model', 'Board Type', 'Layer', 'Fault', 'Qty', 'Inspector'];
-                    const rows = allData.map((e) => [
-                      e.stationName,
-                      e.date,
-                      e.shift,
-                      e.model,
-                      e.boardType,
-                      e.layerCount,
-                      e.fault,
-                      e.qty,
-                      e.operator,
-                    ]);
-                    const csvContent =
-                      'data:text/csv;charset=utf-8,' +
-                      [headers.join(','), ...rows.map((r) => r.map((c) => `"${String(c || '').replace(/"/g, '""')}"`).join(','))].join('\n');
-                    const link = document.createElement('a');
-                    link.setAttribute('href', encodeURI(csvContent));
-                    link.setAttribute('download', `PCB_Complete_Database_${selectedYear}.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  className="px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Export Entire Database (CSV)</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {Object.keys(PCB_STATION_CONFIGS).map((k) => {
-                  const cfg = PCB_STATION_CONFIGS[k];
-                  const list = pcbEntries[k] || [];
-                  const sumQty = list.reduce((a, c) => a + c.qty, 0);
+            {!groupCollapsed && (
+              <div className="pt-0.5 pb-1.5">
+                {SHEET_KEYS.map((key) => {
+                  const cfg = PAGES[key];
+                  const isActive = activePage === key;
                   return (
-                    <div key={k} className="p-4 rounded-xl border border-[#e2e6ee] hover:border-[#2563eb] transition-all bg-[#f8fafc] space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-[#0e2a4d]">{cfg.label}</span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#2563eb]/10 text-[#2563eb] font-bold">
-                          {list.length} Logs
-                        </span>
-                      </div>
-                      <div className="text-xl font-bold font-mono text-[#d64545]">{sumQty} Defect Pcs</div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveCategory(cfg.group);
-                          setActiveStationKey(k);
-                          setSubTab('entry');
-                        }}
-                        className="w-full py-1.5 bg-white hover:bg-[#2563eb] hover:text-white border border-[#cbd5e1] rounded-lg text-xs font-semibold text-[#0e2a4d] transition-all cursor-pointer"
+                    <div
+                      key={key}
+                      onClick={() => handleSelectPage(key)}
+                      className={`flex items-center gap-2 py-2 pr-3 pl-[30px] text-[12.5px] cursor-pointer border-l-[3px] transition-colors ${
+                        isActive
+                          ? 'bg-[#17294a] text-white border-[#1565c0] font-bold'
+                          : 'border-transparent text-[#b8c5db] hover:bg-[#17294a] hover:text-white'
+                      }`}
+                    >
+                      <span
+                        className={`w-1 h-1 rounded-full shrink-0 ${
+                          isActive ? 'bg-[#1565c0]' : 'bg-[#5b6e8c]'
+                        }`}
+                      />
+                      <span className="flex-1 min-w-0 truncate">{cfg.name}</span>
+                      <span
+                        className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] text-white whitespace-nowrap shrink-0 ${cfg.badgeClass}`}
                       >
-                        Open Station &rarr;
-                      </button>
+                        {cfg.badge}
+                      </span>
                     </div>
                   );
                 })}
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sidebar Foot */}
+        <div className="mt-auto border-t border-[#223355]">
+          <div
+            onClick={() => handleSelectPage('database')}
+            className={`flex items-center gap-[9px] px-4 py-2.5 text-[12.5px] cursor-pointer border-l-[3px] transition-colors ${
+              activePage === 'database'
+                ? 'bg-[#17294a] text-white border-[#1565c0] font-bold'
+                : 'border-transparent text-[#cfd9ea] hover:bg-[#17294a]'
+            }`}
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <ellipse cx="12" cy="5" rx="8" ry="3" />
+              <path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5" />
+              <path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" />
+            </svg>
+            <span>Database</span>
+          </div>
+
+          <div
+            onClick={() => handleSelectPage('home')}
+            className={`flex items-center gap-[9px] px-4 py-2.5 text-[12.5px] cursor-pointer border-l-[3px] transition-colors ${
+              activePage === 'home'
+                ? 'bg-[#17294a] text-white border-[#1565c0] font-bold'
+                : 'border-transparent text-[#cfd9ea] hover:bg-[#17294a]'
+            }`}
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M3 11l9-7 9 7" />
+              <path d="M5 10v10h14V10" />
+            </svg>
+            <span>Home</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* ============ MAIN ============ */}
+      <div className="flex-1 min-w-0 flex flex-col h-full overflow-y-auto">
+        {/* Topbar */}
+        <div className="bg-white border-b border-[#e2e8f0] px-[14px] sm:px-[26px] py-[14px] flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden inline-flex bg-[#eaf2fb] text-[#123a6b] border-none rounded-[7px] px-2.5 py-2 font-bold text-sm cursor-pointer"
+            >
+              ☰
+            </button>
+            <div>
+              <h2 className="m-0 text-[20px] text-[#123a6b] font-extrabold leading-tight">
+                Quality Management
+              </h2>
+              <p className="m-0 mt-0.5 text-[12px] text-[#64748b]">
+                PCB &amp; PCBA
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-[9px]">
+              <div className="w-8 h-8 rounded-full bg-[#123a6b] text-white grid place-items-center font-bold text-[11px]">
+                QC
+              </div>
+              <div>
+                <div className="text-[12.5px] font-bold text-[#1c2733]">FQC Inspector</div>
+                <div className="text-[10.5px] text-[#64748b]">fqc.pcb@waltonbd.com</div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[7px] border border-[#cbd5e1] bg-white hover:border-[#1565c0] hover:text-[#1565c0] text-[#1c2733] text-xs font-bold cursor-pointer transition-colors"
+              title="Back to PCB Quality Dashboard"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to PCB</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Page Banner Header */}
+        <div className="bg-gradient-to-r from-[#0f2942] to-[#16395c] text-white rounded-2xl shadow-md border border-[#234b73] px-5 py-4 sm:px-6 sm:py-5 mx-[14px] sm:mx-[26px] mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-2xl shadow-inner border border-white/15">
+              🔍
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-wide text-white m-0">
+                  {activePage === 'home'
+                    ? 'Daily FQC Report'
+                    : activePage === 'database'
+                    ? 'All Database'
+                    : `${PAGES[activePage].name} Entry`}
+                </h1>
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#16a34a]/25 text-[#86efac] border border-[#16a34a]/40">
+                  Live Production Entry
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5 m-0">
+                {activePage === 'visual'
+                  ? 'PCB Visual Check (AOI Inspection)'
+                  : activePage === 'aoi'
+                  ? 'PCB AOI (Automatic Optical Inspection - Panel)'
+                  : activePage === 'receive'
+                  ? 'PCB Receive (IQC Incoming Quality Control)'
+                  : activePage === 'delivery'
+                  ? 'PCB Delivery (OQC Outgoing Quality Control)'
+                  : activePage === 'database'
+                  ? 'PCB Quality Management — All Saved Records'
+                  : 'PCB — Visual Check · AOI · Receive · Delivery'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowManageModal(true)}
+              className="px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>Manage Lists</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSelectPage('database')}
+              className="px-3.5 py-2 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>All Database</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <main className="p-[14px] sm:px-[26px] sm:pt-[18px] sm:pb-[48px] flex-1">
+          {/* ================= HOME PAGE ================= */}
+          {activePage === 'home' && (
+            <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[14px] mb-4">
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
+                  <div className="text-[26px] font-extrabold text-[#123a6b]">
+                    {homeStats.totalRecords}
+                  </div>
+                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                    Total Records
+                  </div>
+                </div>
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
+                  <div className="text-[26px] font-extrabold text-[#123a6b]">
+                    {homeStats.todayRecords}
+                  </div>
+                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                    Entries Today
+                  </div>
+                </div>
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
+                  <div className="text-[26px] font-extrabold text-[#123a6b]">
+                    {homeStats.totalChecked}
+                  </div>
+                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                    Units Checked (QC)
+                  </div>
+                </div>
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
+                  <div className="text-[26px] font-extrabold text-[#123a6b]">
+                    {homeStats.failRate}
+                  </div>
+                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                    Overall Fail Rate
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white border border-[#e2e8f0] rounded-[10px] mb-4 overflow-hidden">
+                <header className="px-4 py-3 flex items-center gap-[9px] font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0]">
+                  Quick Entry
+                </header>
+                <div className="p-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {SHEET_KEYS.map((k) => (
+                      <div
+                        key={k}
+                        onClick={() => handleSelectPage(k)}
+                        className="bg-white border border-[#e2e8f0] hover:border-[#1565c0] hover:shadow-[0_2px_10px_rgba(21,101,192,0.12)] rounded-[10px] px-4 py-[14px] cursor-pointer flex items-center gap-2.5 transition-all"
+                      >
+                        <div className="w-[34px] h-[34px] rounded-[8px] bg-[#eaf2fb] grid place-items-center shrink-0 text-[#123a6b]">
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M12 2l9 5-9 5-9-5 9-5z" />
+                            <path d="M3 12l9 5 9-5" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="font-bold text-[12.5px] text-[#1c2733]">
+                            {PAGES[k].name}
+                          </div>
+                          <div className="text-[11px] text-[#64748b]">
+                            {store[k].length} records saved
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-        </div>
+
+          {/* ================= DATABASE PAGE ================= */}
+          {activePage === 'database' && (
+            <div className="bg-white border border-[#e2e8f0] rounded-[10px] mb-4 overflow-hidden">
+              <header className="px-4 py-3 flex items-center gap-[9px] font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0]">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#1565c0"
+                  strokeWidth="2"
+                >
+                  <ellipse cx="12" cy="5" rx="8" ry="3" />
+                  <path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5" />
+                  <path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" />
+                </svg>
+                <span>All Records</span>
+              </header>
+              <div className="p-4">
+                <div className="flex flex-wrap items-center gap-2.5 mb-[14px]">
+                  <select
+                    value={dbType}
+                    onChange={(e) => setDbType(e.target.value)}
+                    className="w-auto min-w-[180px] text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                  >
+                    <option value="">All Report Types</option>
+                    {SHEET_KEYS.map((k) => (
+                      <option key={k} value={k}>
+                        {PAGES[k].name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={dbSearch}
+                    onChange={(e) => setDbSearch(e.target.value)}
+                    placeholder="Search model..."
+                    className="max-w-[220px] w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                  />
+                  <span className="ml-auto text-[11.5px] text-[#64748b] font-semibold">
+                    {filteredDbRows.length} {filteredDbRows.length === 1 ? 'record' : 'records'}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-[12px] min-w-[620px]">
+                    <thead>
+                      <tr>
+                        {[
+                          'Type',
+                          'Date',
+                          'Model',
+                          'Qty',
+                          'Fail/Short+Open',
+                          'Product',
+                          'Layer / Material',
+                        ].map((h) => (
+                          <th
+                            key={h}
+                            className="bg-[#eaf2fb] text-[#123a6b] font-bold text-left px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap"
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredDbRows.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="text-[#64748b] p-4 text-center text-[12.5px] border border-[#e2e8f0]"
+                          >
+                            No matching records.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredDbRows.map((r, i) => (
+                          <tr key={i}>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                              {r.type}
+                            </td>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                              {r.date || '—'}
+                            </td>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                              {r.model || '—'}
+                            </td>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                              {r.qty}
+                            </td>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                              {r.fail}
+                            </td>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                              {r.product}
+                            </td>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                              {r.layerMat}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex gap-2.5 mt-[14px] flex-wrap items-center">
+                  <button
+                    type="button"
+                    onClick={handleExportDatabase}
+                    disabled={allDbRows.length === 0}
+                    className="font-bold text-[12.5px] px-4 py-[9px] rounded-[7px] cursor-pointer border border-[#cbd5e1] bg-white text-[#1c2733] hover:border-[#1565c0] hover:text-[#1565c0] disabled:opacity-50"
+                  >
+                    Export All CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= ENTRY PAGES (Visual / AOI / Receive / Delivery) ================= */}
+          {activePage !== 'home' &&
+            activePage !== 'database' &&
+            (() => {
+              const sheet: SheetKey = activePage;
+              const cfg = PAGES[sheet];
+              const rows = store[sheet];
+
+              return (
+                <div>
+                  {/* Entry Form Card */}
+                  <div className="bg-white border border-[#e2e8f0] rounded-[10px] mb-4 overflow-hidden">
+                    <header className="px-4 py-3 flex items-center gap-[9px] font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0]">
+                      <span>New {cfg.name} Entry</span>
+                      {cfg.hint && (
+                        <span className="font-normal text-[11px] text-[#64748b] ml-auto">
+                          {cfg.hint}
+                        </span>
+                      )}
+                    </header>
+
+                    <div className="p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-3 gap-x-[14px]">
+                        {/* Date */}
+                        <div>
+                          <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                            DATE
+                          </label>
+                          <input
+                            type="date"
+                            value={formValues['Date'] || ''}
+                            onChange={(e) => updateField('Date', e.target.value, sheet)}
+                            required
+                            className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                          />
+                        </div>
+
+                        {/* Month (readonly auto) */}
+                        <div>
+                          <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                            MONTH
+                          </label>
+                          <input
+                            type="text"
+                            value={formValues['Month'] || ''}
+                            readOnly
+                            placeholder="auto"
+                            className="w-full text-[13px] bg-[#eaf2fb] text-[#123a6b] font-bold border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none"
+                          />
+                        </div>
+
+                        {/* Model (span 2) */}
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                            MODEL
+                          </label>
+                          <input
+                            type="text"
+                            list="dl-models"
+                            value={formValues['Model'] || ''}
+                            onChange={(e) => updateField('Model', e.target.value, sheet)}
+                            placeholder="Select / type model"
+                            required
+                            className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                          />
+                        </div>
+
+                        {/* Sheet-specific fields */}
+                        {sheet === 'visual' && (
+                          <>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                TOTAL CHECK
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={formValues['Total Check'] || ''}
+                                onChange={(e) => updateField('Total Check', e.target.value, sheet)}
+                                placeholder="0"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                FAIL QTY
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={formValues['Fail QTY'] || ''}
+                                onChange={(e) => updateField('Fail QTY', e.target.value, sheet)}
+                                placeholder="0"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                PRODUCT
+                              </label>
+                              <input
+                                type="text"
+                                list="dl-products"
+                                value={formValues['Product'] || ''}
+                                onChange={(e) => updateField('Product', e.target.value, sheet)}
+                                placeholder="External S"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                LAYER
+                              </label>
+                              <input
+                                type="text"
+                                list="dl-layers"
+                                value={formValues['Layer'] || ''}
+                                onChange={(e) => updateField('Layer', e.target.value, sheet)}
+                                placeholder="Add Layer Please......"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {sheet === 'aoi' && (
+                          <>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                PASS (PANEL)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={formValues['Pass (Panel)'] || ''}
+                                onChange={(e) => updateField('Pass (Panel)', e.target.value, sheet)}
+                                placeholder="0"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                SHORT
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={formValues['Short'] || ''}
+                                onChange={(e) => updateField('Short', e.target.value, sheet)}
+                                placeholder="0"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                OPEN
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={formValues['Open'] || ''}
+                                onChange={(e) => updateField('Open', e.target.value, sheet)}
+                                placeholder="0"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                FAIL (PANEL)
+                              </label>
+                              <input
+                                type="number"
+                                value={formValues['Fail (Panel)'] || ''}
+                                readOnly
+                                className="w-full text-[13px] bg-[#eaf2fb] text-[#123a6b] font-bold border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                TOTAL CHECK (PANEL)
+                              </label>
+                              <input
+                                type="number"
+                                value={formValues['Total Check (Panel)'] || ''}
+                                readOnly
+                                className="w-full text-[13px] bg-[#eaf2fb] text-[#123a6b] font-bold border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                PASS RATIO
+                              </label>
+                              <input
+                                type="text"
+                                value={formValues['Pass Ratio'] || ''}
+                                readOnly
+                                className="w-full text-[13px] bg-[#eaf2fb] text-[#123a6b] font-bold border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                FAIL RATIO
+                              </label>
+                              <input
+                                type="text"
+                                value={formValues['Fail Ratio'] || ''}
+                                readOnly
+                                className="w-full text-[13px] bg-[#eaf2fb] text-[#123a6b] font-bold border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                PRODUCT
+                              </label>
+                              <input
+                                type="text"
+                                list="dl-products"
+                                value={formValues['Product'] || ''}
+                                onChange={(e) => updateField('Product', e.target.value, sheet)}
+                                placeholder="External S"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                LAYER
+                              </label>
+                              <input
+                                type="text"
+                                list="dl-layers"
+                                value={formValues['Layer'] || ''}
+                                onChange={(e) => updateField('Layer', e.target.value, sheet)}
+                                placeholder="Add Layer Please......"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {(sheet === 'receive' || sheet === 'delivery') && (
+                          <>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                {sheet === 'receive' ? 'RECEIVE QTY' : 'DELIVERY QTY'}
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={
+                                  formValues[
+                                    sheet === 'receive' ? 'Receive QTY' : 'Delivery QTY'
+                                  ] || ''
+                                }
+                                onChange={(e) =>
+                                  updateField(
+                                    sheet === 'receive' ? 'Receive QTY' : 'Delivery QTY',
+                                    e.target.value,
+                                    sheet
+                                  )
+                                }
+                                placeholder="0"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                PRODUCT
+                              </label>
+                              <input
+                                type="text"
+                                list="dl-products"
+                                value={formValues['Product'] || ''}
+                                onChange={(e) => updateField('Product', e.target.value, sheet)}
+                                placeholder="External S"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                LAYER
+                              </label>
+                              <input
+                                type="text"
+                                list="dl-layers"
+                                value={formValues['Layer'] || ''}
+                                onChange={(e) => updateField('Layer', e.target.value, sheet)}
+                                placeholder="Add Layer Please......"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10.5px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                                MATERIAL
+                              </label>
+                              <input
+                                type="text"
+                                list="dl-materials"
+                                value={formValues['Material'] || ''}
+                                onChange={(e) => updateField('Material', e.target.value, sheet)}
+                                placeholder="Add Material Please......"
+                                className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-2.5 py-[9px] outline-none focus:ring-2 focus:ring-[#1565c0]"
+                              />
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2.5 mt-[14px] flex-wrap items-center">
+                        <button
+                          type="button"
+                          onClick={() => handleAddEntry(sheet)}
+                          className="font-bold text-[12.5px] px-4 py-[9px] rounded-[7px] cursor-pointer border border-[#123a6b] bg-[#123a6b] text-white hover:bg-[#1565c0] hover:border-[#1565c0] transition-colors"
+                        >
+                          + Add Entry
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResetForm}
+                          className="font-bold text-[12.5px] px-4 py-[9px] rounded-[7px] cursor-pointer border border-[#cbd5e1] bg-transparent text-[#1c2733] hover:border-[#1565c0] hover:text-[#1565c0] transition-colors"
+                        >
+                          Clear Fields
+                        </button>
+                        {formError && (
+                          <span className="text-[#e2231a] text-[11.5px] font-bold">
+                            Please fill the required fields.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Today's Log Card */}
+                  <section className="bg-white border border-[#e2e8f0] rounded-[10px] mb-4 overflow-hidden">
+                    <header className="px-4 py-3 flex items-center justify-between gap-2.5 flex-wrap font-bold text-[14px] text-[#1c2733]">
+                      <span>Today&apos;s {cfg.name} Log</span>
+                      <span className="text-[11.5px] text-[#64748b] font-semibold">
+                        {rows.length} {rows.length === 1 ? 'entry' : 'entries'}
+                      </span>
+                    </header>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse text-[12px] min-w-[620px]">
+                        <thead>
+                          <tr>
+                            {cfg.cols.map((c) => (
+                              <th
+                                key={c}
+                                className="bg-[#eaf2fb] text-[#123a6b] font-bold text-left px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap"
+                              >
+                                {c}
+                              </th>
+                            ))}
+                            <th className="bg-[#eaf2fb] text-[#123a6b] font-bold text-left px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap" />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={cfg.cols.length + 1}
+                                className="text-[#64748b] p-4 text-center text-[12.5px] border border-[#e2e8f0]"
+                              >
+                                No entries yet — add one above.
+                              </td>
+                            </tr>
+                          ) : (
+                            rows.map((r, i) => {
+                              const fk =
+                                sheet === 'visual'
+                                  ? 'Fail QTY'
+                                  : sheet === 'aoi'
+                                  ? 'Fail (Panel)'
+                                  : '';
+                              const hasFail = fk ? num(r[fk]) > 0 : false;
+                              return (
+                                <tr key={i}>
+                                  {cfg.cols.map((c) => {
+                                    const isFailCell = c === 'Fail QTY' || c === 'Fail (Panel)';
+                                    const cellColor = isFailCell
+                                      ? hasFail
+                                        ? 'text-[#e2231a] font-bold'
+                                        : 'text-[#1e9e6b] font-bold'
+                                      : '';
+                                    return (
+                                      <td
+                                        key={c}
+                                        className={`px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap ${cellColor}`}
+                                      >
+                                        {r[c] !== undefined && r[c] !== '' ? String(r[c]) : '—'}
+                                      </td>
+                                    );
+                                  })}
+                                  <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveRow(sheet, i)}
+                                      className="border-none bg-transparent text-[#e2231a] cursor-pointer text-[14px] font-bold px-1 hover:underline"
+                                    >
+                                      ✕
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Totals Strip */}
+                    {rows.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 px-[14px] py-3 bg-[#eaf2fb] border-t border-[#e2e8f0]">
+                        {sheet === 'visual' &&
+                          (() => {
+                            let tot = 0,
+                              pass = 0,
+                              fail = 0;
+                            rows.forEach((r) => {
+                              tot += num(r['Total Check']);
+                              pass += num(r['Pass QTY']);
+                              fail += num(r['Fail QTY']);
+                            });
+                            return (
+                              <>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {tot}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Total Checked
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {pass}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Total Pass
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {fail}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Total Fail
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {pct(fail, tot)}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Fail Rate
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
+
+                        {sheet === 'aoi' &&
+                          (() => {
+                            let pass = 0,
+                              fail = 0,
+                              total = 0;
+                            rows.forEach((r) => {
+                              pass += num(r['Pass (Panel)']);
+                              fail += num(r['Fail (Panel)']);
+                              total += num(r['Total Check (Panel)']);
+                            });
+                            return (
+                              <>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {total}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Total Panels
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {pass}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Total Pass
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {fail}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Total Fail
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {pct(fail, total)}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Fail Rate
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
+
+                        {(sheet === 'receive' || sheet === 'delivery') &&
+                          (() => {
+                            const key = sheet === 'receive' ? 'Receive QTY' : 'Delivery QTY';
+                            let q = 0;
+                            rows.forEach((r) => {
+                              q += num(r[key]);
+                            });
+                            const modelsCount = new Set(rows.map((r) => r.Model)).size;
+                            return (
+                              <>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {rows.length}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Entries
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {q}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    {sheet === 'receive'
+                                      ? 'Total Receive QTY'
+                                      : 'Total Delivery QTY'}
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
+                                    {modelsCount}
+                                  </div>
+                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
+                                    Models
+                                  </div>
+                                </div>
+                                <div className="text-center" />
+                              </>
+                            );
+                          })()}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Datalists driven by Manage Master Lists */}
+                  <datalist id="dl-models">
+                    {masterLists.models.map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                  <datalist id="dl-products">
+                    {masterLists.products.map((p) => (
+                      <option key={p} value={p} />
+                    ))}
+                  </datalist>
+                  <datalist id="dl-layers">
+                    {masterLists.layers.map((l) => (
+                      <option key={l} value={l} />
+                    ))}
+                  </datalist>
+                  <datalist id="dl-materials">
+                    {masterLists.materials.map((mat) => (
+                      <option key={mat} value={mat} />
+                    ))}
+                  </datalist>
+                </div>
+              );
+            })()}
+        </main>
       </div>
+
+      {/* MANAGE LISTS MODAL */}
+      {showManageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-[#0f2942] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2 font-bold text-base">
+                <Settings className="w-4 h-4 text-[#60a5fa]" />
+                <span>Manage Master Lists (PCB)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowManageModal(false)}
+                className="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/80 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex border-b border-[#e2e8f0] bg-[#fafbfc]">
+              {(
+                [
+                  { id: 'models', label: `Models (${masterLists.models.length})` },
+                  { id: 'products', label: `Products (${masterLists.products.length})` },
+                  { id: 'layers', label: `Layers (${masterLists.layers.length})` },
+                  { id: 'materials', label: `Materials (${masterLists.materials.length})` },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveModalTab(tab.id);
+                    setNewListItemInput('');
+                  }}
+                  className={`flex-1 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+                    activeModalTab === tab.id
+                      ? 'border-[#2563eb] text-[#2563eb] bg-white'
+                      : 'border-transparent text-[#64748b] hover:text-[#1e293b]'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newListItemInput}
+                  onChange={(e) => setNewListItemInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddListItem();
+                    }
+                  }}
+                  placeholder={`Add new ${activeModalTab.slice(0, -1)}...`}
+                  className="flex-1 text-xs px-3 py-2 rounded-lg border border-[#cbd5e1] focus:border-[#2563eb] outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddListItem}
+                  className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg cursor-pointer"
+                >
+                  Add
+                </button>
+              </div>
+
+              <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                {masterLists[activeModalTab].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center justify-between p-2.5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] text-xs font-medium text-[#1e293b]"
+                  >
+                    <span className="truncate pr-2">{item}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveListItem(activeModalTab, item)}
+                      className="text-[#dc2626] hover:bg-[#fee2e2] px-2 py-1 rounded text-[11px] font-bold shrink-0 cursor-pointer"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 bg-[#f8fafc] border-t border-[#e2e8f0] flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowManageModal(false)}
+                className="px-5 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

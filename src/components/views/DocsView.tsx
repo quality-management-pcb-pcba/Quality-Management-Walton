@@ -16,6 +16,19 @@ export const DocsView: React.FC<DocsViewProps> = ({
   const [downloadedDoc, setDownloadedDoc] = useState<string | null>(null);
 
   const handleDownloadDoc = (doc: SopDocument) => {
+    if (doc.fileUrl) {
+      const link = document.createElement('a');
+      link.href = doc.fileUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.download = doc.fileName || `${doc.code}_Rev_${doc.revision}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setDownloadedDoc(doc.code);
+      setTimeout(() => setDownloadedDoc(null), 3000);
+      return;
+    }
     const content = `WALTON HI-TECH INDUSTRIES PLC
 QUALITY MANAGEMENT SYSTEM (QMS) - CONTROLLED COPY
 Document Code: ${doc.code}
@@ -52,7 +65,7 @@ Approved By: Head of Quality Assurance, Walton Hi-Tech Industries PLC
     setTimeout(() => setDownloadedDoc(null), 3000);
   };
 
-  const categories = ['All', 'IQC', 'SMT', 'AOI', 'Wave Soldering', 'Final QC', 'ESD & Safety', 'R&D'];
+  const categories = ['All', 'IQC', 'SMT', 'AOI-PCB', 'Wave Soldering', 'Final QC', 'ESD & Safety', 'AOI-PCBA', 'MI'];
 
   const filteredDocs = (sopList || []).filter((doc) => {
     const matchesSearch =
@@ -60,7 +73,11 @@ Approved By: Head of Quality Assurance, Walton Hi-Tech Industries PLC
       doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.remarks.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.owner.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || doc.category === selectedCategory;
+    const matchesCategory =
+      selectedCategory === 'All' ||
+      doc.category === selectedCategory ||
+      (selectedCategory === 'AOI-PCB' && doc.category === 'AOI') ||
+      (selectedCategory === 'AOI-PCBA' && doc.category === 'R&D');
     return matchesSearch && matchesCategory;
   });
 

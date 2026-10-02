@@ -4,12 +4,45 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   getDocs,
   onSnapshot,
   serverTimestamp,
+  getAuditIdentity,
 } from './firebase';
 import { UserProfile, UserRole, UserStatus } from '../types';
+
+/**
+ * Authorized Walton Quality Management Administrator Emails
+ * Users logging in with any other email can NEVER receive an administrator role.
+ */
+export const DESIGNATED_ADMIN_EMAILS: string[] = [
+  'qm.pcba26@gmail.com',
+  'atiqur40736@waltonbd.com',
+  'atiqur.rahman@waltonbd.com',
+  'qa.admin@waltonbd.com',
+];
+
+/**
+ * Validates if an email is an authorized Walton System Administrator
+ */
+export function isDesignatedAdminEmail(email: string): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return DESIGNATED_ADMIN_EMAILS.includes(normalized);
+}
+
+/**
+ * Checks if a user profile has administrative privileges
+ */
+export function isAdminProfile(profile?: UserProfile | null): boolean {
+  if (!profile) return false;
+  return (
+    (profile.role === 'admin' || profile.role === 'QM_ADMIN') &&
+    isDesignatedAdminEmail(profile.email)
+  );
+}
 
 /**
  * Default seed profiles for known Walton QM staff when initializing system
@@ -24,6 +57,7 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     designation: 'Head of Quality Management',
     role: 'admin',
     status: 'active',
+    permissions: ['ALL'],
   },
   'atiqur.rahman@waltonbd.com': {
     employeeId: '40736',
@@ -34,6 +68,7 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     designation: 'Head of Quality Management',
     role: 'admin',
     status: 'active',
+    permissions: ['ALL'],
   },
   'atiqur40736@waltonbd.com': {
     employeeId: '40736',
@@ -44,6 +79,7 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     designation: 'Head of Quality Management',
     role: 'admin',
     status: 'active',
+    permissions: ['ALL'],
   },
   'tajedul36924@waltonbd.com': {
     employeeId: '36924',
@@ -54,6 +90,7 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     designation: 'QA Staff',
     role: 'qa_staff',
     status: 'active',
+    permissions: ['READ', 'WRITE_QM'],
   },
   'khalid52190@waltonbd.com': {
     employeeId: '52190',
@@ -64,6 +101,7 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     designation: 'QA Engineer',
     role: 'qa_staff',
     status: 'active',
+    permissions: ['READ', 'WRITE_QM'],
   },
   'auditor.ext@waltonbd.com': {
     employeeId: 'AUD-01',
@@ -74,6 +112,7 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     designation: 'Lead Auditor',
     role: 'qa_staff',
     status: 'active',
+    permissions: ['READ', 'AUDIT'],
   },
   'qa.admin@waltonbd.com': {
     employeeId: 'QA-001',
@@ -84,6 +123,7 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     designation: 'Quality Systems Manager',
     role: 'admin',
     status: 'active',
+    permissions: ['ALL'],
   },
 };
 
@@ -109,8 +149,12 @@ export async function getUserProfile(uid: string, fallbackEmail?: string): Promi
           designation: data.designation || 'Staff',
           role: (data.role as UserRole) || 'qa_staff',
           status: (data.status as UserStatus) || 'active',
+          permissions: Array.isArray(data.permissions) ? data.permissions : ['READ'],
+          photoURL: data.photoURL || '',
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,
+          createdBy: data.createdBy,
+          updatedBy: data.updatedBy,
         };
       }
     }
@@ -138,21 +182,32 @@ export async function getUserProfile(uid: string, fallbackEmail?: string): Promi
  */
 export async function bootstrapUserProfile(uid: string, email: string): Promise<UserProfile> {
   const normalizedEmail = email.trim().toLowerCase();
+  const isAdminEmail = isDesignatedAdminEmail(normalizedEmail);
   const seed = INITIAL_STAFF_SEEDS[normalizedEmail] || {
     employeeId: normalizedEmail.split('@')[0].replace(/\D/g, '') || '00000',
     name: normalizedEmail.split('@')[0],
     email: normalizedEmail,
     department: 'Quality Management',
     section: 'PCB & PCBA',
-    designation: 'Staff',
-    role: (normalizedEmail.includes('atiqur') || normalizedEmail.includes('admin') ? 'admin' : 'qa_staff') as UserRole,
+    designation: isAdminEmail ? 'Head of Quality Management' : 'QA Staff',
+    role: (isAdminEmail ? 'admin' : 'qa_staff') as UserRole,
     status: 'active' as UserStatus,
+    permissions: isAdminEmail ? ['ALL'] : ['READ', 'WRITE_QM'],
   };
+
+  // Extra safety safeguard: If not designated admin email, NEVER allow admin role
+  if (!isAdminEmail && (seed.role as string) === 'admin') {
+    seed.role = 'qa_staff';
+    seed.designation = 'QA Staff';
+  }
 
   const newProfile: UserProfile = {
     uid,
     ...seed,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    createdBy: uid,
+    updatedBy: uid,
   };
 
   try {
@@ -167,7 +222,7 @@ export async function bootstrapUserProfile(uid: string, email: string): Promise<
 }
 
 /**
- * Updates an employee's Firestore profile (Admin only)
+ * Updates an employee's Firestore profile (Admin only for role/status/permissions)
  */
 export async function updateEmployeeProfile(
   uid: string,
@@ -177,13 +232,16 @@ export async function updateEmployeeProfile(
     designation?: string;
     role?: UserRole;
     status?: UserStatus;
+    permissions?: string[];
   }
 ): Promise<void> {
   if (db) {
+    const actor = getAuditIdentity();
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, {
       ...updates,
       updatedAt: serverTimestamp(),
+      updatedBy: actor.uid,
     });
   }
 }
@@ -193,11 +251,25 @@ export async function updateEmployeeProfile(
  */
 export async function createEmployeeRecord(profile: UserProfile): Promise<void> {
   if (db) {
+    const actor = getAuditIdentity();
     const userRef = doc(db, 'users', profile.uid);
     await setDoc(userRef, {
       ...profile,
       createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      createdBy: actor.uid,
+      updatedBy: actor.uid,
     });
+  }
+}
+
+/**
+ * Deletes an employee profile record in Firestore (Admin only)
+ */
+export async function deleteEmployeeRecord(uid: string): Promise<void> {
+  if (db) {
+    const userRef = doc(db, 'users', uid);
+    await deleteDoc(userRef);
   }
 }
 

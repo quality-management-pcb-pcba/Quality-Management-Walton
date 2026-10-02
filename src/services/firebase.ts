@@ -12,54 +12,163 @@ import {
 } from "firebase/auth";
 import {
   getFirestore,
-  initializeFirestore,
-  Firestore,
   doc,
   getDoc,
+  getDocFromServer,
   setDoc,
   updateDoc,
+  deleteDoc,
+  addDoc,
   collection,
   getDocs,
   onSnapshot,
   query,
   where,
+  orderBy,
+  limit,
+  writeBatch,
   serverTimestamp,
   type Timestamp,
 } from "firebase/firestore";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
+import firebaseConfig from "../../firebase-applet-config.json";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDEADvVcP-CRrJU6N4929X1OqF8k_a4FIg",
-  authDomain: "quality-management-walton.firebaseapp.com",
-  projectId: "quality-management-walton",
-  storageBucket: "quality-management-walton.firebasestorage.app",
-  messagingSenderId: "681257859221",
-  appId: "1:681257859221:web:fa9219f527ffacfaedc39c",
-  measurementId: "G-H9DB2JP70D",
-};
-
-// Initialize Firebase
+// Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Firebase Authentication
 export const auth = getAuth(app);
 
-// Firestore Database with fallback
-let firestoreDb: Firestore;
-try {
-  firestoreDb = getFirestore(app);
-} catch (err) {
-  console.warn("getFirestore direct initialization notice, trying initializeFirestore:", err);
+// Firestore Database (CRITICAL: passing firestoreDatabaseId is required for custom instance)
+export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
+
+// Firebase Cloud Storage for SOPs, Work Instructions, and Quality Evidence
+export const storage = getStorage(app);
+
+// Test Connection on boot (as required by Firestore Guidelines)
+async function testConnection() {
   try {
-    firestoreDb = initializeFirestore(app, {});
-  } catch (fallbackErr) {
-    console.error("Firestore initialization fallback failed:", fallbackErr);
-    // Return standard getFirestore reference
-    firestoreDb = getFirestore(app);
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.warn("Please check your Firebase configuration or connection.");
+    }
   }
 }
-export const db = firestoreDb;
+testConnection();
+
+// Operation Types for error tracing
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map((provider) => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || [],
+    },
+    operationType,
+    path,
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+export interface AuditMetadata {
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  createdByEmail: string;
+  updatedByEmail: string;
+}
+
+export function getAuditIdentity(): { uid: string; email: string } {
+  if (auth.currentUser) {
+    return {
+      uid: auth.currentUser.uid,
+      email: auth.currentUser.email || 'qm.pcba26@gmail.com',
+    };
+  }
+  try {
+    const savedSession = localStorage.getItem('walton_auth_session');
+    if (savedSession) {
+      const parsed = JSON.parse(savedSession);
+      if (parsed && (parsed.uid || parsed.email)) {
+        return {
+          uid: parsed.uid || parsed.email,
+          email: parsed.email || 'qm.pcba26@gmail.com',
+        };
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return {
+    uid: 'system-seed',
+    email: 'qm.pcba26@gmail.com',
+  };
+}
+
+export function buildCreateAudit(): AuditMetadata {
+  const now = new Date().toISOString();
+  const { uid, email } = getAuditIdentity();
+  return {
+    createdAt: now,
+    updatedAt: now,
+    createdBy: uid,
+    updatedBy: uid,
+    createdByEmail: email,
+    updatedByEmail: email,
+  };
+}
+
+export function buildUpdateAudit(): Pick<AuditMetadata, 'updatedAt' | 'updatedBy' | 'updatedByEmail'> {
+  const now = new Date().toISOString();
+  const { uid, email } = getAuditIdentity();
+  return {
+    updatedAt: now,
+    updatedBy: uid,
+    updatedByEmail: email,
+  };
+}
 
 // Initialize analytics safely if supported in browser/iframe environment
 export let analytics: any = null;
@@ -83,14 +192,24 @@ export {
   sendPasswordResetEmail,
   doc,
   getDoc,
+  getDocFromServer,
   setDoc,
   updateDoc,
+  deleteDoc,
+  addDoc,
   collection,
   getDocs,
   onSnapshot,
   query,
   where,
+  orderBy,
+  limit,
+  writeBatch,
   serverTimestamp,
+  storageRef,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
   type User,
   type Timestamp,
 };

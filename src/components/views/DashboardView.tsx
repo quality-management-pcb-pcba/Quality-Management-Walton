@@ -60,7 +60,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { AlertCircle, CheckCircle2, TrendingUp, ShieldAlert, ArrowUpRight, Calendar, Layers, Lock, ShieldCheck, Home, Menu } from 'lucide-react';
+import { AlertCircle, CheckCircle2, TrendingUp, ShieldAlert, ArrowUpRight, Calendar, Layers, Lock, ShieldCheck, Home, Menu, Users, UserCheck } from 'lucide-react';
 import { PageId } from '../../types';
 
 interface DashboardViewProps {
@@ -229,21 +229,41 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Primary Workforce Pill Row - Matching Image 2 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#2563eb]">
+        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#2563eb] flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
+            <Users className="w-5 h-5 text-white" />
+          </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">TOTAL MP</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-2">612</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">612</div>
         </div>
-        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#0d9488]">
+        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#0d9488] flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
+            <UserCheck className="w-5 h-5 text-white" />
+          </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">PRESENT TODAY</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-2">589</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">589</div>
         </div>
-        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#6366f1]">
+        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#6366f1] flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
+            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="10" cy="14" r="5" />
+              <path d="M19 5l-5.4 5.4" />
+              <path d="M15 5h4v4" />
+            </svg>
+          </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">MALE</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-2">402</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">402</div>
         </div>
-        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#db2777]">
+        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#db2777] flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
+            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="9" r="5" />
+              <path d="M12 14v7" />
+              <path d="M9 18h6" />
+            </svg>
+          </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">FEMALE</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-2">210</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">210</div>
         </div>
       </div>
 

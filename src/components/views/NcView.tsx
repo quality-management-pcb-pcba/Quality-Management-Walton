@@ -58,7 +58,7 @@ export const NcView: React.FC<NcViewProps> = ({
 
   const majorCount = ncList.filter((n) => n.classification === 'Major' || n.classification === 'Critical').length;
   const minorCount = ncList.filter((n) => n.classification === 'Minor').length;
-  const openCount = ncList.filter((n) => n.status === 'Open' || n.status === 'In Progress').length;
+  const openCount = ncList.filter((n) => n.status !== 'Closed').length;
 
   const statusPieData = [
     { name: 'Open', value: ncList.filter((n) => n.status === 'Open').length, color: '#e35b2a' },

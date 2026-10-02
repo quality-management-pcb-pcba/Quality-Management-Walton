@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Bell, Shield, Sliders, Save, CheckCircle, Database } from 'lucide-react';
+import { loadStationSettings, saveStationSettings } from '../../services/masterData';
 
 export const SettingsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'security' | 'lines'>('profile');
@@ -16,8 +17,33 @@ export const SettingsView: React.FC = () => {
   const [autoSopReminder, setAutoSopReminder] = useState(true);
   const [resetSent, setResetSent] = useState(false);
 
+  useEffect(() => {
+    loadStationSettings().then((doc) => {
+      if (doc) {
+        if (doc.name) setName(doc.name);
+        if (doc.empId) setEmpId(doc.empId);
+        if (doc.department) setDepartment(doc.department);
+        if (doc.email) setEmail(doc.email);
+        if (typeof doc.overdueAlert === 'boolean') setOverdueAlert(doc.overdueAlert);
+        if (typeof doc.ncrAlert === 'boolean') setNcrAlert(doc.ncrAlert);
+        if (typeof doc.weeklyKpi === 'boolean') setWeeklyKpi(doc.weeklyKpi);
+        if (typeof doc.autoSopReminder === 'boolean') setAutoSopReminder(doc.autoSopReminder);
+      }
+    });
+  }, []);
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    saveStationSettings({
+      name,
+      empId,
+      department,
+      email,
+      overdueAlert,
+      ncrAlert,
+      weeklyKpi,
+      autoSopReminder,
+    }).catch(() => {});
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
   };

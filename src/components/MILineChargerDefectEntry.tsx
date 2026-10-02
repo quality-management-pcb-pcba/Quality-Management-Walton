@@ -12,7 +12,10 @@ import {
   Cpu,
   Zap,
   Filter,
+  Settings,
+  X,
 } from 'lucide-react';
+import { saveMultiplePcbaReports } from '../services/pcbaReportService';
 
 export interface MIChargerDefectRecord {
   id: string;
@@ -33,11 +36,17 @@ export interface MILineChargerDefectEntryProps {
 }
 
 // Reference data from the real MI_LINE (Charger).xlsx history
-const FORM_DATA = {
-  shifts: ['Day'],
-  products: ['Charger'],
+const DEFAULT_FORM_DATA = {
+  shifts: ['Day', 'Night', 'General'],
+  products: ['Charger', 'Adapter', 'TV', 'Toy', 'Ac', 'Fridge', 'LED'],
   productModels: {
-    Charger: ['PCBA-OC05008RC', 'PCBA-OC05008RC(500mA)'],
+    Charger: ['PCBA-OC05008RC', 'PCBA-OC05008RC(500mA)', 'WMC20000GI-BK(Charger 2A)'],
+    Adapter: ['WFVADP12V2ASET200K_(CT-X017)', 'WFVADP12V2ASET200K_(CT-X018)'],
+    TV: ['WD24RCS', 'WD-24R CS TV'],
+    Toy: ['Akij Toy Controller V1.0', 'Common Toy Controller V1.0(Talukder)', 'Redmin Toy Controller'],
+    Ac: ['FITE72WA-ER-22_ODU24k', 'Walton AC 12K INV IDU PCBA Model: MIVR35WA-W'],
+    Fridge: ['MI Constant Fan Dimmer', 'MI-R-LED-RS-V04', 'MI-SC-PWR-Board V3.1'],
+    LED: ['12W LED Driver', 'Elite Panel 30W CKD Driver'],
   } as Record<string, string[]>,
   operators: ['Rubel Hosen (37078)'],
   faults: [
@@ -57,22 +66,62 @@ const FORM_DATA = {
 };
 
 const STORAGE_KEY = 'mi_line_charger_defect_rows_v1';
+const MASTER_LISTS_KEY = 'mi_line_charger_master_lists_v1';
 
 export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> = ({
   lineName = 'MI Line - Charger',
   onNavigateToDatabase,
 }) => {
+  // Master lists state with localStorage persistence
+  const [formData, setFormData] = useState<typeof DEFAULT_FORM_DATA>(() => {
+    try {
+      const saved = localStorage.getItem(MASTER_LISTS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_FORM_DATA,
+          ...parsed,
+          productModels: {
+            ...DEFAULT_FORM_DATA.productModels,
+            ...(parsed.productModels || {}),
+          },
+        };
+      }
+    } catch {
+      // ignore
+    }
+    return DEFAULT_FORM_DATA;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MASTER_LISTS_KEY, JSON.stringify(formData));
+    } catch {
+      // ignore
+    }
+  }, [formData]);
+
   // Form state
   const [selectedDate, setSelectedDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
-  const [selectedShift, setSelectedShift] = useState(FORM_DATA.shifts[0]);
-  const [selectedProduct, setSelectedProduct] = useState(FORM_DATA.products[0]);
+  const [selectedShift, setSelectedShift] = useState(formData.shifts[0] || 'Day');
+  const [selectedProduct, setSelectedProduct] = useState(formData.products[0] || 'Charger');
   const [selectedModel, setSelectedModel] = useState(
-    FORM_DATA.productModels['Charger']?.[1] || FORM_DATA.productModels['Charger']?.[0] || ''
+    formData.productModels['Charger']?.[1] || formData.productModels['Charger']?.[0] || ''
   );
-  const [operator, setOperator] = useState(FORM_DATA.operators[0]);
+  const [operator, setOperator] = useState(formData.operators[0] || '');
   const [remarks, setRemarks] = useState('');
+
+  // Manage Lists Modal State
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState<'products' | 'models' | 'operators'>('products');
+  const [modalNewProduct, setModalNewProduct] = useState('');
+  const [modalSelectedProductForModel, setModalSelectedProductForModel] = useState(
+    formData.products[0] || 'Charger'
+  );
+  const [modalNewModel, setModalNewModel] = useState('');
+  const [modalNewOperator, setModalNewOperator] = useState('');
 
   // Fault quantities: faultName -> qty
   const [faultQuantities, setFaultQuantities] = useState<Record<string, number>>({});
@@ -203,8 +252,136 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
 
   // Combined faults list
   const allFaults = useMemo(() => {
-    return [...FORM_DATA.faults, ...extraFaults];
-  }, [extraFaults]);
+    return [...formData.faults, ...extraFaults];
+  }, [formData.faults, extraFaults]);
+
+  // Sync model selection when product changes
+  const handleProductChange = (prod: string) => {
+    setSelectedProduct(prod);
+    const availableModels = formData.productModels[prod] || [];
+    setSelectedModel(availableModels[0] || '');
+  };
+
+  // Sync selected operator when master operators list is updated
+  useEffect(() => {
+    if (formData.operators.length > 0) {
+      if (!operator || !formData.operators.includes(operator)) {
+        setOperator(formData.operators[0]);
+      }
+    } else {
+      setOperator('');
+    }
+  }, [formData.operators, operator]);
+
+  // Sync selected product/model if removed from master list
+  useEffect(() => {
+    if (formData.products.length > 0) {
+      if (!selectedProduct || !formData.products.includes(selectedProduct)) {
+        const nextProd = formData.products[0];
+        setSelectedProduct(nextProd);
+        const models = formData.productModels[nextProd] || [];
+        setSelectedModel(models[0] || '');
+      }
+    } else {
+      setSelectedProduct('');
+      setSelectedModel('');
+    }
+  }, [formData.products, selectedProduct, formData.productModels]);
+
+  // Manage Lists Handlers
+  const handleAddProduct = () => {
+    const prod = modalNewProduct.trim();
+    if (!prod) return;
+    if (formData.products.includes(prod)) {
+      showToast('That product already exists.', 'error');
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      products: [...prev.products, prod],
+      productModels: { ...prev.productModels, [prod]: [] },
+    }));
+    setModalNewProduct('');
+    showToast(`Product "${prod}" added.`, 'success');
+  };
+
+  const handleDeleteProduct = (prod: string) => {
+    setFormData((prev) => {
+      const nextProducts = prev.products.filter((p) => p !== prod);
+      const nextModels = { ...prev.productModels };
+      delete nextModels[prod];
+      return {
+        ...prev,
+        products: nextProducts,
+        productModels: nextModels,
+      };
+    });
+    if (selectedProduct === prod) {
+      const remaining = formData.products.filter((p) => p !== prod);
+      setSelectedProduct(remaining[0] || '');
+    }
+    showToast(`Product "${prod}" removed.`, 'success');
+  };
+
+  const handleAddModel = () => {
+    const prod = modalSelectedProductForModel;
+    const model = modalNewModel.trim();
+    if (!prod || !model) return;
+    const existing = formData.productModels[prod] || [];
+    if (existing.includes(model)) {
+      showToast('That model already exists for this product.', 'error');
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      productModels: {
+        ...prev.productModels,
+        [prod]: [...existing, model].sort(),
+      },
+    }));
+    setModalNewModel('');
+    showToast(`Model "${model}" added to ${prod}.`, 'success');
+  };
+
+  const handleDeleteModel = (prod: string, model: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      productModels: {
+        ...prev.productModels,
+        [prod]: (prev.productModels[prod] || []).filter((m) => m !== model),
+      },
+    }));
+    showToast(`Model "${model}" removed.`, 'success');
+  };
+
+  const handleAddOperator = () => {
+    const op = modalNewOperator.trim();
+    if (!op) return;
+    if (formData.operators.includes(op)) {
+      showToast('That operator already exists.', 'error');
+      return;
+    }
+    const updated = [...formData.operators, op].sort();
+    setFormData((prev) => ({
+      ...prev,
+      operators: updated,
+    }));
+    setOperator(op);
+    setModalNewOperator('');
+    showToast(`Operator "${op}" added and selected.`, 'success');
+  };
+
+  const handleDeleteOperator = (op: string) => {
+    const remaining = formData.operators.filter((o) => o !== op);
+    setFormData((prev) => ({
+      ...prev,
+      operators: remaining,
+    }));
+    if (operator === op) {
+      setOperator(remaining[0] || '');
+    }
+    showToast(`Operator "${op}" removed.`, 'success');
+  };
 
   // Handle quantity changes
   const handleFaultQtyChange = (faultName: string, val: string) => {
@@ -247,7 +424,7 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
   const totalQty = (Object.values(faultQuantities) as number[]).reduce((a, b) => a + b, 0);
 
   // Save Defect Data
-  const handleSaveDefectData = () => {
+  const handleSaveDefectData = async () => {
     if (isSubmitting) return;
 
     if (!selectedDate) {
@@ -277,34 +454,51 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const timestamp = Date.now();
-      const newEntries: MIChargerDefectRecord[] = [];
+    try {
+      const pcbaPayload = (Object.entries(faultQuantities) as [string, number][]).map(([fName, q]) => ({
+        date: selectedDate,
+        shift: selectedShift,
+        product: selectedProduct,
+        model: selectedModel,
+        line: lineName,
+        type: 'Function' as const,
+        desc: fName,
+        qty: q,
+        status: 'Open' as const,
+        operator: operator.trim(),
+        remarks: remarks.trim() || '—',
+        source: 'MI Line Charger Entry',
+      }));
 
-      (Object.entries(faultQuantities) as [string, number][]).forEach(([fName, q], idx) => {
-        newEntries.push({
-          id: `chg-${timestamp}-${idx}`,
-          date: selectedDate,
-          shift: selectedShift,
-          product: selectedProduct,
-          model: selectedModel,
-          fault: fName,
-          qty: q,
-          operator: operator.trim(),
-          remarks: remarks.trim(),
-          createdAt: timestamp + idx,
-        });
-      });
+      // Store in Firestore collection "pcba_reports"
+      const savedIds = await saveMultiplePcbaReports(pcbaPayload);
+
+      const newEntries: MIChargerDefectRecord[] = pcbaPayload.map((doc, idx) => ({
+        id: (savedIds && savedIds[idx]) || `chg-${Date.now()}-${idx}`,
+        date: doc.date,
+        shift: doc.shift || selectedShift,
+        product: doc.product || selectedProduct,
+        model: doc.model,
+        fault: doc.desc,
+        qty: doc.qty,
+        operator: doc.operator || operator.trim(),
+        remarks: doc.remarks || remarks.trim(),
+        createdAt: Date.now() + idx,
+      }));
 
       setRows((prev) => [...newEntries, ...prev]);
 
       // Reset form while keeping common selections
       setFaultQuantities({});
       setRemarks('');
-      setIsSubmitting(false);
 
-      showToast(`Saved ${newEntries.length} row${newEntries.length > 1 ? 's' : ''}.`, 'success');
-    }, 400);
+      showToast('PCBA Report Saved Successfully', 'success');
+    } catch (err: any) {
+      console.error('Failed to save to Firestore pcba_reports:', err);
+      showToast('Failed to save PCBA report: ' + (err?.message || 'Database error'), 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Delete row
@@ -407,6 +601,15 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
                 <span>Auto Database</span>
               </button>
             )}
+            <button
+              type="button"
+              id="btn-manage-lists-charger"
+              onClick={() => setIsManageModalOpen(true)}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 cursor-pointer border border-white/20"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>⚙ Manage Lists</span>
+            </button>
           </div>
         </div>
       </div>
@@ -439,7 +642,7 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
               onChange={(e) => setSelectedShift(e.target.value)}
               className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
             >
-              {FORM_DATA.shifts.map((s) => (
+              {formData.shifts.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
@@ -453,10 +656,10 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
             </label>
             <select
               value={selectedProduct}
-              onChange={(e) => setSelectedProduct(e.target.value)}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
+              onChange={(e) => handleProductChange(e.target.value)}
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
-              {FORM_DATA.products.map((p) => (
+              {formData.products.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>
@@ -471,13 +674,18 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
+              disabled={!selectedProduct}
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
-              {(FORM_DATA.productModels[selectedProduct] || []).map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
+              {(formData.productModels[selectedProduct] || []).length === 0 ? (
+                <option value="">No models yet — add via ⚙ Manage Lists</option>
+              ) : (
+                (formData.productModels[selectedProduct] || []).map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>
@@ -506,16 +714,25 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
             Operator
           </label>
           <div className="w-full sm:w-72">
-            <input
+            <select
               id="operatorInput"
-              list="chargerOperatorList"
-              type="text"
               value={operator}
               onChange={(e) => setOperator(e.target.value)}
-              placeholder="Type or pick a name…"
-              autoComplete="off"
-              className="w-full px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none"
-            />
+              className="w-full px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none bg-white cursor-pointer"
+            >
+              {formData.operators.length === 0 ? (
+                <option value="">No operators yet — add via ⚙ Manage Lists</option>
+              ) : (
+                <>
+                  <option value="">Select Operator…</option>
+                  {formData.operators.map((op) => (
+                    <option key={op} value={op}>
+                      {op}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
           </div>
         </div>
 
@@ -580,13 +797,6 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
         </div>
       </section>
 
-      {/* Datalist for Operator auto-complete */}
-      <datalist id="chargerOperatorList">
-        {FORM_DATA.operators.map((op) => (
-          <option key={op} value={op} />
-        ))}
-      </datalist>
-
       {/* CARD 3: Remarks */}
       <section className="bg-white border border-[#e2e8f0] rounded-xl shadow-xs overflow-hidden print:hidden">
         <div className="px-5 py-3.5 bg-[#fafbfc] border-b border-[#e2e8f0] flex items-center gap-2 font-bold text-[#1e293b] text-sm">
@@ -645,8 +855,8 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
                 className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none"
               >
                 <option value="">All</option>
-                {FORM_DATA.productModels.Charger.map((m) => (
-                  <option key={m} value={m}>
+                {(Object.values(formData.productModels) as string[][]).flat().map((m, i) => (
+                  <option key={`${m}-${i}`} value={m}>
                     {m}
                   </option>
                 ))}
@@ -787,6 +997,207 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
           )}
         </button>
       </div>
+
+      {/* MANAGE LISTS MODAL */}
+      {isManageModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#0f2942]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-[#e2e8f0] flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-[#0f2942] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <span>⚙</span>
+                <span>Manage Lists — {lineName}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsManageModalOpen(false)}
+                className="text-white/70 hover:text-white transition-colors cursor-pointer p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex border-b border-[#e2e8f0] bg-[#fafbfc]">
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('products')}
+                className={`flex-1 py-3 text-xs font-bold transition-colors border-b-2 cursor-pointer ${
+                  activeModalTab === 'products'
+                    ? 'text-[#2563eb] border-[#2563eb] bg-white'
+                    : 'text-[#64748b] border-transparent hover:text-[#1e293b]'
+                }`}
+              >
+                Products
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('models')}
+                className={`flex-1 py-3 text-xs font-bold transition-colors border-b-2 cursor-pointer ${
+                  activeModalTab === 'models'
+                    ? 'text-[#2563eb] border-[#2563eb] bg-white'
+                    : 'text-[#64748b] border-transparent hover:text-[#1e293b]'
+                }`}
+              >
+                Models
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('operators')}
+                className={`flex-1 py-3 text-xs font-bold transition-colors border-b-2 cursor-pointer ${
+                  activeModalTab === 'operators'
+                    ? 'text-[#2563eb] border-[#2563eb] bg-white'
+                    : 'text-[#64748b] border-transparent hover:text-[#1e293b]'
+                }`}
+              >
+                Operators
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              {/* TAB 1: Products */}
+              {activeModalTab === 'products' && (
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={modalNewProduct}
+                      onChange={(e) => setModalNewProduct(e.target.value)}
+                      placeholder="New product name"
+                      className="flex-1 px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddProduct}
+                      className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                    {formData.products.map((p: string) => (
+                      <div
+                        key={p}
+                        className="flex items-center justify-between p-2.5 border border-[#e2e8f0] rounded-lg bg-[#fafbfc] text-xs font-medium text-[#1e293b]"
+                      >
+                        <span>{p}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProduct(p)}
+                          className="text-[#dc2626] hover:bg-red-50 p-1 rounded font-bold transition-colors cursor-pointer"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: Models */}
+              {activeModalTab === 'models' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-[#64748b]">Select Product</label>
+                    <select
+                      value={modalSelectedProductForModel}
+                      onChange={(e) => setModalSelectedProductForModel(e.target.value)}
+                      className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium bg-white outline-none"
+                    >
+                      {formData.products.map((p: string) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={modalNewModel}
+                      onChange={(e) => setModalNewModel(e.target.value)}
+                      placeholder={`New model for ${modalSelectedProductForModel}`}
+                      className="flex-1 px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddModel}
+                      className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5 max-h-[250px] overflow-y-auto pr-1">
+                    {(formData.productModels[modalSelectedProductForModel] || []).length === 0 ? (
+                      <div className="text-xs text-[#94a3b8] py-4 text-center">
+                        No models added for this product yet.
+                      </div>
+                    ) : (
+                      (formData.productModels[modalSelectedProductForModel] || []).map((m: string) => (
+                        <div
+                          key={m}
+                          className="flex items-center justify-between p-2.5 border border-[#e2e8f0] rounded-lg bg-[#fafbfc] text-xs font-medium text-[#1e293b]"
+                        >
+                          <span className="truncate pr-2">{m}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteModel(modalSelectedProductForModel, m)}
+                            className="text-[#dc2626] hover:bg-red-50 p-1 rounded font-bold transition-colors cursor-pointer shrink-0"
+                          >
+                            ✕ Remove
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: Operators */}
+              {activeModalTab === 'operators' && (
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={modalNewOperator}
+                      onChange={(e) => setModalNewOperator(e.target.value)}
+                      placeholder="New operator name / ID"
+                      className="flex-1 px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddOperator}
+                      className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                    {formData.operators.map((op: string) => (
+                      <div
+                        key={op}
+                        className="flex items-center justify-between p-2.5 border border-[#e2e8f0] rounded-lg bg-[#fafbfc] text-xs font-medium text-[#1e293b]"
+                      >
+                        <span>{op}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteOperator(op)}
+                          className="text-[#dc2626] hover:bg-red-50 p-1 rounded font-bold transition-colors cursor-pointer"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hidden print area for window.print() */}
       <div id="printArea" className="hidden print:block">

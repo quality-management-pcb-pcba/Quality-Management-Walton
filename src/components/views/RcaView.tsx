@@ -49,6 +49,11 @@ import {
   Edit3,
   Image as ImageIcon,
 } from 'lucide-react';
+import {
+  subscribeRcasFromFirestore,
+  saveRcaToFirestore,
+  deleteRcaFromFirestore,
+} from '../../services/rca';
 
 interface RcaViewProps {
   onNavigate?: (page: PageId) => void;
@@ -251,6 +256,18 @@ export const RcaView: React.FC<RcaViewProps> = ({
     handleFit();
   }, [report]);
 
+  useEffect(() => {
+    const unsub = subscribeRcasFromFirestore((cloudReports) => {
+      if (cloudReports.length > 0) {
+        setSavedReports(cloudReports);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudReports));
+        } catch {}
+      }
+    });
+    return () => unsub();
+  }, []);
+
   const saveReportsToStorage = (list: RcaReport[]) => {
     setSavedReports(list);
     try {
@@ -364,6 +381,7 @@ export const RcaView: React.FC<RcaViewProps> = ({
       all.unshift(rec);
     }
     const success = saveReportsToStorage(all);
+    saveRcaToFirestore(rec).catch(() => {});
     showToast(success ? 'রিপোর্ট সফলভাবে সেভ হয়েছে' : 'ব্রাউজারে সেভ হয়নি (জায়গা শেষ বা ব্লকড)');
   };
 
@@ -399,6 +417,7 @@ export const RcaView: React.FC<RcaViewProps> = ({
     };
     const all = [copy, ...savedReports];
     saveReportsToStorage(all);
+    saveRcaToFirestore(copy).catch(() => {});
     showToast('কপি তৈরি হয়েছে');
   };
 
@@ -410,6 +429,7 @@ export const RcaView: React.FC<RcaViewProps> = ({
       onConfirm: () => {
         const all = savedReports.filter((r) => r.id !== rec.id);
         saveReportsToStorage(all);
+        deleteRcaFromFirestore(rec.id).catch(() => {});
         showToast('রিপোর্ট মুছে ফেলা হয়েছে');
       },
     });

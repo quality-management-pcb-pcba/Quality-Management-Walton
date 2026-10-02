@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -27,6 +27,10 @@ import {
 } from 'lucide-react';
 import { PageId } from '../../types';
 import { PCBQualityDataEntryPortal } from '../PCBQualityDataEntryPortal';
+import {
+  loadPcbManpowerFromFirestore,
+  savePcbManpowerToFirestore,
+} from '../../services/pcbRecords';
 
 interface PCBViewProps {
   onNavigate?: (page: PageId) => void;
@@ -37,24 +41,18 @@ interface PCBViewProps {
 interface PCBManpowerEntry {
   id: string;
   process: string;
-  department: 'FAB' | 'QC';
+  department: 'QM' | 'FAB' | 'QC';
   required: number;
   available: number;
 }
 
 const DEFAULT_PCB_MANPOWER: PCBManpowerEntry[] = [
-  { id: '1', process: 'Photo Lithography / Dry Film', department: 'FAB', required: 10, available: 9 },
-  { id: '2', process: 'CNC Mechanical Drilling', department: 'FAB', required: 14, available: 14 },
-  { id: '3', process: 'PTH & Electroless Plating', department: 'FAB', required: 8, available: 8 },
-  { id: '4', process: 'Outer Layer Acid Etching', department: 'FAB', required: 8, available: 7 },
-  { id: '5', process: 'LPI Solder Mask Screen & Bake', department: 'FAB', required: 12, available: 12 },
-  { id: '6', process: 'Silk Screen / Legend Printing', department: 'FAB', required: 6, available: 6 },
-  { id: '7', process: 'HASL & ENIG Surface Finish', department: 'FAB', required: 8, available: 7 },
-  { id: '8', process: 'V-Cut & CNC Routing Profiling', department: 'FAB', required: 10, available: 10 },
-  { id: '9', process: 'Bare Board AOI Inspection', department: 'QC', required: 8, available: 8 },
-  { id: '10', process: 'Flying Probe & E-Test', department: 'QC', required: 6, available: 5 },
-  { id: '11', process: 'FQC Visual & Final Pack Audit', department: 'QC', required: 6, available: 5 },
+  { id: '1', process: 'IQC', department: 'QM', required: 2, available: 2 },
+  { id: '2', process: 'Process QC', department: 'QM', required: 4, available: 4 },
+  { id: '3', process: 'FQC', department: 'QM', required: 4, available: 4 },
 ];
+
+const PCB_MANPOWER_STORAGE_KEY = 'pcb_manpower_attendance_qm_v2';
 
 export const PCBView: React.FC<PCBViewProps> = ({
   onNavigate = (_page: PageId) => {},
@@ -62,10 +60,12 @@ export const PCBView: React.FC<PCBViewProps> = ({
   selectedMonth: _selectedMonth = 'August 2026',
 }) => {
   const [activeModal, setActiveModal] = useState<'attendance' | 'report' | 'sop' | null>(null);
+  const [portalInitialGate, setPortalInitialGate] = useState<'FQC' | 'AOI' | 'ETEST'>('FQC');
+  const [portalInitialNav, setPortalInitialNav] = useState<'report-entry' | 'defect-entry' | undefined>(undefined);
 
   // PCB Manpower State
   const [manpowerList, setManpowerList] = useState<PCBManpowerEntry[]>(() => {
-    const saved = localStorage.getItem('pcb_manpower_attendance');
+    const saved = localStorage.getItem(PCB_MANPOWER_STORAGE_KEY);
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -76,37 +76,41 @@ export const PCBView: React.FC<PCBViewProps> = ({
     return DEFAULT_PCB_MANPOWER;
   });
 
-  const [deptFilter, setDeptFilter] = useState<'ALL' | 'FAB' | 'QC'>('ALL');
+  const [deptFilter, setDeptFilter] = useState<'ALL' | 'QM' | 'FAB' | 'QC'>('ALL');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newProcess, setNewProcess] = useState('');
-  const [newDepartment, setNewDepartment] = useState<'FAB' | 'QC'>('FAB');
+  const [newDepartment, setNewDepartment] = useState<'QM' | 'FAB' | 'QC'>('QM');
   const [newRequired, setNewRequired] = useState(4);
   const [newAvailable, setNewAvailable] = useState(4);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   // Update quantity handler
   const handleUpdateQty = (id: string, field: 'required' | 'available', delta: number) => {
-    setManpowerList((prev) =>
-      prev.map((item) => {
+    setManpowerList((prev) => {
+      const updated = prev.map((item) => {
         if (item.id === id) {
           const updatedVal = Math.max(0, item[field] + delta);
           return { ...item, [field]: updatedVal };
         }
         return item;
-      })
-    );
+      });
+      localStorage.setItem(PCB_MANPOWER_STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   // Direct edit quantity handler
   const handleSetQty = (id: string, field: 'required' | 'available', val: number) => {
-    setManpowerList((prev) =>
-      prev.map((item) => {
+    setManpowerList((prev) => {
+      const updated = prev.map((item) => {
         if (item.id === id) {
           return { ...item, [field]: Math.max(0, val) };
         }
         return item;
-      })
-    );
+      });
+      localStorage.setItem(PCB_MANPOWER_STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   // Add new process entry
@@ -124,7 +128,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
 
     const updated = [...manpowerList, newEntry];
     setManpowerList(updated);
-    localStorage.setItem('pcb_manpower_attendance', JSON.stringify(updated));
+    localStorage.setItem(PCB_MANPOWER_STORAGE_KEY, JSON.stringify(updated));
 
     setNewProcess('');
     setShowAddForm(false);
@@ -135,21 +139,32 @@ export const PCBView: React.FC<PCBViewProps> = ({
   const handleDeleteEntry = (id: string) => {
     const updated = manpowerList.filter((m) => m.id !== id);
     setManpowerList(updated);
-    localStorage.setItem('pcb_manpower_attendance', JSON.stringify(updated));
+    localStorage.setItem(PCB_MANPOWER_STORAGE_KEY, JSON.stringify(updated));
   };
+
+  useEffect(() => {
+    loadPcbManpowerFromFirestore().then((items) => {
+      if (items && items.length > 0) {
+        setManpowerList(items);
+        localStorage.setItem(PCB_MANPOWER_STORAGE_KEY, JSON.stringify(items));
+      }
+    });
+  }, []);
 
   // Reset to default
   const handleResetToDefault = () => {
     if (window.confirm('Reset PCB manpower attendance table to factory defaults?')) {
       setManpowerList(DEFAULT_PCB_MANPOWER);
-      localStorage.setItem('pcb_manpower_attendance', JSON.stringify(DEFAULT_PCB_MANPOWER));
+      localStorage.setItem(PCB_MANPOWER_STORAGE_KEY, JSON.stringify(DEFAULT_PCB_MANPOWER));
+      savePcbManpowerToFirestore(DEFAULT_PCB_MANPOWER).catch(() => {});
       showNotification('Manpower attendance table reset to defaults.');
     }
   };
 
   // Save changes
   const handleSaveAttendance = () => {
-    localStorage.setItem('pcb_manpower_attendance', JSON.stringify(manpowerList));
+    localStorage.setItem(PCB_MANPOWER_STORAGE_KEY, JSON.stringify(manpowerList));
+    savePcbManpowerToFirestore(manpowerList).catch(() => {});
     showNotification('PCB manpower attendance saved and updated successfully!');
   };
 
@@ -170,6 +185,9 @@ export const PCBView: React.FC<PCBViewProps> = ({
   const totalRequired = filteredManpower.reduce((acc, curr) => acc + curr.required, 0);
   const totalAvailable = filteredManpower.reduce((acc, curr) => acc + curr.available, 0);
   const totalShortage = totalAvailable - totalRequired;
+  const totalLeave = Math.max(0, totalRequired - totalAvailable);
+  const presentPercentage =
+    totalRequired > 0 ? ((totalAvailable / totalRequired) * 100).toFixed(1) : '0.0';
 
   const aoiMonthlyData = [
     { month: 'May', checkQty: 326, faultQty: 114, rate: 34.97 },
@@ -229,7 +247,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
             <Users className="w-5 h-5 text-white" />
           </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">TOTAL MP</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1">96</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1">{totalRequired}</div>
         </div>
 
         {/* PRESENT */}
@@ -238,7 +256,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
             <UserCheck className="w-5 h-5 text-white" />
           </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">PRESENT</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1">91</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1">{totalAvailable}</div>
         </div>
 
         {/* LEAVE */}
@@ -247,7 +265,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
             <UserMinus className="w-5 h-5 text-white" />
           </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">LEAVE</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1">5</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1">{totalLeave}</div>
         </div>
       </div>
 
@@ -263,9 +281,21 @@ export const PCBView: React.FC<PCBViewProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e2e7f2]">
-            <tr className="hover:bg-[#fbfcfe] transition-colors">
+            <tr
+              onClick={() => {
+                setPortalInitialGate('FQC');
+                setActiveModal('report');
+              }}
+              className="hover:bg-[#f0f4ff] transition-colors cursor-pointer group"
+              title="Click to open Final Quality Control (FQC) Defect Data Entry"
+            >
               <td className="py-4 px-6 font-bold text-sm text-[#0d1730]">
-                Final Quality Control (FQC)
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
+                    <span>Final Quality Control (FQC)</span>
+                  </div>
+                </div>
               </td>
               <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730]">
                 1,259,055
@@ -279,9 +309,21 @@ export const PCBView: React.FC<PCBViewProps> = ({
                 </span>
               </td>
             </tr>
-            <tr className="hover:bg-[#fbfcfe] transition-colors">
+            <tr
+              onClick={() => {
+                setPortalInitialGate('AOI');
+                setActiveModal('report');
+              }}
+              className="hover:bg-[#fffbeb] transition-colors cursor-pointer group"
+              title="Click to open Automated Optical Inspection (AOI) Defect Data Entry"
+            >
               <td className="py-4 px-6 font-bold text-sm text-[#0d1730]">
-                Automated Optical Inspection (AOI)
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span>Automated Optical Inspection (AOI)</span>
+                  </div>
+                </div>
               </td>
               <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730]">
                 5,812
@@ -487,12 +529,8 @@ export const PCBView: React.FC<PCBViewProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg">PCB Workforce Attendance</h3>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#2563eb]/30 text-[#93c5fd] border border-[#2563eb]/50">
-                      Live Shift Entry
-                    </span>
+                    <h3 className="font-bold text-lg">PCB Attendance Report</h3>
                   </div>
-                  <p className="text-xs text-[#9fb0d6]">Fabrication, Wet Process, AOI &amp; Testing Headcount &amp; Attendance</p>
                 </div>
               </div>
               <button
@@ -514,168 +552,27 @@ export const PCBView: React.FC<PCBViewProps> = ({
 
             <div className="p-6 overflow-y-auto space-y-6 text-xs text-[#0d1730]">
               {/* Stat Summary Cards */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3.5 bg-[#2563eb]/10 border border-[#2563eb]/30 rounded-xl text-center">
                   <div className="text-[11px] font-bold text-[#2563eb] uppercase tracking-wider">Total MP</div>
-                  <div className="text-2xl font-bold font-mono text-[#2563eb] mt-1">96</div>
-                  <div className="text-[10px] text-[#5b6480] mt-0.5">Bare Board Operations</div>
-                </div>
-                <div className="p-3.5 bg-[#db2777]/10 border border-[#db2777]/30 rounded-xl text-center">
-                  <div className="text-[11px] font-bold text-[#db2777] uppercase tracking-wider">Present Today</div>
-                  <div className="text-2xl font-bold font-mono text-[#db2777] mt-1">91 (94.8%)</div>
-                  <div className="text-[10px] text-[#5b6480] mt-0.5">Checked In on Floor</div>
+                  <div className="text-2xl font-bold font-mono text-[#2563eb] mt-1">{totalRequired}</div>
                 </div>
                 <div className="p-3.5 bg-[#16a34a]/10 border border-[#16a34a]/30 rounded-xl text-center">
-                  <div className="text-[11px] font-bold text-[#16a34a] uppercase tracking-wider">Leave / Off</div>
-                  <div className="text-2xl font-bold font-mono text-[#16a34a] mt-1">5 Approved</div>
-                  <div className="text-[10px] text-[#5b6480] mt-0.5">Scheduled Absence</div>
+                  <div className="text-[11px] font-bold text-[#16a34a] uppercase tracking-wider">Present Today</div>
+                  <div className="text-2xl font-bold font-mono text-[#16a34a] mt-1">{totalAvailable}</div>
+                </div>
+                <div className="p-3.5 bg-[#db2777]/10 border border-[#db2777]/30 rounded-xl text-center">
+                  <div className="text-[11px] font-bold text-[#db2777] uppercase tracking-wider">Leave / Off</div>
+                  <div className="text-2xl font-bold font-mono text-[#db2777] mt-1">{totalLeave}</div>
+                </div>
+                <div className="p-3.5 bg-[#7c3aed]/10 border border-[#7c3aed]/30 rounded-xl text-center">
+                  <div className="text-[11px] font-bold text-[#7c3aed] uppercase tracking-wider">Attendance %</div>
+                  <div className="text-2xl font-bold font-mono text-[#7c3aed] mt-1">{presentPercentage}%</div>
                 </div>
               </div>
 
               {/* --- ENTRY MANPOWER ATTENDANCE SECTION --- */}
               <div className="bg-[#f8fafc] border border-[#e2e7f2] rounded-xl p-4 sm:p-5 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h4 className="font-bold text-base text-[#0d1730] flex items-center gap-2">
-                      <span>Entry Manpower Attendance</span>
-                      <span className="text-xs font-normal text-[#5b6480]">
-                        ({filteredManpower.length} Process Stations)
-                      </span>
-                    </h4>
-                    <p className="text-xs text-[#5b6480] mt-0.5">
-                      Process station headcount requirements and actual available staff
-                    </p>
-                  </div>
-
-                  {/* Filter & Action Buttons */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {/* Dept Filters */}
-                    <div className="inline-flex rounded-lg border border-[#e2e7f2] bg-white p-0.5 shadow-2xs">
-                      {(['ALL', 'FAB', 'QC'] as const).map((dept) => (
-                        <button
-                          key={dept}
-                          type="button"
-                          onClick={() => setDeptFilter(dept)}
-                          className={`px-3 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
-                            deptFilter === dept
-                              ? 'bg-[#182a52] text-white font-bold'
-                              : 'text-[#5b6480] hover:text-[#0d1730]'
-                          }`}
-                        >
-                          {dept === 'ALL' ? 'All' : dept === 'FAB' ? 'Fabrication' : 'QC & Testing'}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowAddForm(!showAddForm)}
-                      className="px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add Process Entry
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleResetToDefault}
-                      className="p-1.5 border border-[#e2e7f2] bg-white hover:bg-[#f1f5f9] text-[#5b6480] rounded-lg text-xs transition-colors cursor-pointer"
-                      title="Reset Table to Factory Default"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Add New Entry Form Drawer */}
-                {showAddForm && (
-                  <form
-                    onSubmit={handleAddEntry}
-                    className="p-3.5 bg-white border border-[#2563eb]/30 rounded-xl space-y-3 animate-in fade-in"
-                  >
-                    <div className="flex items-center justify-between pb-2 border-b border-[#e2e7f2]">
-                      <span className="font-bold text-xs text-[#2563eb] flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5" />
-                        New Process Attendance Entry
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddForm(false)}
-                        className="text-[#8891a8] hover:text-[#0d1730] text-xs cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#5b6480] mb-1">
-                          Process Name
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Copper Strip, Solder Mask, AOI"
-                          value={newProcess}
-                          onChange={(e) => setNewProcess(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-white border border-[#cbd5e1] rounded-lg text-xs text-[#0d1730] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#5b6480] mb-1">
-                          Department
-                        </label>
-                        <select
-                          value={newDepartment}
-                          onChange={(e) => setNewDepartment(e.target.value as 'FAB' | 'QC')}
-                          className="w-full px-2.5 py-1.5 bg-white border border-[#cbd5e1] rounded-lg text-xs text-[#0d1730] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
-                        >
-                          <option value="FAB">Fabrication</option>
-                          <option value="QC">QC &amp; Testing</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#5b6480] mb-1">
-                          Required MP
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          required
-                          value={newRequired}
-                          onChange={(e) => setNewRequired(Number(e.target.value))}
-                          className="w-full px-2.5 py-1.5 bg-white border border-[#cbd5e1] rounded-lg text-xs text-[#0d1730] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#5b6480] mb-1">
-                          Available MP
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          required
-                          value={newAvailable}
-                          onChange={(e) => setNewAvailable(Number(e.target.value))}
-                          className="w-full px-2.5 py-1.5 bg-white border border-[#cbd5e1] rounded-lg text-xs text-[#0d1730] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-1">
-                      <button
-                        type="submit"
-                        className="px-4 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg text-xs shadow-xs transition-colors cursor-pointer"
-                      >
-                        Save Process Entry
-                      </button>
-                    </div>
-                  </form>
-                )}
-
                 {/* Manpower Data Spreadsheet Table */}
                 <div className="overflow-x-auto border border-[#e2e7f2] rounded-xl bg-white shadow-2xs">
                   <table className="w-full text-left text-xs">
@@ -842,10 +739,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
                 </div>
 
                 {/* Table Footer Controls */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                  <div className="text-[11px] text-[#5b6480]">
-                    * Changes are automatically cached and can be committed permanently with Save.
-                  </div>
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -853,7 +747,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
                       className="px-5 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
                     >
                       <Check className="w-4 h-4" />
-                      Save &amp; Update Live Attendance
+                      Save &amp; Update
                     </button>
                   </div>
                 </div>
@@ -876,9 +770,21 @@ export const PCBView: React.FC<PCBViewProps> = ({
         </div>
       )}
 
-      {/* --- MODAL 2: PCB REPORTS & QM DATA ENTRY PORTAL (User specified: "just Report area will be different") --- */}
+      {/* --- MODAL 2: PCB REPORTS & QM DATA ENTRY PORTAL --- */}
       {activeModal === 'report' && (
-        <PCBQualityDataEntryPortal onClose={() => setActiveModal(null)} />
+        <PCBQualityDataEntryPortal
+          initialGate={portalInitialGate}
+          initialNav={portalInitialNav}
+          onNavigateHome={() => {
+            setActiveModal(null);
+            setPortalInitialNav(undefined);
+            onNavigate('home');
+          }}
+          onClose={() => {
+            setActiveModal(null);
+            setPortalInitialNav(undefined);
+          }}
+        />
       )}
 
       {/* --- MODAL 3: PCB SOP MODAL --- */}

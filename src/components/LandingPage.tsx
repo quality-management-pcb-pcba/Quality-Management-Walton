@@ -44,6 +44,7 @@ import {
   WALTON_EMBLEM_RIGHT_PATH,
 } from './waltonLogoPaths';
 import { PageId } from '../types';
+import { db, doc, getDoc, setDoc } from '../services/firebase';
 import {
   Globe,
   Cpu,
@@ -199,6 +200,42 @@ const DEFAULT_WORKER_TALENT: WorkerTalentData = {
   photo2Label: 'QM Excellence',
 };
 
+interface LandingKpiStats {
+  totalMp: number;
+  totalMpSuffix: string;
+  totalMpLabel: string;
+  male: number;
+  maleSuffix: string;
+  maleLabel: string;
+  female: number;
+  femaleSuffix: string;
+  femaleLabel: string;
+  totalReport: number;
+  totalReportSuffix: string;
+  totalReportLabel: string;
+  totalSop: number;
+  totalSopSuffix: string;
+  totalSopLabel: string;
+}
+
+const DEFAULT_LANDING_KPI_STATS: LandingKpiStats = {
+  totalMp: 612,
+  totalMpSuffix: '+',
+  totalMpLabel: 'Total MP',
+  male: 402,
+  maleSuffix: '',
+  maleLabel: 'Male',
+  female: 210,
+  femaleSuffix: '+',
+  femaleLabel: 'FeMale',
+  totalReport: 146,
+  totalReportSuffix: '+',
+  totalReportLabel: 'Total Report',
+  totalSop: 58,
+  totalSopSuffix: '+',
+  totalSopLabel: 'Total SOP',
+};
+
 export const LandingPage: React.FC<LandingPageProps> = ({
   onEnterDashboard,
   onNavigateToPage = (_page: PageId) => {},
@@ -239,6 +276,113 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [talentModalOpen, setTalentModalOpen] = useState(false);
   const [editForm, setEditForm] = useState<WorkerTalentData>(talentData);
   const [saveToast, setSaveToast] = useState(false);
+  const [saveToastMessage, setSaveToastMessage] = useState({
+    title: 'Worker Talent Section Updated!',
+    subtitle: 'Recognition records saved & refreshed on the Home page.',
+  });
+
+  // KPI Bar Entry/Update state & persistence
+  const [kpiStats, setKpiStats] = useState<LandingKpiStats>(() => {
+    const saved = localStorage.getItem('walton_landing_kpi_stats');
+    if (saved) {
+      try {
+        return { ...DEFAULT_LANDING_KPI_STATS, ...JSON.parse(saved) };
+      } catch {
+        return DEFAULT_LANDING_KPI_STATS;
+      }
+    }
+    return DEFAULT_LANDING_KPI_STATS;
+  });
+  const [kpiModalOpen, setKpiModalOpen] = useState(false);
+  const [kpiEditForm, setKpiEditForm] = useState<LandingKpiStats>(kpiStats);
+
+  // Sync KPI Bar & Worker Talent from Firestore master_data on mount
+  useEffect(() => {
+    if (!db) return;
+    getDoc(doc(db, 'master_data', 'landing_kpi_stats'))
+      .then((snap) => {
+        if (snap.exists()) {
+          const cloudData = { ...DEFAULT_LANDING_KPI_STATS, ...(snap.data() as Partial<LandingKpiStats>) };
+          setKpiStats(cloudData);
+          localStorage.setItem('walton_landing_kpi_stats', JSON.stringify(cloudData));
+        }
+      })
+      .catch(() => {});
+
+    getDoc(doc(db, 'master_data', 'worker_talent_spotlight'))
+      .then((snap) => {
+        if (snap.exists()) {
+          const cloudTalent = { ...DEFAULT_WORKER_TALENT, ...(snap.data() as Partial<WorkerTalentData>) };
+          setTalentData(cloudTalent);
+          localStorage.setItem('walton_worker_talent_data', JSON.stringify(cloudTalent));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleOpenKpiModal = () => {
+    if (!isLoggedIn) return;
+    setKpiEditForm(kpiStats);
+    setKpiModalOpen(true);
+  };
+
+  const handleSaveKpiStats = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      setKpiModalOpen(false);
+      return;
+    }
+    const normalized: LandingKpiStats = {
+      ...kpiEditForm,
+      totalMp: Math.max(0, Number(kpiEditForm.totalMp) || 0),
+      male: Math.max(0, Number(kpiEditForm.male) || 0),
+      female: Math.max(0, Number(kpiEditForm.female) || 0),
+      totalReport: Math.max(0, Number(kpiEditForm.totalReport) || 0),
+      totalSop: Math.max(0, Number(kpiEditForm.totalSop) || 0),
+    };
+    setKpiStats(normalized);
+    localStorage.setItem('walton_landing_kpi_stats', JSON.stringify(normalized));
+    if (db) {
+      setDoc(
+        doc(db, 'master_data', 'landing_kpi_stats'),
+        { ...normalized, updatedAt: new Date().toISOString() },
+        { merge: true }
+      ).catch(() => {});
+    }
+    setKpiAnimKey((k) => k + 1);
+    setKpiModalOpen(false);
+    setSaveToastMessage({
+      title: 'KPI Statistics Updated!',
+      subtitle: 'Manpower, Report & SOP counters saved and refreshed.',
+    });
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 3500);
+  };
+
+  const handleResetKpiStats = () => {
+    if (!isLoggedIn) {
+      setKpiModalOpen(false);
+      return;
+    }
+    setKpiEditForm(DEFAULT_LANDING_KPI_STATS);
+    setKpiStats(DEFAULT_LANDING_KPI_STATS);
+    localStorage.removeItem('walton_landing_kpi_stats');
+    if (db) {
+      setDoc(
+        doc(db, 'master_data', 'landing_kpi_stats'),
+        { ...DEFAULT_LANDING_KPI_STATS, updatedAt: new Date().toISOString() },
+        { merge: true }
+      ).catch(() => {});
+    }
+    setKpiAnimKey((k) => k + 1);
+    setKpiModalOpen(false);
+    setSaveToastMessage({
+      title: 'KPI Statistics Restored!',
+      subtitle: 'Counters reset to default values.',
+    });
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 3500);
+  };
 
   /**
    * handleOpenTalentModal
@@ -272,7 +416,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     }
     setTalentData(editForm);
     localStorage.setItem('walton_worker_talent_data', JSON.stringify(editForm));
+    if (db) {
+      setDoc(
+        doc(db, 'master_data', 'worker_talent_spotlight'),
+        { ...editForm, updatedAt: new Date().toISOString() },
+        { merge: true }
+      ).catch(() => {});
+    }
     setTalentModalOpen(false);
+    setSaveToastMessage({
+      title: 'Worker Talent Section Updated!',
+      subtitle: 'Recognition records saved & refreshed on the Home page.',
+    });
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 3500);
   };
@@ -291,7 +446,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     setEditForm(DEFAULT_WORKER_TALENT);
     setTalentData(DEFAULT_WORKER_TALENT);
     localStorage.removeItem('walton_worker_talent_data');
+    if (db) {
+      setDoc(
+        doc(db, 'master_data', 'worker_talent_spotlight'),
+        { ...DEFAULT_WORKER_TALENT, updatedAt: new Date().toISOString() },
+        { merge: true }
+      ).catch(() => {});
+    }
     setTalentModalOpen(false);
+    setSaveToastMessage({
+      title: 'Worker Talent Section Restored!',
+      subtitle: 'Recognition records reverted to default values.',
+    });
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 3500);
   };
@@ -741,18 +907,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           id="cyan-kpi-bar"
           onClick={() => setKpiAnimKey((k) => k + 1)}
           title="Click to replay counter animation"
-          className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5 select-none cursor-pointer"
+          className="relative w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5 select-none cursor-pointer"
         >
+          {/* Top-Right Admin Entry / Update Button - Rendered ONLY for authorized logged-in users */}
+          {isLoggedIn && (
+            <div
+              className="absolute top-2.5 right-2.5 z-20 flex items-center gap-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                id="btn-kpi-bar-entry"
+                type="button"
+                onClick={handleOpenKpiModal}
+                className="px-3.5 py-1.5 bg-[#1c356b] hover:bg-[#28498f] text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer border border-[#2d4c8e]"
+                title="Enter or update KPI counter records"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-[#93c5fd]" />
+                <span>Entry</span>
+              </button>
+            </div>
+          )}
+
           {/* Card 1: Total MP */}
           <div className="bg-white rounded-2xl sm:rounded-3xl py-7 sm:py-9 px-4 sm:px-5 shadow-[0_10px_28px_rgba(0,0,0,0.04)] border border-slate-100/90 flex flex-col items-center justify-center text-center transition-all duration-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.08)] hover:-translate-y-1 group h-full">
             <div className="text-[#00a884] group-hover:scale-110 transition-transform duration-200">
               <Users className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
             </div>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#00a884] tracking-tight mt-3 sm:mt-4 mb-1">
-              <AnimatedCounter key={`mp-${kpiAnimKey}`} target={612} delay={40} duration={1400} />+
+              <AnimatedCounter key={`mp-${kpiAnimKey}`} target={kpiStats.totalMp} delay={40} duration={1400} />
+              {kpiStats.totalMpSuffix}
             </div>
             <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
-              Total MP
+              {kpiStats.totalMpLabel}
             </span>
           </div>
 
@@ -762,10 +948,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <User className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
             </div>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#e54b4b] tracking-tight mt-3 sm:mt-4 mb-1">
-              <AnimatedCounter key={`male-${kpiAnimKey}`} target={402} delay={100} duration={1400} />
+              <AnimatedCounter key={`male-${kpiAnimKey}`} target={kpiStats.male} delay={100} duration={1400} />
+              {kpiStats.maleSuffix}
             </div>
             <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
-              Male
+              {kpiStats.maleLabel}
             </span>
           </div>
 
@@ -775,10 +962,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <UserCheck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
             </div>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#00a884] tracking-tight mt-3 sm:mt-4 mb-1">
-              <AnimatedCounter key={`female-${kpiAnimKey}`} target={210} delay={160} duration={1400} />+
+              <AnimatedCounter key={`female-${kpiAnimKey}`} target={kpiStats.female} delay={160} duration={1400} />
+              {kpiStats.femaleSuffix}
             </div>
             <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
-              FeMale
+              {kpiStats.femaleLabel}
             </span>
           </div>
 
@@ -788,10 +976,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <ClipboardCheck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
             </div>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#00a884] tracking-tight mt-3 sm:mt-4 mb-1">
-              <AnimatedCounter key={`report-${kpiAnimKey}`} target={146} delay={220} duration={1400} />+
+              <AnimatedCounter key={`report-${kpiAnimKey}`} target={kpiStats.totalReport} delay={220} duration={1400} />
+              {kpiStats.totalReportSuffix}
             </div>
             <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
-              Total Report
+              {kpiStats.totalReportLabel}
             </span>
           </div>
 
@@ -801,10 +990,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <BookOpenCheck className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.3]" />
             </div>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono text-[#0284c7] tracking-tight mt-3 sm:mt-4 mb-1">
-              <AnimatedCounter key={`sop-${kpiAnimKey}`} target={58} delay={280} duration={1400} />+
+              <AnimatedCounter key={`sop-${kpiAnimKey}`} target={kpiStats.totalSop} delay={280} duration={1400} />
+              {kpiStats.totalSopSuffix}
             </div>
             <span className="text-xs sm:text-sm font-semibold text-[#5a6b82]">
-              Total SOP
+              {kpiStats.totalSopLabel}
             </span>
           </div>
         </section>
@@ -1001,12 +1191,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     className="px-4 py-2 bg-[#e35b2a] hover:bg-[#c74a1f] text-white font-bold text-xs rounded-lg shadow-xs transition-colors cursor-pointer"
                   >
                     Contact Quality Line
-                  </button>
-                  <button
-                    onClick={() => handleNav('dashboard')}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer"
-                  >
-                    Open QMS Portal
                   </button>
                 </div>
 
@@ -1346,6 +1530,298 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       )}
 
+      {/* KPI Stat Cards Entry / Update Modal - Accessible ONLY to authorized logged-in users */}
+      {isLoggedIn && kpiModalOpen && (
+        <div
+          id="modal-kpi-bar-entry-backdrop"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setKpiModalOpen(false);
+          }}
+        >
+          <div
+            id="modal-kpi-bar-entry"
+            className="bg-white rounded-2xl shadow-2xl border border-[#cbd5e1] w-full max-w-xl overflow-hidden my-auto flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="bg-[#0d1730] text-white px-5 py-4 flex items-center justify-between border-b-2 border-[#e35b2a]">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold tracking-tight text-white">
+                    KPI Counter Entry &amp; Update Portal
+                  </h3>
+                  <p className="text-[11px] text-[#93c5fd]">
+                    PCB &amp; PCBA Manpower, Report &amp; SOP Counter Configuration
+                  </p>
+                </div>
+              </div>
+              <button
+                id="btn-close-kpi-modal"
+                type="button"
+                onClick={() => setKpiModalOpen(false)}
+                className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveKpiStats} className="p-5 overflow-y-auto space-y-3.5 flex-1 text-sm text-[#0d1730]">
+              <datalist id="kpi-suffix-presets">
+                <option value="+" />
+                <option value="%" />
+                <option value="K+" />
+              </datalist>
+
+              {/* Card 1: Total MP */}
+              <div className="p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl grid grid-cols-1 sm:grid-cols-7 gap-2.5 items-end">
+                <div className="sm:col-span-3">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Card 1 Label
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={kpiEditForm.totalMpLabel}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalMpLabel: e.target.value }))}
+                    className="w-full px-3 py-1.5 text-xs font-semibold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Value (Number)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={kpiEditForm.totalMp}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalMp: Number(e.target.value) }))}
+                    className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Suffix (Editable)
+                  </label>
+                  <input
+                    type="text"
+                    list="kpi-suffix-presets"
+                    value={kpiEditForm.totalMpSuffix ?? ''}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalMpSuffix: e.target.value }))}
+                    placeholder="None (e.g. +)"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+              </div>
+
+              {/* Card 2: Male */}
+              <div className="p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl grid grid-cols-1 sm:grid-cols-7 gap-2.5 items-end">
+                <div className="sm:col-span-3">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Card 2 Label
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={kpiEditForm.maleLabel}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, maleLabel: e.target.value }))}
+                    className="w-full px-3 py-1.5 text-xs font-semibold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Value (Number)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={kpiEditForm.male}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, male: Number(e.target.value) }))}
+                    className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Suffix (Editable)
+                  </label>
+                  <input
+                    type="text"
+                    list="kpi-suffix-presets"
+                    value={kpiEditForm.maleSuffix ?? ''}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, maleSuffix: e.target.value }))}
+                    placeholder="None (e.g. +)"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+              </div>
+
+              {/* Card 3: FeMale */}
+              <div className="p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl grid grid-cols-1 sm:grid-cols-7 gap-2.5 items-end">
+                <div className="sm:col-span-3">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Card 3 Label
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={kpiEditForm.femaleLabel}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, femaleLabel: e.target.value }))}
+                    className="w-full px-3 py-1.5 text-xs font-semibold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Value (Number)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={kpiEditForm.female}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, female: Number(e.target.value) }))}
+                    className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Suffix (Editable)
+                  </label>
+                  <input
+                    type="text"
+                    list="kpi-suffix-presets"
+                    value={kpiEditForm.femaleSuffix ?? ''}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, femaleSuffix: e.target.value }))}
+                    placeholder="None (e.g. +)"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+              </div>
+
+              {/* Card 4: Total Report */}
+              <div className="p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl grid grid-cols-1 sm:grid-cols-7 gap-2.5 items-end">
+                <div className="sm:col-span-3">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Card 4 Label
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={kpiEditForm.totalReportLabel}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalReportLabel: e.target.value }))}
+                    className="w-full px-3 py-1.5 text-xs font-semibold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Value (Number)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={kpiEditForm.totalReport}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalReport: Number(e.target.value) }))}
+                    className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Suffix (Editable)
+                  </label>
+                  <input
+                    type="text"
+                    list="kpi-suffix-presets"
+                    value={kpiEditForm.totalReportSuffix ?? ''}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalReportSuffix: e.target.value }))}
+                    placeholder="None (e.g. +)"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+              </div>
+
+              {/* Card 5: Total SOP */}
+              <div className="p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl grid grid-cols-1 sm:grid-cols-7 gap-2.5 items-end">
+                <div className="sm:col-span-3">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Card 5 Label
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={kpiEditForm.totalSopLabel}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalSopLabel: e.target.value }))}
+                    className="w-full px-3 py-1.5 text-xs font-semibold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Value (Number)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={kpiEditForm.totalSop}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalSop: Number(e.target.value) }))}
+                    className="w-full px-3 py-1.5 text-xs font-mono font-bold border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-bold text-[#1e293b] uppercase tracking-wider mb-1">
+                    Suffix (Editable)
+                  </label>
+                  <input
+                    type="text"
+                    list="kpi-suffix-presets"
+                    value={kpiEditForm.totalSopSuffix ?? ''}
+                    onChange={(e) => setKpiEditForm((prev) => ({ ...prev, totalSopSuffix: e.target.value }))}
+                    placeholder="None (e.g. +)"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono font-bold text-center border border-[#cbd5e1] rounded-lg bg-white text-[#0d1730] placeholder:font-sans placeholder:font-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1c356b]"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="border-t border-[#e2e8f0] pt-3.5 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={handleResetKpiStats}
+                  className="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Reset to factory default values"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Restore Default</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setKpiModalOpen(false)}
+                    className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    id="btn-save-kpi-stats"
+                    type="submit"
+                    className="px-5 py-2 text-xs font-bold text-white bg-[#1c356b] hover:bg-[#152a55] rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4 text-[#2dd4bf]" />
+                    <span>Save &amp; Update Section</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Floating Save Confirmation Toast */}
       {saveToast && (
         <div className="fixed bottom-5 right-5 z-50 bg-[#0d1730] text-white px-4 py-3 rounded-xl shadow-xl border-l-4 border-[#2dd4bf] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -1353,10 +1829,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <CheckCircle className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold text-white">Worker Talent Section Updated!</div>
-            <div className="text-[11px] text-[#93c5fd]">
-              Recognition records saved &amp; refreshed on the Home page.
-            </div>
+            <div className="text-xs font-bold text-white">{saveToastMessage.title}</div>
+            <div className="text-[11px] text-[#93c5fd]">{saveToastMessage.subtitle}</div>
           </div>
         </div>
       )}

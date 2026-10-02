@@ -61,6 +61,12 @@ import { CustomerComplaint, PageId } from '../../types';
 import { INITIAL_COMPLAINTS_DATA } from '../../data/initialComplaints';
 import { NewComplaintModal } from '../modals/NewComplaintModal';
 import { ComplaintDetailModal } from '../modals/ComplaintDetailModal';
+import {
+  subscribeCustomerComplaints,
+  saveCustomerComplaint,
+  updateCustomerComplaint,
+  deleteCustomerComplaint,
+} from '../../services/customerComplaints';
 
 const STORAGE_KEY = 'walton_qms_customer_complaints_v1';
 
@@ -93,6 +99,22 @@ export const ComplaintsView: React.FC<ComplaintsViewProps> = ({
     }
     return INITIAL_COMPLAINTS_DATA;
   });
+
+  // Sync with Firestore customer_complaints collection
+  useEffect(() => {
+    let seeded = false;
+    const unsub = subscribeCustomerComplaints((items) => {
+      if (items.length > 0) {
+        setComplaints(items);
+      } else if (!seeded) {
+        seeded = true;
+        INITIAL_COMPLAINTS_DATA.forEach((c) => {
+          saveCustomerComplaint(c).catch(() => {});
+        });
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -129,19 +151,23 @@ export const ComplaintsView: React.FC<ComplaintsViewProps> = ({
   const handleSaveComplaint = (item: CustomerComplaint) => {
     if (editingComplaint) {
       setComplaints((prev) => prev.map((c) => (c.id === item.id ? item : c)));
+      saveCustomerComplaint(item).catch(() => {});
       showToast(`Updated complaint ${item.ticketNo}`);
       setEditingComplaint(null);
     } else {
       setComplaints((prev) => [item, ...prev]);
+      saveCustomerComplaint(item).catch(() => {});
       showToast(`Logged new complaint ${item.ticketNo}`);
     }
   };
 
   // Inline Status Change
   const handleUpdateStatus = (id: string, newStatus: CustomerComplaint['status']) => {
+    const now = new Date().toISOString();
     setComplaints((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: newStatus, updatedAt: new Date().toISOString() } : c))
+      prev.map((c) => (c.id === id ? { ...c, status: newStatus, updatedAt: now } : c))
     );
+    updateCustomerComplaint(id, { status: newStatus, updatedAt: now }).catch(() => {});
     showToast(`Status updated to "${newStatus}"`);
   };
 
@@ -149,6 +175,7 @@ export const ComplaintsView: React.FC<ComplaintsViewProps> = ({
   const handleDeleteComplaint = (id: string, ticketNo: string) => {
     if (window.confirm(`Are you sure you want to delete complaint ${ticketNo}?`)) {
       setComplaints((prev) => prev.filter((c) => c.id !== id));
+      deleteCustomerComplaint(id).catch(() => {});
       showToast(`Deleted complaint ${ticketNo}`);
     }
   };
@@ -158,6 +185,9 @@ export const ComplaintsView: React.FC<ComplaintsViewProps> = ({
     if (window.confirm('Reset all customer complaint records to Walton factory defaults?')) {
       setComplaints(INITIAL_COMPLAINTS_DATA);
       localStorage.removeItem(STORAGE_KEY);
+      INITIAL_COMPLAINTS_DATA.forEach((c) => {
+        saveCustomerComplaint(c).catch(() => {});
+      });
       showToast('Reset complaints database to factory defaults');
     }
   };
@@ -372,7 +402,7 @@ export const ComplaintsView: React.FC<ComplaintsViewProps> = ({
             <div>
               <h2 className="text-2xl font-bold text-[#0d1730]">Customer Complaints &amp; VOC</h2>
               <div className="text-xs text-[#5b6480] mt-0.5">
-                Voice of the Customer · Real-Time Defect Data Entry, Field Failure Containment &amp; Satisfaction Analytics
+                Quality Management- PCB &amp; PCBA * Voice of the Customer
               </div>
             </div>
           </div>

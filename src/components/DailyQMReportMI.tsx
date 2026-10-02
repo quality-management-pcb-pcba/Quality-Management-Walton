@@ -12,7 +12,10 @@ import {
   BarChart3,
   Search,
   Filter,
+  Settings,
+  X,
 } from 'lucide-react';
+import { savePcbaReport } from '../services/pcbaReportService';
 
 export interface DailyQMReportMIRecord {
   id: string;
@@ -34,7 +37,7 @@ export interface DailyQMReportMIProps {
 }
 
 // Reference data from real Daily_QM_Report-MI.xlsx
-const FORM_DATA = {
+const DEFAULT_FORM_DATA = {
   lines: ['MI Line-01', 'Line-Charger'],
   productionTypes: ['Mass Production', 'Trial Production'],
   products: [
@@ -49,6 +52,7 @@ const FORM_DATA = {
     'TV',
     'Toy',
   ],
+  operators: ['Rubel Hosen (37078)', 'Anik Sutradhar(50280)'],
   productModels: {
     AC: [
       'FITE72WA-ER-22_ODU24k',
@@ -100,17 +104,56 @@ const MONTHS = [
 ];
 
 const STORAGE_KEY = 'daily_qm_report_mi_rows_v1';
+const MASTER_LISTS_KEY = 'daily_qm_report_mi_master_lists_v1';
 
 export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDatabase }) => {
+  const [formData, setFormData] = useState<typeof DEFAULT_FORM_DATA>(() => {
+    try {
+      const saved = localStorage.getItem(MASTER_LISTS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_FORM_DATA,
+          ...parsed,
+          productModels: {
+            ...DEFAULT_FORM_DATA.productModels,
+            ...(parsed.productModels || {}),
+          },
+        };
+      }
+    } catch {
+      // ignore
+    }
+    return DEFAULT_FORM_DATA;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MASTER_LISTS_KEY, JSON.stringify(formData));
+    } catch {
+      // ignore
+    }
+  }, [formData]);
+
   // Form State
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [line, setLine] = useState(FORM_DATA.lines[0]);
-  const [prodType, setProdType] = useState(FORM_DATA.productionTypes[0]);
-  const [product, setProduct] = useState(FORM_DATA.products[2]); // default Charger
+  const [line, setLine] = useState(formData.lines[0] || 'MI Line-01');
+  const [prodType, setProdType] = useState(formData.productionTypes[0] || 'Mass Production');
+  const [product, setProduct] = useState(formData.products[2] || formData.products[0] || 'Charger');
   const [model, setModel] = useState('');
   const [checkQty, setCheckQty] = useState('');
   const [faultQty, setFaultQty] = useState('');
   const [remarks, setRemarks] = useState('');
+
+  // Manage Lists Modal State
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState<'products' | 'models' | 'operators'>('products');
+  const [modalNewProduct, setModalNewProduct] = useState('');
+  const [modalSelectedProductForModel, setModalSelectedProductForModel] = useState(
+    formData.products[0] || 'AC'
+  );
+  const [modalNewModel, setModalNewModel] = useState('');
+  const [modalNewOperator, setModalNewOperator] = useState('');
 
   // Submitting & Toast
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,13 +174,13 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
 
   // Update available models when product changes
   useEffect(() => {
-    const models = FORM_DATA.productModels[product] || [];
+    const models = formData.productModels[product] || [];
     if (models.length > 0) {
       setModel(models[0]);
     } else {
       setModel('');
     }
-  }, [product]);
+  }, [product, formData.productModels]);
 
   // Persistent rows state from local storage
   const [rows, setRows] = useState<DailyQMReportMIRecord[]>(() => {
@@ -287,7 +330,7 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
     fQty >= 0 &&
     fQty <= cQty;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isSubmitting) return;
 
     if (!date) {
@@ -325,10 +368,25 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
       const pct = cQty > 0 ? (fQty / cQty) * 100 : 0;
+
+      // Store in Firestore collection "pcba_reports"
+      const savedId = await savePcbaReport({
+        date,
+        line,
+        product,
+        model,
+        type: 'Function',
+        desc: `MI QM: Check ${cQty}, Fault ${fQty} (${pct.toFixed(2)}%) - ${prodType}`,
+        qty: fQty,
+        status: fQty > 0 ? 'Open' : 'Closed',
+        remarks: remarks.trim() || `Production Type: ${prodType}`,
+        source: 'Daily QM Report MI',
+      });
+
       const newRec: DailyQMReportMIRecord = {
-        id: `mi-${Date.now()}`,
+        id: savedId || `mi-${Date.now()}`,
         month: monthName,
         date,
         line,
@@ -348,10 +406,14 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
       setCheckQty('');
       setFaultQty('');
       setRemarks('');
-      setIsSubmitting(false);
 
-      showToast(`Saved 1 MI QM row for ${product} (${model}).`, 'success');
-    }, 400);
+      showToast('PCBA Report Saved Successfully', 'success');
+    } catch (err: any) {
+      console.error('Failed to save to Firestore pcba_reports:', err);
+      showToast('Failed to save PCBA report: ' + (err?.message || 'Database error'), 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteRow = (id: string) => {
@@ -423,6 +485,95 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
     window.print();
   };
 
+  // Manage Lists Handlers
+  const handleAddProduct = () => {
+    const prod = modalNewProduct.trim();
+    if (!prod) return;
+    if (formData.products.includes(prod)) {
+      showToast('That product already exists.', 'error');
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      products: [...prev.products, prod],
+      productModels: { ...prev.productModels, [prod]: [] },
+    }));
+    setModalNewProduct('');
+    showToast(`Product "${prod}" added.`, 'success');
+  };
+
+  const handleDeleteProduct = (prod: string) => {
+    setFormData((prev) => {
+      const nextProducts = prev.products.filter((p) => p !== prod);
+      const nextModels = { ...prev.productModels };
+      delete nextModels[prod];
+      return {
+        ...prev,
+        products: nextProducts,
+        productModels: nextModels,
+      };
+    });
+    if (product === prod) {
+      const remaining = formData.products.filter((p) => p !== prod);
+      setProduct(remaining[0] || '');
+    }
+    showToast(`Product "${prod}" removed.`, 'success');
+  };
+
+  const handleAddModel = () => {
+    const prod = modalSelectedProductForModel;
+    const m = modalNewModel.trim();
+    if (!prod || !m) return;
+    const existing = formData.productModels[prod] || [];
+    if (existing.includes(m)) {
+      showToast('That model already exists for this product.', 'error');
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      productModels: {
+        ...prev.productModels,
+        [prod]: [...existing, m].sort(),
+      },
+    }));
+    setModalNewModel('');
+    showToast(`Model "${m}" added to ${prod}.`, 'success');
+  };
+
+  const handleDeleteModel = (prod: string, m: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      productModels: {
+        ...prev.productModels,
+        [prod]: (prev.productModels[prod] || []).filter((item) => item !== m),
+      },
+    }));
+    showToast(`Model "${m}" removed.`, 'success');
+  };
+
+  const handleAddOperator = () => {
+    const op = modalNewOperator.trim();
+    if (!op) return;
+    if (formData.operators.includes(op)) {
+      showToast('That operator already exists.', 'error');
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      operators: [...prev.operators, op].sort(),
+    }));
+    setModalNewOperator('');
+    showToast(`Operator "${op}" added.`, 'success');
+  };
+
+  const handleDeleteOperator = (op: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      operators: prev.operators.filter((o) => o !== op),
+    }));
+    showToast(`Operator "${op}" removed.`, 'success');
+  };
+
   return (
     <div className="space-y-5 print:p-0">
       {/* Toast Feedback */}
@@ -472,6 +623,15 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 <span>Auto Database</span>
               </button>
             )}
+            <button
+              type="button"
+              id="btn-manage-lists-qm-mi"
+              onClick={() => setIsManageModalOpen(true)}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 cursor-pointer border border-white/20"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>⚙ Manage Lists</span>
+            </button>
           </div>
         </div>
       </div>
@@ -568,7 +728,7 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 onChange={(e) => setLine(e.target.value)}
                 className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
               >
-                {FORM_DATA.lines.map((l) => (
+                {formData.lines.map((l) => (
                   <option key={l} value={l}>
                     {l}
                   </option>
@@ -585,7 +745,7 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 onChange={(e) => setProdType(e.target.value)}
                 className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
               >
-                {FORM_DATA.productionTypes.map((pt) => (
+                {formData.productionTypes.map((pt) => (
                   <option key={pt} value={pt}>
                     {pt}
                   </option>
@@ -605,7 +765,7 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 onChange={(e) => setProduct(e.target.value)}
                 className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
               >
-                {FORM_DATA.products.map((p) => (
+                {formData.products.map((p) => (
                   <option key={p} value={p}>
                     {p}
                   </option>
@@ -622,7 +782,7 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 onChange={(e) => setModel(e.target.value)}
                 className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
               >
-                {(FORM_DATA.productModels[product] || []).map((m) => (
+                {(formData.productModels[product] || []).map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -735,7 +895,7 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none"
               >
                 <option value="">All</option>
-                {FORM_DATA.lines.map((l) => (
+                {formData.lines.map((l) => (
                   <option key={l} value={l}>
                     {l}
                   </option>
@@ -751,7 +911,7 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none"
               >
                 <option value="">All</option>
-                {FORM_DATA.products.map((p) => (
+                {formData.products.map((p) => (
                   <option key={p} value={p}>
                     {p}
                   </option>
@@ -928,6 +1088,207 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
           )}
         </button>
       </div>
+
+      {/* MANAGE LISTS MODAL */}
+      {isManageModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#0f2942]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-[#e2e8f0] flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-[#0f2942] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <span>⚙</span>
+                <span>Manage Lists — Daily QM Report-MI</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsManageModalOpen(false)}
+                className="text-white/70 hover:text-white transition-colors cursor-pointer p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex border-b border-[#e2e8f0] bg-[#fafbfc]">
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('products')}
+                className={`flex-1 py-3 text-xs font-bold transition-colors border-b-2 cursor-pointer ${
+                  activeModalTab === 'products'
+                    ? 'text-[#2563eb] border-[#2563eb] bg-white'
+                    : 'text-[#64748b] border-transparent hover:text-[#1e293b]'
+                }`}
+              >
+                Products
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('models')}
+                className={`flex-1 py-3 text-xs font-bold transition-colors border-b-2 cursor-pointer ${
+                  activeModalTab === 'models'
+                    ? 'text-[#2563eb] border-[#2563eb] bg-white'
+                    : 'text-[#64748b] border-transparent hover:text-[#1e293b]'
+                }`}
+              >
+                Models
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('operators')}
+                className={`flex-1 py-3 text-xs font-bold transition-colors border-b-2 cursor-pointer ${
+                  activeModalTab === 'operators'
+                    ? 'text-[#2563eb] border-[#2563eb] bg-white'
+                    : 'text-[#64748b] border-transparent hover:text-[#1e293b]'
+                }`}
+              >
+                Operators
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              {/* TAB 1: Products */}
+              {activeModalTab === 'products' && (
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={modalNewProduct}
+                      onChange={(e) => setModalNewProduct(e.target.value)}
+                      placeholder="New product name"
+                      className="flex-1 px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddProduct}
+                      className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                    {formData.products.map((p: string) => (
+                      <div
+                        key={p}
+                        className="flex items-center justify-between p-2.5 border border-[#e2e8f0] rounded-lg bg-[#fafbfc] text-xs font-medium text-[#1e293b]"
+                      >
+                        <span>{p}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProduct(p)}
+                          className="text-[#dc2626] hover:bg-red-50 p-1 rounded font-bold transition-colors cursor-pointer"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: Models */}
+              {activeModalTab === 'models' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-bold text-[#64748b]">Select Product</label>
+                    <select
+                      value={modalSelectedProductForModel}
+                      onChange={(e) => setModalSelectedProductForModel(e.target.value)}
+                      className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium bg-white outline-none"
+                    >
+                      {formData.products.map((p: string) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={modalNewModel}
+                      onChange={(e) => setModalNewModel(e.target.value)}
+                      placeholder={`New model for ${modalSelectedProductForModel}`}
+                      className="flex-1 px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddModel}
+                      className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5 max-h-[250px] overflow-y-auto pr-1">
+                    {(formData.productModels[modalSelectedProductForModel] || []).length === 0 ? (
+                      <div className="text-xs text-[#94a3b8] py-4 text-center">
+                        No models added for this product yet.
+                      </div>
+                    ) : (
+                      (formData.productModels[modalSelectedProductForModel] || []).map((m: string) => (
+                        <div
+                          key={m}
+                          className="flex items-center justify-between p-2.5 border border-[#e2e8f0] rounded-lg bg-[#fafbfc] text-xs font-medium text-[#1e293b]"
+                        >
+                          <span className="truncate pr-2">{m}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteModel(modalSelectedProductForModel, m)}
+                            className="text-[#dc2626] hover:bg-red-50 p-1 rounded font-bold transition-colors cursor-pointer shrink-0"
+                          >
+                            ✕ Remove
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: Operators */}
+              {activeModalTab === 'operators' && (
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={modalNewOperator}
+                      onChange={(e) => setModalNewOperator(e.target.value)}
+                      placeholder="New operator name / ID"
+                      className="flex-1 px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddOperator}
+                      className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                    {formData.operators.map((op: string) => (
+                      <div
+                        key={op}
+                        className="flex items-center justify-between p-2.5 border border-[#e2e8f0] rounded-lg bg-[#fafbfc] text-xs font-medium text-[#1e293b]"
+                      >
+                        <span>{op}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteOperator(op)}
+                          className="text-[#dc2626] hover:bg-red-50 p-1 rounded font-bold transition-colors cursor-pointer"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hidden print area for window.print() */}
       <div id="printArea" className="hidden print:block">

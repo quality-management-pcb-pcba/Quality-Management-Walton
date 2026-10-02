@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageId } from '../../types';
+import {
+  subscribeQualityDevProjects,
+  saveQualityDevProject,
+  QualityDevelopmentRecord,
+} from '../../services/qualityDevelopment';
 import {
   ArrowLeft,
   BarChart3,
@@ -169,9 +174,10 @@ export const QualityDevView: React.FC<QualityDevViewProps> = ({
     { supplier: 'Supplier D', material: 'Terminal Blocks & Mechanical Connectors', ppm: 320, status: 'Monitoring', targetPpm: '≤ 300 PPM', auditScore: 89 },
   ];
 
-  // 7. Improvement Projects Data
-  const improvementProjectsData = [
+  // 7. Improvement Projects Data (connected to Firestore quality_development)
+  const defaultImprovementProjects: QualityDevelopmentRecord[] = [
     {
+      id: 'qd-1',
       project: 'AOI Optimization',
       objective: 'Reduce false call rate and eliminate operator review fatigue',
       result: '-20%',
@@ -180,6 +186,7 @@ export const QualityDevView: React.FC<QualityDevViewProps> = ({
       status: 'Completed',
     },
     {
+      id: 'qd-2',
       project: 'SPI Control',
       objective: 'Improve solder paste volume consistency and prevent print defects',
       result: '+15% FPY',
@@ -188,6 +195,7 @@ export const QualityDevView: React.FC<QualityDevViewProps> = ({
       status: 'Active',
     },
     {
+      id: 'qd-3',
       project: 'Nitrogen Reflow Atmosphere',
       objective: 'Eliminate pad oxidation and reduce micro-voiding inside QFN thermal pads',
       result: '-35% Voiding',
@@ -196,6 +204,7 @@ export const QualityDevView: React.FC<QualityDevViewProps> = ({
       status: 'Completed',
     },
     {
+      id: 'qd-4',
       project: 'Stencil Nano-Coating',
       objective: 'Enhance paste release efficiency on 0.4mm pitch BGA apertures',
       result: '+12% Cpk',
@@ -204,6 +213,7 @@ export const QualityDevView: React.FC<QualityDevViewProps> = ({
       status: 'Active',
     },
     {
+      id: 'qd-5',
       project: 'Wave Solder Pallet Redesign',
       objective: 'Prevent thermal shadowing and solder bridging on heavy power connectors',
       result: '-45% Bridges',
@@ -212,6 +222,25 @@ export const QualityDevView: React.FC<QualityDevViewProps> = ({
       status: 'Completed',
     },
   ];
+
+  const [improvementProjectsData, setImprovementProjectsData] = useState<QualityDevelopmentRecord[]>(
+    defaultImprovementProjects
+  );
+
+  useEffect(() => {
+    let seeded = false;
+    const unsub = subscribeQualityDevProjects((projects) => {
+      if (projects.length > 0) {
+        setImprovementProjectsData(projects);
+      } else if (!seeded) {
+        seeded = true;
+        defaultImprovementProjects.forEach((p) => {
+          saveQualityDevProject(p).catch(() => {});
+        });
+      }
+    });
+    return () => unsub();
+  }, []);
 
   const filteredNcr = ncrCapaData.filter((item) => {
     const matchesFilter = ncrFilter === 'ALL' || item.status === ncrFilter;

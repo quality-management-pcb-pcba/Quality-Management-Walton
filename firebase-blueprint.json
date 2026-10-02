@@ -1,0 +1,294 @@
+{
+  "entities": {
+    "user_profile": {
+      "title": "User Profile",
+      "description": "Walton QMS Employee Profile & Role Authorization record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "employeeId": { "type": "string", "maxLength": 50 },
+        "name": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 150 },
+        "department": { "type": "string", "maxLength": 100 },
+        "section": { "type": "string", "maxLength": 100 },
+        "designation": { "type": "string", "maxLength": 100 },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "manager", "qa_staff", "viewer", "QM_ADMIN", "QM_USER", "IQC_USER", "PCBA_USER", "PCB_USER", "AUDITOR", "VIEWER"]
+        },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["uid", "name", "email", "role", "status"]
+    },
+    "pcba_report": {
+      "title": "PCBA Report",
+      "description": "Manufacturing defect and inspection report for PCBA lines",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "line": { "type": "string", "maxLength": 100 },
+        "model": { "type": "string", "maxLength": 150 },
+        "type": { "type": "string", "maxLength": 50 },
+        "desc": { "type": "string", "maxLength": 500 },
+        "qty": { "type": "number" },
+        "status": { "type": "string", "enum": ["Open", "In Progress", "Closed"] },
+        "createdBy": { "type": "string", "maxLength": 150 },
+        "createdAt": { "type": "string" },
+        "updatedBy": { "type": "string", "maxLength": 150 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["date", "line", "model", "qty", "createdBy", "createdAt"]
+    },
+    "pcb_record": {
+      "title": "PCB Record",
+      "description": "PCB FQC, AOI, Receive, and Delivery quality inspection record",
+      "type": "object",
+      "properties": {
+        "sheet": { "type": "string", "enum": ["visual", "aoi", "receive", "delivery"] },
+        "date": { "type": "string" },
+        "model": { "type": "string", "maxLength": 150 },
+        "checkQty": { "type": "number" },
+        "faultQty": { "type": "number" },
+        "faultRate": { "type": "number" }
+      },
+      "required": ["sheet"]
+    },
+    "iqc_report": {
+      "title": "IQC Report",
+      "description": "Incoming Quality Control material inspection report",
+      "type": "object",
+      "properties": {
+        "reportNo": { "type": "string", "maxLength": 100 },
+        "inspDate": { "type": "string" },
+        "supplier": { "type": "string", "maxLength": 150 },
+        "material": { "type": "string", "maxLength": 50 },
+        "partNo": { "type": "string", "maxLength": 100 },
+        "model": { "type": "string", "maxLength": 150 },
+        "finalResult": { "type": "string", "enum": ["Accept", "Conditional Accept", "Reject"] }
+      },
+      "required": ["reportNo", "finalResult"]
+    },
+    "esd_record": {
+      "title": "ESD Record",
+      "description": "Daily/Monthly ESD workstation, wriststrap, iron, and floor inspection log",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["date"]
+    },
+    "task_record": {
+      "title": "Task Record",
+      "description": "Quality Management Task Manager task item",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 300 },
+        "token": { "type": "string", "maxLength": 100 },
+        "assignee": { "type": "string", "maxLength": 150 },
+        "priority": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "CRITICAL"] },
+        "status": { "type": "string", "enum": ["IN PROGRESS", "COMPLETED", "ON HOLD", "TODO", "CANCELLED"] },
+        "progressDone": { "type": "number" },
+        "progressTotal": { "type": "number" },
+        "deadline": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["title", "token", "assignee", "priority", "status"]
+    },
+    "task_subtask": {
+      "title": "Task Subtask",
+      "description": "Checklist subtask belonging to a Task Manager task",
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 300 },
+        "status": { "type": "string", "enum": ["TODO", "IN_PROGRESS", "COMPLETED"] },
+        "assignedTo": { "type": "string", "maxLength": 150 },
+        "progress": { "type": "number" }
+      },
+      "required": ["taskId", "title", "status"]
+    },
+    "kpi_record": {
+      "title": "KPI Record",
+      "description": "Employee Quality KPI evaluation scorecard",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 150 },
+        "employeeId": { "type": "string", "maxLength": 50 },
+        "score": { "type": "number" },
+        "rank": { "type": "number" },
+        "line": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["name", "employeeId", "score"]
+    },
+    "non_conformance": {
+      "title": "Non-Conformance Report",
+      "description": "Manufacturing Non-Conformance Report (NCR)",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 300 },
+        "line": { "type": "string", "maxLength": 100 },
+        "classification": { "type": "string", "enum": ["Major", "Minor", "Critical"] },
+        "status": { "type": "string", "enum": ["Open", "In Progress", "Closed", "Draft"] }
+      },
+      "required": ["code", "title", "classification", "status"]
+    },
+    "capa_record": {
+      "title": "CAPA Record",
+      "description": "8D Corrective and Preventive Action record",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 300 },
+        "priority": { "type": "string", "enum": ["Critical", "High", "Medium", "Low"] },
+        "status": { "type": "string", "enum": ["Open", "In Progress", "Pending Verification", "Closed", "Cancelled"] },
+        "owner": { "type": "string", "maxLength": 150 }
+      },
+      "required": ["code", "title", "priority", "status"]
+    },
+    "rca_record": {
+      "title": "RCA Record",
+      "description": "4M Root Cause Analysis engineering report",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 300 },
+        "model": { "type": "string", "maxLength": 150 },
+        "product": { "type": "string", "maxLength": 150 },
+        "date": { "type": "string" }
+      },
+      "required": ["title"]
+    },
+    "customer_complaint": {
+      "title": "Customer Complaint",
+      "description": "Voice of the Customer (VOC) complaint and NPS record",
+      "type": "object",
+      "properties": {
+        "ticketNo": { "type": "string", "maxLength": 100 },
+        "customerName": { "type": "string", "maxLength": 200 },
+        "modelNo": { "type": "string", "maxLength": 150 },
+        "severity": { "type": "string", "enum": ["Critical", "Major", "Minor"] },
+        "status": { "type": "string" }
+      },
+      "required": ["ticketNo", "customerName", "severity", "status"]
+    },
+    "quality_development_project": {
+      "title": "Quality Development Project",
+      "description": "Continual quality improvement initiative",
+      "type": "object",
+      "properties": {
+        "project": { "type": "string", "maxLength": 200 },
+        "objective": { "type": "string", "maxLength": 500 },
+        "result": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["Active", "Completed", "Planned"] }
+      },
+      "required": ["project", "status"]
+    },
+    "document_sop": {
+      "title": "Controlled Document / SOP",
+      "description": "Controlled Standard Operating Procedure & Work Instruction metadata",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 300 },
+        "category": { "type": "string", "maxLength": 100 },
+        "revision": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["Active", "Under Review", "Draft", "Archived"] }
+      },
+      "required": ["code", "title", "category", "status"]
+    },
+    "training_record": {
+      "title": "Training Record",
+      "description": "Employee training session and attendance record",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "title": { "type": "string", "maxLength": 300 },
+        "department": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "enum": ["Online", "Practical", "External", "Internal"] },
+        "participants": { "type": "number" },
+        "durationMinutes": { "type": "number" },
+        "status": { "type": "string", "enum": ["Not Started", "In-Progress", "Completed", "Cancelled"] },
+        "trainer": { "type": "string", "maxLength": 150 }
+      },
+      "required": ["date", "title", "department", "status"]
+    },
+    "station_setting": {
+      "title": "Station Setting",
+      "description": "User station preferences and escalation alert configuration",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 150 },
+        "empId": { "type": "string", "maxLength": 50 },
+        "department": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 }
+      },
+      "required": ["email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user_profile",
+      "description": "Employee authentication profiles and RBAC roles"
+    },
+    "/pcba_reports/{reportId}": {
+      "schema": "pcba_report",
+      "description": "Collection of all PCBA defect, inspection, and QM reports"
+    },
+    "/pcb_records/{recordId}": {
+      "schema": "pcb_record",
+      "description": "Collection of PCB FQC, AOI, Receive, and Delivery quality records"
+    },
+    "/iqc_reports/{reportId}": {
+      "schema": "iqc_report",
+      "description": "Collection of Incoming Quality Control inspection reports"
+    },
+    "/esd_records/{recordId}": {
+      "schema": "esd_record",
+      "description": "Collection of ESD audit logs by date"
+    },
+    "/tasks/{taskId}": {
+      "schema": "task_record",
+      "description": "Collection of Quality Management tasks"
+    },
+    "/tasks/{taskId}/subtasks/{subtaskId}": {
+      "schema": "task_subtask",
+      "description": "Subcollection of subtasks for a specific task"
+    },
+    "/kpi_records/{recordId}": {
+      "schema": "kpi_record",
+      "description": "Collection of employee KPI evaluation scorecards"
+    },
+    "/non_conformances/{ncId}": {
+      "schema": "non_conformance",
+      "description": "Collection of Non-Conformance Reports (NCR)"
+    },
+    "/capas/{capaId}": {
+      "schema": "capa_record",
+      "description": "Collection of 8D CAPA records"
+    },
+    "/rcas/{rcaId}": {
+      "schema": "rca_record",
+      "description": "Collection of 4M Root Cause Analysis reports"
+    },
+    "/customer_complaints/{complaintId}": {
+      "schema": "customer_complaint",
+      "description": "Collection of Customer Complaints and VOC records"
+    },
+    "/quality_development/{projectId}": {
+      "schema": "quality_development_project",
+      "description": "Collection of Quality Development improvement projects"
+    },
+    "/documents/{docId}": {
+      "schema": "document_sop",
+      "description": "Collection of controlled SOPs and Work Instructions"
+    },
+    "/training_records/{recordId}": {
+      "schema": "training_record",
+      "description": "Collection of individual employee training sessions"
+    },
+    "/settings/{settingId}": {
+      "schema": "station_setting",
+      "description": "Collection of station and notification settings"
+    }
+  }
+}

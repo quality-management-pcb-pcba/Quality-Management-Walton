@@ -47,6 +47,12 @@ import {
   Check,
   Upload,
 } from 'lucide-react';
+import {
+  WALTON_EMBLEM_LEFT_PATH,
+  WALTON_EMBLEM_RIGHT_PATH,
+  WALTON_EMBLEM_RED_PATH,
+} from '../waltonLogoPaths';
+import { saveIqcReport, getIqcReports } from '../../services/iqcReports';
 
 interface IqcViewProps {
   onNavigate?: (page: PageId) => void;
@@ -135,17 +141,17 @@ export const IqcView: React.FC<IqcViewProps> = ({
   const [activeTab, setActiveTab] = useState<'all' | 'pcb' | 'pcba'>(selectedSubsection);
 
   // Form State
-  const [reportNo, setReportNo] = useState('IQC-2025-0001');
-  const [inspDate, setInspDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [supplier, setSupplier] = useState('Supplier-A');
-  const [material, setMaterial] = useState<'PCB' | 'PCBA' | 'Component' | 'Solder Paste'>('PCB');
-  const [partNo, setPartNo] = useState('WLT-PCB-8842-V3');
-  const [model, setModel] = useState('WALTON-PRIME-2026');
-  const [poNo, setPoNo] = useState('PO-2026-8941');
-  const [grnNo, setGrnNo] = useState('GRN-44912');
-  const [lotNo, setLotNo] = useState('LOT-2026-08-01');
-  const [recvQty, setRecvQty] = useState<number | ''>(5000);
-  const [sampleQty, setSampleQty] = useState<number | ''>(125);
+  const [reportNo, setReportNo] = useState('');
+  const [inspDate, setInspDate] = useState('');
+  const [supplier, setSupplier] = useState('');
+  const [material, setMaterial] = useState<'' | 'PCB' | 'PCBA' | 'Component' | 'Solder Paste'>('');
+  const [partNo, setPartNo] = useState('');
+  const [model, setModel] = useState('');
+  const [poNo, setPoNo] = useState('');
+  const [grnNo, setGrnNo] = useState('');
+  const [lotNo, setLotNo] = useState('');
+  const [recvQty, setRecvQty] = useState<number | ''>('');
+  const [sampleQty, setSampleQty] = useState<number | ''>('');
 
   // Summary Tiles
   const [totalLots, setTotalLots] = useState<number | ''>(25);
@@ -176,11 +182,6 @@ export const IqcView: React.FC<IqcViewProps> = ({
   useEffect(() => {
     if (selectedSubsection) {
       setActiveTab(selectedSubsection);
-      if (selectedSubsection === 'pcb') {
-        setMaterial('PCB');
-      } else if (selectedSubsection === 'pcba') {
-        setMaterial('PCBA');
-      }
     }
   }, [selectedSubsection]);
 
@@ -256,8 +257,8 @@ export const IqcView: React.FC<IqcViewProps> = ({
     showFlash(`Uploaded ${file.name}`);
   };
 
-  // Save draft
-  const handleSaveDraft = () => {
+  // Save draft & report to Firestore iqc_reports
+  const handleSaveDraft = async () => {
     if (!isLoggedIn) return;
     try {
       const draft = {
@@ -291,22 +292,57 @@ export const IqcView: React.FC<IqcViewProps> = ({
         signQmDate,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-      showFlash('Draft successfully saved in this browser.');
+      await saveIqcReport({
+        reportNo: reportNo || `IQC-${Date.now()}`,
+        inspDate: inspDate || new Date().toISOString().split('T')[0],
+        supplier,
+        material,
+        partNo,
+        model,
+        poNo,
+        grnNo,
+        lotNo,
+        recvQty: Number(recvQty) || 0,
+        sampleQty: Number(sampleQty) || 0,
+        totalLots: Number(totalLots) || 0,
+        acceptedLots: Number(acceptedLots) || 0,
+        condLots: Number(condLots) || 0,
+        rejectedLots: Number(rejectedLots) || 0,
+        checklist,
+        defectsA,
+        defectsB,
+        docs,
+        finalResult,
+        remarks,
+        signInspName,
+        signInspDate,
+        signIcName,
+        signIcDate,
+        signQmName,
+        signQmDate,
+      });
+      showFlash('Report saved to Cloud Firestore & local draft.');
     } catch {
-      showFlash('Browser storage unavailable.');
+      showFlash('Draft saved locally.');
     }
   };
 
-  // Restore draft
-  const handleRestoreDraft = () => {
+  // Restore draft from Firestore or localStorage
+  const handleRestoreDraft = async () => {
     if (!isLoggedIn) return;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
+      let d: any = null;
+      const cloudReports = await getIqcReports();
+      if (cloudReports.length > 0) {
+        d = cloudReports[0];
+      } else {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) d = JSON.parse(raw);
+      }
+      if (!d) {
         showFlash('No saved draft found.');
         return;
       }
-      const d = JSON.parse(raw);
       if (d.reportNo) setReportNo(d.reportNo);
       if (d.inspDate) setInspDate(d.inspDate);
       if (d.supplier) setSupplier(d.supplier);
@@ -334,7 +370,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
       if (d.signIcDate) setSignIcDate(d.signIcDate);
       if (d.signQmName) setSignQmName(d.signQmName);
       if (d.signQmDate) setSignQmDate(d.signQmDate);
-      showFlash(`Draft restored from ${new Date(d.savedAt).toLocaleTimeString()}.`);
+      showFlash('Latest IQC report restored from database.');
     } catch {
       showFlash('Could not restore draft.');
     }
@@ -343,8 +379,10 @@ export const IqcView: React.FC<IqcViewProps> = ({
   // Clear form
   const handleClearForm = () => {
     if (!isLoggedIn) return;
-    setReportNo('IQC-2025-0001');
-    setSupplier('Supplier-A');
+    setReportNo('');
+    setInspDate('');
+    setSupplier('');
+    setMaterial('');
     setPartNo('');
     setModel('');
     setPoNo('');
@@ -388,66 +426,16 @@ export const IqcView: React.FC<IqcViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl sm:text-2xl font-black text-[#0d1730] tracking-tight">
-                IQC Inspection Hub
+                IQC Inspection
               </h2>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#eaf2fb] text-[#123a6b] border border-[#cbd5e1]">
                 Incoming Quality Control
               </span>
             </div>
             <p className="text-xs text-[#64748b] mt-0.5">
-              Material Quality Verification &bull; IPC-A-610 Class 2/3 &bull; Walton Digi-Tech Industries
+              Material Quality Verification &bull; IPC-A-610 Class 2/3 &bull; Walton Hi-Tech Industries PLC
             </p>
           </div>
-        </div>
-
-        {/* Subsection Switcher: All / PCB / PCBA */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#f1f5f9] rounded-lg border border-[#e2e8f0] w-full md:w-auto">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('all');
-              if (onNavigate) onNavigate('iqc');
-            }}
-            className={`flex-1 md:flex-initial px-3.5 py-1.5 rounded-md text-xs font-bold transition-all ${
-              activeTab === 'all'
-                ? 'bg-[#123a6b] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#0d1730] hover:bg-white/60'
-            }`}
-          >
-            All IQC
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('pcb');
-              setMaterial('PCB');
-              if (onNavigate) onNavigate('iqc-pcb');
-            }}
-            className={`flex-1 md:flex-initial px-3.5 py-1.5 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'pcb'
-                ? 'bg-[#e35b2a] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#0d1730] hover:bg-white/60'
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5" />
-            <span>1. PCB</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('pcba');
-              setMaterial('PCBA');
-              if (onNavigate) onNavigate('iqc-pcba');
-            }}
-            className={`flex-1 md:flex-initial px-3.5 py-1.5 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === 'pcba'
-                ? 'bg-[#1565c0] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#0d1730] hover:bg-white/60'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>2. PCBA</span>
-          </button>
         </div>
       </div>
 
@@ -473,80 +461,38 @@ export const IqcView: React.FC<IqcViewProps> = ({
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 bg-white p-2.5 rounded-xl border border-[#cbd5e1] shadow-2xs">
-        {isLoggedIn ? (
-          <>
-            <button
-              type="button"
-              onClick={handleSaveDraft}
-              className="px-3 py-1.5 bg-[#123a6b] hover:bg-[#1565c0] text-white text-xs font-bold rounded-lg shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Save Draft</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleRestoreDraft}
-              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-[#123a6b] border border-[#cbd5e1] text-xs font-bold rounded-lg shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-[#1565c0]" />
-              <span>Restore Draft</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleClearForm}
-              className="px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Clear Form</span>
-            </button>
-          </>
-        ) : (
-          <span className="text-xs font-semibold text-[#64748b] flex items-center gap-1.5 px-2">
-            <Lock className="w-3.5 h-3.5 text-slate-400" />
-            Inspection Form (Read Only Mode)
-          </span>
-        )}
-
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="px-3 py-1.5 bg-white hover:bg-slate-100 text-[#334155] border border-[#cbd5e1] text-xs font-bold rounded-lg shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
-        >
-          <Printer className="w-3.5 h-3.5 text-slate-600" />
-          <span>Print / PDF</span>
-        </button>
-
-        <div className="flex-1 text-right">
-          {notice && (
-            <span className="text-xs font-semibold text-emerald-600 animate-pulse bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
-              {notice}
-            </span>
-          )}
-        </div>
-      </div>
-
       {/* Main Integrated IQC Report Document Sheet */}
       <div className="bg-white rounded-2xl border border-[#cbd5e1] shadow-md overflow-hidden text-[#1c2733]">
         {/* Masthead Header */}
         <div className="flex flex-col md:flex-row items-stretch border-b border-[#cbd5e1]">
           {/* Brand Left */}
           <div className="flex-1 p-5 sm:p-6 flex items-center gap-4 border-b md:border-b-0 md:border-r border-[#cbd5e1]">
-            <svg className="shrink-0" width="96" height="38" viewBox="0 0 118 46" role="img" aria-label="Walton">
+            <svg
+              className="shrink-0"
+              width="86"
+              height="60"
+              viewBox="140 172 220 154"
+              role="img"
+              aria-label="Walton"
+            >
               <path
-                d="M6 4 L22 4 L30 22 L38 4 L50 4 L58 22 L66 4 L82 4 L64 40 L52 40 L44 22 L36 40 L24 40 Z"
-                fill="#1565c0"
+                d={`${WALTON_EMBLEM_LEFT_PATH} ${WALTON_EMBLEM_RIGHT_PATH}`}
+                fill="#103f99"
               />
-              <path d="M50 4 L66 4 L58 22 Z" fill="#e2231a" />
+              <path
+                d={WALTON_EMBLEM_RED_PATH}
+                fill="#c8102e"
+                fillRule="evenodd"
+              />
               <text
-                x="6"
-                y="45"
-                fontFamily="'Barlow Condensed', Inter, sans-serif"
-                fontSize="13"
-                fontWeight="700"
-                letterSpacing="3.6"
-                fill="#1565c0"
+                x="250"
+                y="314"
+                textAnchor="middle"
+                fontFamily="'Barlow Condensed', Inter, system-ui, sans-serif"
+                fontSize="36"
+                fontWeight="900"
+                letterSpacing="6"
+                fill="#103f99"
               >
                 WALTON
               </text>
@@ -554,7 +500,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
             <div className="w-[1px] h-12 bg-[#cbd5e1] hidden sm:block" />
             <div>
               <h1 className="font-['Barlow_Condensed'] font-bold text-2xl sm:text-3xl text-[#123a6b] tracking-wide leading-tight">
-                WALTON DIGI-TECH INDUSTRIES LTD.
+                WALTON HI TECH INDUSTRIES PLC
               </h1>
               <p className="text-xs font-semibold text-[#1565c0] mt-0.5 tracking-wide">
                 Quality Management &mdash; PCB &amp; PCBA
@@ -569,7 +515,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
             </div>
             <div>
               <h2 className="font-['Barlow_Condensed'] text-2xl sm:text-3xl font-bold tracking-wide">
-                IQC INSPECTION REPORT
+                {activeTab === 'all' ? 'IQC SUMMARY DASHBOARD' : 'IQC INSPECTION REPORT'}
               </h2>
               <p className="text-[11px] text-[#93c5fd] italic mt-0.5">
                 Better Quality &nbsp;|&nbsp; Safer Product &nbsp;|&nbsp; Brighter Future
@@ -578,142 +524,414 @@ export const IqcView: React.FC<IqcViewProps> = ({
           </div>
         </div>
 
-        {/* Two-Column Grid Content */}
-        <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[#f8fafc]">
-          {/* ================= LEFT COLUMN ================= */}
-          <div className="space-y-6">
+        {activeTab === 'all' ? (
+          /* ================= IQC DASHBOARD (SUMMARY VIEW) ================= */
+          <div className="p-4 sm:p-6 space-y-6 bg-[#f8fafc]">
+            {/* Monthly Lot Inspection Summary Card */}
+            <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
+              <div className="bg-gradient-to-r from-[#123a6b] via-[#123a6b] to-[#1a4c8a] text-white px-4 py-2.5 font-bold text-xs uppercase tracking-wide">
+                Monthly Lot Inspection Summary
+              </div>
+              <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-[#1565c0] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
+                  <span className="text-[11px] font-bold text-center leading-tight">
+                    Total Lots
+                    <br />
+                    Received
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={totalLots}
+                    disabled={!isLoggedIn}
+                    onChange={(e) => setTotalLots(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                  />
+                </div>
+
+                <div className="bg-[#22a45d] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
+                  <span className="text-[11px] font-bold text-center leading-tight">
+                    Accepted
+                    <br />
+                    Lots
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={acceptedLots}
+                    disabled={!isLoggedIn}
+                    onChange={(e) => setAcceptedLots(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                  />
+                </div>
+
+                <div className="bg-[#f2b134] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
+                  <span className="text-[11px] font-bold text-center leading-tight">
+                    Conditional
+                    <br />
+                    Accept
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={condLots}
+                    disabled={!isLoggedIn}
+                    onChange={(e) => setCondLots(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                  />
+                </div>
+
+                <div className="bg-[#e2231a] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
+                  <span className="text-[11px] font-bold text-center leading-tight">
+                    Rejected
+                    <br />
+                    Lots
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={rejectedLots}
+                    disabled={!isLoggedIn}
+                    onChange={(e) => setRejectedLots(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Performance KPIs & Pareto Chart Split */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Quality Performance */}
+              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
+                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
+                  Quality Performance
+                </div>
+                <div className="p-3">
+                  <table className="w-full text-xs">
+                    <tbody className="divide-y divide-slate-100">
+                      <tr>
+                        <td className="py-2 text-slate-600 font-medium">Acceptance Rate</td>
+                        <td className="py-2 text-right font-extrabold text-[#22a45d]">{acceptRate}%</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-600 font-medium">Rejection Rate</td>
+                        <td className="py-2 text-right font-extrabold text-[#e2231a]">{rejectRate}%</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-600 font-medium">Supplier PPM</td>
+                        <td className="py-2 text-right font-extrabold text-[#123a6b]">
+                          {ppm > 0 ? ppm.toLocaleString() : '—'}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-600 font-medium">Incoming Defect Rate</td>
+                        <td className="py-2 text-right font-extrabold text-[#1565c0]">
+                          {sQty > 0 ? `${idr}%` : '—'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Defect Pareto Chart */}
+              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
+                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
+                  Defect Pareto Distribution
+                </div>
+                <div className="p-3 flex items-center justify-center">
+                  <svg
+                    className="w-full h-auto"
+                    viewBox={`0 0 ${svgW} ${svgH}`}
+                    role="img"
+                    aria-label="Defect Pareto chart"
+                  >
+                    {/* Gridlines */}
+                    {[0, 10, 20, 30, 40].map((p) => {
+                      const y = padT + plotH - (p / 40) * plotH;
+                      return (
+                        <g key={p}>
+                          <line x1={padL} y1={y} x2={svgW - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
+                          <text x={padL - 4} y={y + 3} textAnchor="end" fontSize="7.5" fill="#64748b">
+                            {p}%
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {/* Bars */}
+                    {paretoSum > 0 ? (
+                      topDefects.map((d, i) => {
+                        const pct = (d.qty / paretoSum) * 100;
+                        const slot = plotW / topDefects.length;
+                        const bw = Math.min(26, slot * 0.6);
+                        const h = Math.max(3, (Math.min(pct, 40) / 40) * plotH);
+                        const x = padL + slot * i + (slot - bw) / 2;
+                        const y = padT + plotH - h;
+                        const words = d.name.split(' ');
+
+                        return (
+                          <g key={d.name}>
+                            <rect
+                              x={x}
+                              y={y}
+                              width={bw}
+                              height={h}
+                              fill={PALETTE[i % PALETTE.length]}
+                              rx="2"
+                            />
+                            <text
+                              x={x + bw / 2}
+                              y={y - 3}
+                              textAnchor="middle"
+                              fontSize="8"
+                              fontWeight="700"
+                              fill="#0d1730"
+                            >
+                              {Math.round(pct)}%
+                            </text>
+                            {words.slice(0, 2).map((w, k) => (
+                              <text
+                                key={k}
+                                x={x + bw / 2}
+                                y={padT + plotH + 11 + k * 8}
+                                textAnchor="middle"
+                                fontSize="7.2"
+                                fill="#64748b"
+                              >
+                                {w}
+                              </text>
+                            ))}
+                          </g>
+                        );
+                      })
+                    ) : (
+                      <text
+                        x={padL + plotW / 2}
+                        y={padT + plotH / 2}
+                        textAnchor="middle"
+                        fontSize="8.5"
+                        fill="#94a3b8"
+                      >
+                        Enter defect quantities to plot Pareto
+                      </text>
+                    )}
+
+                    {/* Bottom Axis */}
+                    <line
+                      x1={padL}
+                      y1={padT + plotH}
+                      x2={svgW - padR}
+                      y2={padT + plotH}
+                      stroke="#cbd5e1"
+                      strokeWidth="1"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Supplier Ranking & Status Flow Split */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Supplier Ranking */}
+              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
+                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
+                  Supplier Ranking
+                </div>
+                <div className="p-2 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-500 font-bold">
+                        <th className="p-1.5 text-left">Supplier</th>
+                        <th className="p-1.5 text-center">Lots</th>
+                        <th className="p-1.5 text-center">Rej</th>
+                        <th className="p-1.5 text-center">Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {SUPPLIER_RANKINGS.map((s) => (
+                        <tr key={s.supplier}>
+                          <td className="p-1.5 font-medium text-slate-800">{s.supplier}</td>
+                          <td className="p-1.5 text-center font-mono">{s.lots}</td>
+                          <td className="p-1.5 text-center font-mono font-bold text-[#e2231a]">{s.reject}</td>
+                          <td className="p-1.5 text-center">
+                            <span
+                              className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-white font-bold text-[10px] ${s.class}`}
+                            >
+                              {s.rating}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Status Flow */}
+              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
+                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
+                  Inspection Stage Flow
+                </div>
+                <ul className="p-3 space-y-2 text-xs">
+                  {STATUS_FLOW.map((f, idx) => (
+                    <li key={f.step} className="flex items-center gap-2.5">
+                      <span
+                        className={`w-3 h-3 rounded-full shrink-0 ${
+                          f.status === 'done'
+                            ? 'bg-[#1565c0]'
+                            : f.status === 'current'
+                            ? 'bg-[#f2b134] ring-2 ring-[#f2b134]/30 animate-pulse'
+                            : 'bg-[#22a45d]'
+                        }`}
+                      />
+                      <span className={`font-semibold ${f.status === 'current' ? 'text-[#b45309]' : 'text-slate-700'}`}>
+                        {idx + 1}. {f.step}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ================= Two-Column Grid Content (PCB / PCBA Inspection Form) ================= */
+          <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[#f8fafc]">
+            {/* ================= LEFT COLUMN ================= */}
+            <div className="space-y-6">
             {/* Basic Information Card */}
             <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
               <div className="bg-[#123a6b] text-white px-4 py-2.5 flex items-center gap-2 font-bold text-xs uppercase tracking-wide">
                 <Info className="w-4 h-4 text-[#93c5fd]" />
                 <span>Basic Information</span>
                 <span className="ml-auto text-[10px] px-2 py-0.5 rounded bg-white/15 font-mono text-white/90">
-                  {material} Material
+                  {material ? `${material} Material` : 'Material'}
                 </span>
               </div>
               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 {/* Left Pane */}
-                <div className="space-y-2.5">
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                <div className="space-y-2.5 min-w-0">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Report No.</label>
                     <input
                       type="text"
                       value={reportNo}
                       disabled={!isLoggedIn}
                       onChange={(e) => setReportNo(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white font-mono text-xs disabled:bg-slate-50 disabled:text-slate-500"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white font-mono text-xs disabled:bg-slate-50 disabled:text-slate-500"
                     />
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Insp. Date</label>
                     <input
                       type="date"
                       value={inspDate}
                       disabled={!isLoggedIn}
                       onChange={(e) => setInspDate(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50 disabled:text-slate-500"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50 disabled:text-slate-500"
                     />
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Supplier</label>
                     <select
                       value={supplier}
                       disabled={!isLoggedIn}
                       onChange={(e) => setSupplier(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50 disabled:text-slate-500"
+                      className="w-full min-w-0 h-8 px-2 py-1 border border-[#cbd5e1] rounded bg-white text-xs truncate disabled:bg-slate-50 disabled:text-slate-500"
                     >
+                      <option value=""></option>
                       <option value="Supplier-A">Supplier-A (Apex PCB Tech)</option>
                       <option value="Supplier-B">Supplier-B (Global Electronics)</option>
                       <option value="Supplier-C">Supplier-C (Delta Component)</option>
                     </select>
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Material Type</label>
                     <select
                       value={material}
                       disabled={!isLoggedIn}
                       onChange={(e) => setMaterial(e.target.value as any)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs font-bold text-[#123a6b] disabled:bg-slate-50"
+                      className="w-full min-w-0 h-8 px-2 py-1 border border-[#cbd5e1] rounded bg-white text-xs font-bold text-[#123a6b] truncate disabled:bg-slate-50"
                     >
+                      <option value=""></option>
                       <option value="PCB">PCB (Printed Circuit Board)</option>
                       <option value="PCBA">PCBA (Assembly Sub-Module)</option>
                       <option value="Component">Component (SMD/DIP)</option>
                       <option value="Solder Paste">Solder Paste / Flux</option>
                     </select>
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Part No.</label>
                     <input
                       type="text"
                       value={partNo}
                       disabled={!isLoggedIn}
                       onChange={(e) => setPartNo(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50 disabled:text-slate-500"
-                      placeholder="Enter part no..."
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50 disabled:text-slate-500"
                     />
                   </div>
                 </div>
 
                 {/* Right Pane */}
-                <div className="space-y-2.5 sm:border-l sm:border-[#e2e8f0] sm:pl-4">
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                <div className="space-y-2.5 min-w-0 sm:border-l sm:border-[#e2e8f0] sm:pl-4">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Model Name</label>
                     <input
                       type="text"
                       value={model}
                       disabled={!isLoggedIn}
                       onChange={(e) => setModel(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
                     />
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">PO No.</label>
                     <input
                       type="text"
                       value={poNo}
                       disabled={!isLoggedIn}
                       onChange={(e) => setPoNo(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
                     />
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">GRN No.</label>
                     <input
                       type="text"
                       value={grnNo}
                       disabled={!isLoggedIn}
                       onChange={(e) => setGrnNo(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
                     />
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Lot No.</label>
                     <input
                       type="text"
                       value={lotNo}
                       disabled={!isLoggedIn}
                       onChange={(e) => setLotNo(e.target.value)}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs disabled:bg-slate-50"
                     />
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Recv. Qty</label>
                     <input
                       type="number"
                       value={recvQty}
                       disabled={!isLoggedIn}
                       onChange={(e) => setRecvQty(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs font-bold disabled:bg-slate-50"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs font-bold disabled:bg-slate-50"
                     />
                   </div>
-                  <div className="grid grid-cols-[100px_1fr] items-center gap-2">
+                  <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-2">
                     <label className="font-semibold text-[#475569]">Sample Qty</label>
                     <input
                       type="number"
                       value={sampleQty}
                       disabled={!isLoggedIn}
                       onChange={(e) => setSampleQty(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="px-2.5 py-1.5 border border-[#cbd5e1] rounded bg-white text-xs font-bold text-[#1565c0] disabled:bg-slate-50"
+                      className="w-full min-w-0 h-8 px-2.5 py-1 border border-[#cbd5e1] rounded bg-white text-xs font-bold text-[#1565c0] disabled:bg-slate-50"
                     />
                   </div>
                 </div>
@@ -1120,250 +1338,6 @@ export const IqcView: React.FC<IqcViewProps> = ({
               </div>
             </div>
 
-            {/* Report Summary Tiles */}
-            <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
-              <div className="bg-gradient-to-r from-[#123a6b] via-[#123a6b] to-[#1a4c8a] text-white px-4 py-2.5 font-bold text-xs uppercase tracking-wide">
-                Monthly Lot Inspection Summary
-              </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-[#1565c0] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">Total Lots<br />Received</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={totalLots}
-                    disabled={!isLoggedIn}
-                    onChange={(e) => setTotalLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
-                  />
-                </div>
-
-                <div className="bg-[#22a45d] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">Accepted<br />Lots</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={acceptedLots}
-                    disabled={!isLoggedIn}
-                    onChange={(e) => setAcceptedLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
-                  />
-                </div>
-
-                <div className="bg-[#f2b134] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">Conditional<br />Accept</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={condLots}
-                    disabled={!isLoggedIn}
-                    onChange={(e) => setCondLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
-                  />
-                </div>
-
-                <div className="bg-[#e2231a] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">Rejected<br />Lots</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={rejectedLots}
-                    disabled={!isLoggedIn}
-                    onChange={(e) => setRejectedLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Performance KPIs & Pareto Chart Split */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Quality Performance */}
-              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
-                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
-                  Quality Performance
-                </div>
-                <div className="p-3">
-                  <table className="w-full text-xs">
-                    <tbody className="divide-y divide-slate-100">
-                      <tr>
-                        <td className="py-2 text-slate-600 font-medium">Acceptance Rate</td>
-                        <td className="py-2 text-right font-extrabold text-[#22a45d]">{acceptRate}%</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 text-slate-600 font-medium">Rejection Rate</td>
-                        <td className="py-2 text-right font-extrabold text-[#e2231a]">{rejectRate}%</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 text-slate-600 font-medium">Supplier PPM</td>
-                        <td className="py-2 text-right font-extrabold text-[#123a6b]">
-                          {ppm > 0 ? ppm.toLocaleString() : '&mdash;'}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 text-slate-600 font-medium">Incoming Defect Rate</td>
-                        <td className="py-2 text-right font-extrabold text-[#1565c0]">
-                          {sQty > 0 ? `${idr}%` : '&mdash;'}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Defect Pareto Chart */}
-              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
-                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
-                  Defect Pareto Distribution
-                </div>
-                <div className="p-3 flex items-center justify-center">
-                  <svg className="w-full h-auto" viewBox={`0 0 ${svgW} ${svgH}`} role="img" aria-label="Defect Pareto chart">
-                    {/* Gridlines */}
-                    {[0, 10, 20, 30, 40].map((p) => {
-                      const y = padT + plotH - (p / 40) * plotH;
-                      return (
-                        <g key={p}>
-                          <line x1={padL} y1={y} x2={svgW - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-                          <text x={padL - 4} y={y + 3} textAnchor="end" fontSize="7.5" fill="#64748b">
-                            {p}%
-                          </text>
-                        </g>
-                      );
-                    })}
-
-                    {/* Bars */}
-                    {paretoSum > 0 ? (
-                      topDefects.map((d, i) => {
-                        const pct = (d.qty / paretoSum) * 100;
-                        const slot = plotW / topDefects.length;
-                        const bw = Math.min(26, slot * 0.6);
-                        const h = Math.max(3, (Math.min(pct, 40) / 40) * plotH);
-                        const x = padL + slot * i + (slot - bw) / 2;
-                        const y = padT + plotH - h;
-                        const words = d.name.split(' ');
-
-                        return (
-                          <g key={d.name}>
-                            <rect
-                              x={x}
-                              y={y}
-                              width={bw}
-                              height={h}
-                              fill={PALETTE[i % PALETTE.length]}
-                              rx="2"
-                            />
-                            <text
-                              x={x + bw / 2}
-                              y={y - 3}
-                              textAnchor="middle"
-                              fontSize="8"
-                              fontWeight="700"
-                              fill="#0d1730"
-                            >
-                              {Math.round(pct)}%
-                            </text>
-                            {words.slice(0, 2).map((w, k) => (
-                              <text
-                                key={k}
-                                x={x + bw / 2}
-                                y={padT + plotH + 11 + k * 8}
-                                textAnchor="middle"
-                                fontSize="7.2"
-                                fill="#64748b"
-                              >
-                                {w}
-                              </text>
-                            ))}
-                          </g>
-                        );
-                      })
-                    ) : (
-                      <text
-                        x={padL + plotW / 2}
-                        y={padT + plotH / 2}
-                        textAnchor="middle"
-                        fontSize="8.5"
-                        fill="#94a3b8"
-                      >
-                        Enter defect quantities to plot Pareto
-                      </text>
-                    )}
-
-                    {/* Bottom Axis */}
-                    <line
-                      x1={padL}
-                      y1={padT + plotH}
-                      x2={svgW - padR}
-                      y2={padT + plotH}
-                      stroke="#cbd5e1"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* Supplier Ranking & Status Flow Split */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Supplier Ranking */}
-              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
-                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
-                  Supplier Ranking
-                </div>
-                <div className="p-2 overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                        <th className="p-1.5 text-left">Supplier</th>
-                        <th className="p-1.5 text-center">Lots</th>
-                        <th className="p-1.5 text-center">Rej</th>
-                        <th className="p-1.5 text-center">Grade</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {SUPPLIER_RANKINGS.map((s) => (
-                        <tr key={s.supplier}>
-                          <td className="p-1.5 font-medium text-slate-800">{s.supplier}</td>
-                          <td className="p-1.5 text-center font-mono">{s.lots}</td>
-                          <td className="p-1.5 text-center font-mono font-bold text-[#e2231a]">{s.reject}</td>
-                          <td className="p-1.5 text-center">
-                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-white font-bold text-[10px] ${s.class}`}>
-                              {s.rating}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Status Flow */}
-              <div className="bg-white rounded-xl border border-[#cbd5e1] shadow-2xs overflow-hidden">
-                <div className="bg-[#123a6b] text-white px-3 py-2 font-bold text-xs uppercase tracking-wide">
-                  Inspection Stage Flow
-                </div>
-                <ul className="p-3 space-y-2 text-xs">
-                  {STATUS_FLOW.map((f, idx) => (
-                    <li key={f.step} className="flex items-center gap-2.5">
-                      <span
-                        className={`w-3 h-3 rounded-full shrink-0 ${
-                          f.status === 'done'
-                            ? 'bg-[#1565c0]'
-                            : f.status === 'current'
-                            ? 'bg-[#f2b134] ring-2 ring-[#f2b134]/30 animate-pulse'
-                            : 'bg-[#22a45d]'
-                        }`}
-                      />
-                      <span className={`font-semibold ${f.status === 'current' ? 'text-[#b45309]' : 'text-slate-700'}`}>
-                        {idx + 1}. {f.step}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
             {/* Footnote Card */}
             <div className="bg-[#eaf2fb] border border-[#cbd5e1] rounded-xl p-3 flex items-center justify-between text-xs text-[#123a6b] font-semibold">
               <span className="flex items-center gap-2">
@@ -1374,6 +1348,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

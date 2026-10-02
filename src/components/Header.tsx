@@ -177,13 +177,17 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div className="pr-1 hidden sm:block">
                 <div className="text-xs font-bold text-white leading-tight truncate max-w-[140px]">
-                  {userProfile?.name || (userEmail ? userEmail.split('@')[0] : 'Atikur Rahman')}
+                  {userProfile?.name || (userEmail ? userEmail.split('@')[0] : 'Walton QC')}
                 </div>
-                <div className="text-[10px] text-[#9fb0d6] flex items-center gap-1">
-                  <span>{userProfile?.designation || 'Quality Management'}</span>
-                  {userProfile?.role && (
-                    <span className="px-1 py-0.2 bg-[#2a3c6b] text-white rounded text-[9px] uppercase font-bold">
-                      {userProfile.role}
+                <div className="text-[10px] text-[#9fb0d6] flex items-center gap-1.5 mt-0.5">
+                  <span className="truncate max-w-[100px]">{userProfile?.designation || 'Staff'}</span>
+                  {userProfile?.role === 'admin' ? (
+                    <span className="px-1.5 py-0.2 bg-amber-500/20 border border-amber-400/40 text-amber-300 rounded text-[9px] uppercase font-bold tracking-wider">
+                      Admin
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.2 bg-blue-500/20 border border-blue-400/40 text-blue-300 rounded text-[9px] uppercase font-bold tracking-wider">
+                      Staff
                     </span>
                   )}
                 </div>
@@ -194,24 +198,30 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="absolute right-0 mt-2 w-64 bg-white border border-[#e2e7f2] rounded-xl shadow-xl py-1.5 z-50 text-[#141b30] text-xs">
                 <div className="px-3.5 py-2.5 border-b border-[#e2e7f2]">
                   <p className="font-semibold text-sm text-[#0d1730] truncate">
-                    {userProfile?.name || (userEmail ? userEmail.split('@')[0] : 'Atikur Rahman')}
+                    {userProfile?.name || (userEmail ? userEmail.split('@')[0] : 'Walton QC')}
                   </p>
-                  <p className="text-[11px] text-[#5b6480] truncate font-mono">{userEmail || 'atiqur40736@waltonbd.com'}</p>
+                  <p className="text-[11px] text-[#5b6480] truncate font-mono">{userEmail || ''}</p>
                   {userProfile?.employeeId && (
-                    <p className="text-[10.5px] text-slate-500 font-mono mt-0.5">ID: {userProfile.employeeId}</p>
+                    <p className="text-[10.5px] text-slate-500 font-mono mt-0.5">Employee ID: {userProfile.employeeId}</p>
                   )}
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    <span className="px-1.5 py-0.5 bg-[#e5f7ee] text-[#1c8a53] rounded text-[10px] font-semibold">
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <span className="px-2 py-0.5 bg-[#e5f7ee] text-[#1c8a53] rounded text-[10px] font-semibold">
                       Active
                     </span>
-                    <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-semibold uppercase">
-                      {userProfile?.role || 'Admin'}
-                    </span>
+                    {userProfile?.role === 'admin' ? (
+                      <span className="px-2 py-0.5 bg-amber-100 border border-amber-300 text-amber-800 rounded text-[10px] font-bold uppercase">
+                        🛡️ Administrator
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-blue-100 border border-blue-300 text-blue-800 rounded text-[10px] font-bold uppercase">
+                        👤 Staff (Restricted)
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Admin User Management link */}
-                {(userProfile?.role === 'admin' || userProfile?.role === 'manager' || !userProfile) && (
+                {/* Admin User Management link - Strictly restricted to admin role */}
+                {userProfile?.role === 'admin' && (
                   <button
                     onClick={() => {
                       setUserMenuOpen(false);
