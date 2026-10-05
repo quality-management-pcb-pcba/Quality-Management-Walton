@@ -1,0 +1,10 @@
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 5
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day GNDPinBroken 6
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day PCBADiscolour 1
+28-Sep-2026 NEXG_N76 4/128 GB Rework Day GNDPinBroken 1
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day ChargerPinUp 1
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day GNDPinBroken 4
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day GNDPinShifting 3
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day GNDPinIssue 3
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day HeadsetBasePinUp 2
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day ShieldUp 1

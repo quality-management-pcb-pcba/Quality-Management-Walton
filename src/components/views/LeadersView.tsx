@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageId } from '../../types';
 import {
   ArrowLeft,
@@ -8,131 +8,116 @@ import {
   ShieldCheck,
   CheckCircle2,
   Award,
-  ExternalLink,
   ChevronRight,
-  Info,
+  UserPlus,
+  UserCog,
+  Edit3,
+  Check,
+  RotateCcw,
 } from 'lucide-react';
+import {
+  LeaderProfile,
+  getStoredLeaders,
+  ensureAllDefaultLeaders,
+  subscribeLeaders,
+  saveLeaderProfile,
+  deleteLeaderProfile,
+  resetLeadersToDefaults,
+  sortLeadersList,
+} from '../../services/leadersService';
+import { LeaderProfileModal } from '../modals/LeaderProfileModal';
+import { WaltonSealLogo } from '../WaltonSealLogo';
 
 interface LeadersViewProps {
   onNavigate?: (page: PageId) => void;
 }
 
-interface LeaderProfile {
-  id: string;
-  name: string;
-  employeeId: string;
-  designation: string;
-  tier: 'executive' | 'operations';
-  department: string;
-  responsibilities: string[];
-  experience: string;
-  location: string;
-  email: string;
-  phone: string;
-  photoUrl: string;
-}
-
-const LEADERS: LeaderProfile[] = [
-  {
-    id: 'nasir-uddin',
-    name: 'Md. Nasir Uddin',
-    employeeId: '18139',
-    designation: 'CBO of PCB & PCBA',
-    tier: 'executive',
-    department: 'PCB & PCBA Business Operations',
-    responsibilities: [
-      'Strategic executive direction across PCB fabrication and SMT PCBA manufacturing divisions',
-      'Capital allocation for high-precision automated inspection machinery (3D AOI, X-Ray, Flying Probe)',
-      'Total Quality Management (TQM) governance and global electronic manufacturing compliance',
-    ],
-    experience: '18+ Years in High-Volume Electronics Manufacturing & Corporate Leadership',
-    location: 'Walton Hi-Tech Industries PLC, Chandra, Gazipur',
-    email: 'nasir.cbo@waltonbd.com',
-    phone: '+880 1713-262601',
-    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=80',
-  },
-  {
-    id: 'atiqur-rahman',
-    name: 'Md. Atiqur Rahman',
-    employeeId: '40736',
-    designation: 'Head of QM- PCB&PCBA',
-    tier: 'executive',
-    department: 'Quality Management Division',
-    responsibilities: [
-      'Division-wide quality assurance, IPC-A-610 Class 3 and ISO 9001:2015 adherence',
-      'Lead cross-functional CAPA 8D investigations, root cause analyses, and supplier quality audits',
-      'Daily quality yield tracking across all TV, Refrigerator, and Mobile PCBA production lines',
-    ],
-    experience: '12+ Years in Electronic Circuit Quality Assurance & Manufacturing Excellence',
-    location: 'Quality Management Headquarters, Walton Gazipur Plant',
-    email: 'qm.pcba26@gmail.com',
-    phone: '+880 1678-860873',
-    photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&h=400&q=80',
-  },
-  {
-    id: 'tazedul-hoque',
-    name: 'Md. Tazedul Hoque',
-    employeeId: '36924',
-    designation: 'Co-Ordinator of QM- PCBA',
-    tier: 'operations',
-    department: 'PCBA Quality Coordination',
-    responsibilities: [
-      'Surface Mount Technology (SMT) and Through-Hole (THT) quality process coordination',
-      'Solder paste inspection (SPI) parameters and reflow soldering thermal profile auditing',
-      'First-article inspection (FAI) approval and continuous training for in-line QC personnel',
-    ],
-    experience: '9+ Years in PCBA Process Engineering & Quality Coordination',
-    location: 'PCBA SMT Quality Hub, Plant 02, Gazipur',
-    email: 'tazedul.qm@waltonbd.com',
-    phone: '+880 1713-262635',
-    photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&h=400&q=80',
-  },
-  {
-    id: 'alamgir-hossain',
-    name: 'Md. Alamgir Hossain',
-    employeeId: '25673',
-    designation: 'Supervisor of QM- PCB',
-    tier: 'operations',
-    department: 'PCB Quality Control',
-    responsibilities: [
-      'Raw PCB fabrication quality oversight (Dry Film, CNC Drilling, PTH Copper Plating)',
-      'Solder mask alignment, HASL/ENIG surface finish verification, and bare-board electrical testing (ET)',
-      'Frontline inspection team shift scheduling and zero-defect scrap reduction initiatives',
-    ],
-    experience: '8+ Years in PCB Manufacturing & Defect Prevention',
-    location: 'PCB Fabrication Quality Control Section, Gazipur',
-    email: 'alamgir.pcb@waltonbd.com',
-    phone: '+880 1713-262642',
-    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&h=400&q=80',
-  },
-  {
-    id: 'mamun-hossen',
-    name: 'Md. Mamun Hossen',
-    employeeId: '42179',
-    designation: 'Supervisor of QM- PCBA',
-    tier: 'operations',
-    department: 'PCBA Quality Control',
-    responsibilities: [
-      'Direct supervision of 3D AOI inspection stations and in-circuit testing (ICT) bays',
-      'Non-conformance containment on active lines and immediate defect feedback to line engineers',
-      'Worker KPI evaluation, workmanship grading according to IPC standards, and 5S compliance',
-    ],
-    experience: '7+ Years in SMT In-Line Quality Supervision',
-    location: 'PCBA Assembly Line 01-08 QA Bay, Gazipur',
-    email: 'mamun.pcba@waltonbd.com',
-    phone: '+880 1713-262650',
-    photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&h=400&q=80',
-  },
-];
-
 export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: PageId) => {} }) => {
+  const [leaders, setLeaders] = useState<LeaderProfile[]>(() => getStoredLeaders());
   const [selectedLeader, setSelectedLeader] = useState<LeaderProfile | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingLeader, setEditingLeader] = useState<LeaderProfile | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const topTier = LEADERS.filter((l) => l.tier === 'executive');
-  const bottomTier = LEADERS.filter((l) => l.tier === 'operations');
+  // Subscribe to real-time updates and localStorage caching
+  useEffect(() => {
+    void ensureAllDefaultLeaders();
+    const unsubscribe = subscribeLeaders((updatedList) => {
+      setLeaders(updatedList);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  };
+
+  const handleOpenAddModal = () => {
+    setEditingLeader(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (leader: LeaderProfile) => {
+    setEditingLeader(leader);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveLeader = async (leader: LeaderProfile) => {
+    const saved = await saveLeaderProfile(leader);
+    // Synchronously update local React state immediately
+    setLeaders((prev) => {
+      const idx = prev.findIndex(
+        (l) => l.id === saved.id || (saved.employeeId && l.employeeId === saved.employeeId)
+      );
+      let next: LeaderProfile[];
+      if (idx >= 0) {
+        next = [...prev];
+        next[idx] = saved;
+      } else {
+        next = [...prev, saved];
+      }
+      return sortLeadersList(next);
+    });
+
+    showToast(`Leader profile for "${saved.name}" updated & saved successfully!`);
+
+    // If we were previewing this leader, update the preview state
+    if (selectedLeader?.id === saved.id || (saved.employeeId && selectedLeader?.employeeId === saved.employeeId)) {
+      setSelectedLeader(saved);
+    }
+  };
+
+  const handleDeleteLeader = async (leaderId: string) => {
+    await deleteLeaderProfile(leaderId);
+    setLeaders((prev) => prev.filter((l) => l.id !== leaderId));
+    showToast('Leader profile removed from directory.');
+    if (selectedLeader?.id === leaderId) {
+      setSelectedLeader(null);
+    }
+  };
+
+  const handleResetDefaults = async () => {
+    const defaults = await resetLeadersToDefaults();
+    setLeaders(defaults);
+    showToast('Directory reset to default 5 Walton QM leaders.');
+  };
+
+  const topTier = leaders.filter((l) => l.tier === 'executive');
+  const bottomTier = leaders.filter((l) => l.tier === 'operations');
 
   return (
     <div id="page-leaders-view" className="space-y-6 animate-in fade-in duration-200">
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div className="fixed top-20 right-6 z-50 bg-[#0d1730] text-white px-4 py-2.5 rounded-xl shadow-lg border border-[#3b82f6]/40 flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
+          <Check className="w-4 h-4 text-[#38bdf8]" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#cbd5e1]">
         <div>
@@ -155,41 +140,70 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        {/* Action Button Group */}
+        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          {/* User Requested: Entry / Update Profile Leaders Button */}
           <button
-            onClick={() => onNavigate('dashboard')}
-            className="px-3.5 py-2 bg-[#1c356b] hover:bg-[#152a55] text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+            type="button"
+            id="btn-entry-update-leaders"
+            onClick={handleOpenAddModal}
+            className="px-3.5 py-2 bg-[#e35b2a] hover:bg-[#c8491c] text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer flex items-center gap-1.5 border border-transparent hover:shadow-sm"
+            title="Add or update a quality management leader profile"
           >
-            <span>QMS Dashboard</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Entry / Update Profile Leaders</span>
           </button>
         </div>
       </div>
 
-      {/* Main Leaders Presentation Canvas Matching Image.png */}
+      {/* Main Leaders Presentation Canvas Matching CSS Selector 1 */}
       <div
         id="leaders-hierarchy-container"
         className="bg-[#ededed] sm:bg-[#eef1f6] border border-[#d1d5db] rounded-2xl p-6 sm:p-10 lg:p-12 shadow-sm relative overflow-hidden"
       >
-        {/* Subtle decorative background watermark */}
-        <div className="absolute top-4 right-6 text-[#cbd5e1]/40 font-mono font-black text-6xl select-none pointer-events-none">
-          WALTON QM
+        {/* Subtle decorative background watermark logos */}
+        <div className="absolute -top-12 -right-12 w-64 h-64 opacity-[0.05] select-none pointer-events-none">
+          <WaltonSealLogo animated={false} className="w-full h-full object-contain" />
+        </div>
+        <div className="absolute -bottom-12 -left-12 w-64 h-64 opacity-[0.035] select-none pointer-events-none hidden md:block">
+          <WaltonSealLogo animated={false} className="w-full h-full object-contain" />
         </div>
 
-        {/* Section title banner */}
-        <div className="text-center mb-8 sm:mb-10">
-          <span className="inline-block px-3 py-1 bg-white/80 border border-[#cbd5e1] rounded-full text-[11px] font-bold text-[#1c356b] uppercase tracking-wider shadow-2xs">
-            Leadership Directory · PCB &amp; PCBA Divisions
-          </span>
+        {/* Walton Quality Management Official Logo Masthead & Crest */}
+        <div className="flex flex-col items-center justify-center text-center mb-10 sm:mb-12 relative z-10">
+          <div className="flex flex-col items-center group">
+            {/* Circular Official Seal Logo */}
+            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-26 md:h-26 rounded-full bg-white p-1.5 shadow-md border-2 border-[#1c356b]/20 flex items-center justify-center mb-3 transition-transform duration-300 hover:scale-105">
+              <WaltonSealLogo animated={true} className="w-full h-full object-contain select-none" />
+            </div>
+
+            {/* Corporate Title Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-[#cbd5e1] shadow-2xs mb-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#e35b2a] animate-pulse"></span>
+              <span className="text-[11px] font-bold text-[#1c356b] tracking-wider uppercase">
+                Walton Hi-Tech Industries PLC
+              </span>
+            </div>
+
+            <h2 className="text-base sm:text-lg md:text-xl font-black text-[#0d1730] tracking-tight uppercase">
+              Quality Management Directorate · PCB &amp; PCBA
+            </h2>
+            <p className="text-[11px] sm:text-xs text-[#5b6480] font-medium max-w-md mt-0.5">
+              Executive Governance &amp; High-Yield Operations Organization Tree
+            </p>
+          </div>
+
+          {/* Decorative Connecting Stem to Leadership Hierarchy */}
+          <div className="w-px h-8 bg-gradient-to-b from-[#1c356b]/40 to-[#1c356b]/10 mt-3 hidden sm:block"></div>
         </div>
 
-        {/* Tier 1: 2 Leaders (Top Row, Centered) */}
+        {/* Tier 1: Executive Leaders (Top Row, Centered) */}
         <div className="flex flex-wrap justify-center gap-10 sm:gap-20 lg:gap-32 mb-10 sm:mb-14">
           {topTier.map((leader) => (
             <div
               key={leader.id}
               onClick={() => setSelectedLeader(leader)}
-              className="flex flex-col items-center text-center group cursor-pointer transition-transform duration-200 hover:-translate-y-1 max-w-[220px]"
+              className="flex flex-col items-center text-center group cursor-pointer transition-transform duration-200 hover:-translate-y-1 max-w-[220px] relative"
             >
               {/* Circular Avatar */}
               <div className="relative mb-3.5">
@@ -199,12 +213,23 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                     alt={leader.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
-                      // Fallback to stylized initials if image loading fails
                       const target = e.currentTarget;
                       target.style.display = 'none';
                       if (target.parentElement) {
-                        target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'bg-[#1c356b]', 'text-white', 'font-bold', 'text-2xl');
-                        target.parentElement.innerText = leader.name.split(' ').map((n) => n[0]).join('').slice(0, 2);
+                        target.parentElement.classList.add(
+                          'flex',
+                          'items-center',
+                          'justify-center',
+                          'bg-[#1c356b]',
+                          'text-white',
+                          'font-bold',
+                          'text-2xl'
+                        );
+                        target.parentElement.innerText = leader.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2);
                       }
                     }}
                   />
@@ -212,6 +237,19 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                 <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-[#1c356b] border-2 border-white text-white flex items-center justify-center shadow-xs">
                   <Award className="w-3.5 h-3.5" />
                 </div>
+
+                {/* Quick Edit Icon Overlay */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenEditModal(leader);
+                  }}
+                  className="absolute top-0 right-0 w-7 h-7 rounded-full bg-white text-[#1c356b] hover:text-white hover:bg-[#e35b2a] border border-[#cbd5e1] shadow-md flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  title={`Edit ${leader.name}'s profile`}
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
               </div>
 
               {/* Leader Name & ID */}
@@ -224,21 +262,36 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                 {leader.designation}
               </div>
 
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-[#2563eb] flex items-center gap-1">
-                <span>View Profile</span>
-                <ChevronRight className="w-3 h-3" />
+              {/* Action Buttons */}
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-[#2563eb] flex items-center gap-0.5 group-hover:underline">
+                  <span>View Bio</span>
+                  <ChevronRight className="w-3 h-3" />
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenEditModal(leader);
+                  }}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-[#e35b2a] text-[#1c356b] hover:text-white border border-[#cbd5e1] shadow-2xs transition-colors cursor-pointer text-[10px] font-bold flex items-center gap-1"
+                  title={`Edit profile for ${leader.name}`}
+                >
+                  <Edit3 className="w-2.5 h-2.5" />
+                  <span>Edit</span>
+                </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Tier 2: 3 Leaders (Bottom Row, Centered) */}
+        {/* Tier 2: Operations Leaders (Bottom Row, Centered) */}
         <div className="flex flex-wrap justify-center gap-8 sm:gap-14 lg:gap-24">
           {bottomTier.map((leader) => (
             <div
               key={leader.id}
               onClick={() => setSelectedLeader(leader)}
-              className="flex flex-col items-center text-center group cursor-pointer transition-transform duration-200 hover:-translate-y-1 max-w-[210px]"
+              className="flex flex-col items-center text-center group cursor-pointer transition-transform duration-200 hover:-translate-y-1 max-w-[210px] relative"
             >
               {/* Circular Avatar */}
               <div className="relative mb-3.5">
@@ -251,8 +304,20 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                       const target = e.currentTarget;
                       target.style.display = 'none';
                       if (target.parentElement) {
-                        target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'bg-[#e35b2a]', 'text-white', 'font-bold', 'text-xl');
-                        target.parentElement.innerText = leader.name.split(' ').map((n) => n[0]).join('').slice(0, 2);
+                        target.parentElement.classList.add(
+                          'flex',
+                          'items-center',
+                          'justify-center',
+                          'bg-[#e35b2a]',
+                          'text-white',
+                          'font-bold',
+                          'text-xl'
+                        );
+                        target.parentElement.innerText = leader.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2);
                       }
                     }}
                   />
@@ -260,6 +325,19 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                 <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-[#0d9488] border-2 border-white text-white flex items-center justify-center shadow-xs">
                   <ShieldCheck className="w-3 h-3" />
                 </div>
+
+                {/* Quick Edit Icon Overlay */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenEditModal(leader);
+                  }}
+                  className="absolute top-0 right-0 w-6 h-6 rounded-full bg-white text-[#1c356b] hover:text-white hover:bg-[#e35b2a] border border-[#cbd5e1] shadow-md flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  title={`Edit ${leader.name}'s profile`}
+                >
+                  <Edit3 className="w-3 h-3" />
+                </button>
               </div>
 
               {/* Leader Name & ID */}
@@ -272,9 +350,24 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                 {leader.designation}
               </div>
 
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-[#e35b2a] flex items-center gap-1">
-                <span>View Profile</span>
-                <ChevronRight className="w-3 h-3" />
+              {/* Action Buttons */}
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-[#e35b2a] flex items-center gap-0.5 group-hover:underline">
+                  <span>View Bio</span>
+                  <ChevronRight className="w-3 h-3" />
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenEditModal(leader);
+                  }}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-[#e35b2a] text-[#1c356b] hover:text-white border border-[#cbd5e1] shadow-2xs transition-colors cursor-pointer text-[10px] font-bold flex items-center gap-1"
+                  title={`Edit profile for ${leader.name}`}
+                >
+                  <Edit3 className="w-2.5 h-2.5" />
+                  <span>Edit</span>
+                </button>
               </div>
             </div>
           ))}
@@ -283,17 +376,27 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
 
       {/* Leadership Directory Table / Cards Detail Grid */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#0d1730]">
-            Operational Roles &amp; Responsibilities
-          </h2>
-          <span className="text-xs text-[#5b6480]">
-            5 Key Leaders in Directorate
-          </span>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-[#0d1730]">
+              Operational Roles &amp; Responsibilities
+            </h2>
+            <p className="text-xs text-[#5b6480] mt-0.5">
+              {leaders.length} Key Leaders in Directorate
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-[#1c356b] border border-[#cbd5e1] rounded-lg text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+          >
+            <UserPlus className="w-3.5 h-3.5 text-[#e35b2a]" />
+            <span>Entry New Leader</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {LEADERS.map((leader) => (
+          {leaders.map((leader) => (
             <div
               key={leader.id}
               className="bg-white rounded-xl border border-[#cbd5e1] p-5 shadow-xs flex flex-col justify-between hover:border-[#94a3b8] transition-colors"
@@ -307,9 +410,7 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                       className="w-12 h-12 rounded-full object-cover border border-[#cbd5e1]"
                     />
                     <div>
-                      <h3 className="font-bold text-sm text-[#0d1730]">
-                        {leader.name}
-                      </h3>
+                      <h3 className="font-bold text-sm text-[#0d1730]">{leader.name}</h3>
                       <div className="text-xs font-semibold text-[#2563eb]">
                         ID: {leader.employeeId}
                       </div>
@@ -352,12 +453,23 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
               </div>
 
               <div className="pt-4 mt-3 border-t border-[#f1f5f9] flex items-center justify-between">
-                <button
-                  onClick={() => setSelectedLeader(leader)}
-                  className="text-xs font-bold text-[#1c356b] hover:text-[#e35b2a] transition-colors cursor-pointer"
-                >
-                  Full Bio &amp; Contact →
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLeader(leader)}
+                    className="text-xs font-bold text-[#1c356b] hover:text-[#e35b2a] transition-colors cursor-pointer"
+                  >
+                    Full Bio &amp; Contact →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(leader)}
+                    className="text-xs font-semibold text-[#e35b2a] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span>Edit</span>
+                  </button>
+                </div>
                 <a
                   href={`mailto:${leader.email}`}
                   className="p-1.5 rounded-md hover:bg-slate-100 text-[#5b6480] hover:text-[#0d1730] transition-colors"
@@ -378,6 +490,7 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
             {/* Modal Header Banner */}
             <div className="bg-[#0d1730] text-white p-6 relative">
               <button
+                type="button"
                 onClick={() => setSelectedLeader(null)}
                 className="absolute top-4 right-4 text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
@@ -445,8 +558,23 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end">
+              {/* Action Buttons in Detail Modal */}
+              <div className="pt-4 flex items-center justify-between border-t border-[#f1f5f9]">
                 <button
+                  type="button"
+                  onClick={() => {
+                    const toEdit = selectedLeader;
+                    setSelectedLeader(null);
+                    handleOpenEditModal(toEdit);
+                  }}
+                  className="px-3.5 py-2 bg-[#e35b2a] hover:bg-[#c8491c] text-white font-bold text-xs rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit This Profile</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setSelectedLeader(null)}
                   className="px-4 py-2 bg-[#1c356b] hover:bg-[#152a55] text-white font-bold text-xs rounded-lg transition-colors cursor-pointer"
                 >
@@ -457,6 +585,17 @@ export const LeadersView: React.FC<LeadersViewProps> = ({ onNavigate = (_page: P
           </div>
         </div>
       )}
+
+      {/* Entry / Update Leader Profile Modal */}
+      <LeaderProfileModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        leaders={leaders}
+        initialLeader={editingLeader}
+        onSave={handleSaveLeader}
+        onDelete={handleDeleteLeader}
+        onResetDefaults={handleResetDefaults}
+      />
     </div>
   );
 };

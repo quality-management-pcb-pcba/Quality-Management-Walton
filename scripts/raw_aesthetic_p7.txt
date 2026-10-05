@@ -1,0 +1,77 @@
+21-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day ComponentShifting 1
+21-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day HeadsetBaseShifting 1
+22-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 1
+22-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 2
+22-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinShifting 1
+22-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 1
+23-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 1
+23-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 2
+23-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinShifting 1
+23-Aug-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 1
+5-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ComponentBroken 1
+5-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 1
+6-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 2
+6-Sep-2026 NEXG_N77 4/128 GB Mass Production Night GNDPinBroken 1
+6-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 1
+6-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldTap 1
+7-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 2
+7-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 1
+8-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 2
+8-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ComponentLiftUp 1
+9-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 1
+9-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldTap 1
+12-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SimBasePinUp 12
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ComponentBroken 1
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 3
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SimBasePinUp 3
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Night GNDPinBroken 1
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SimBasePinUp 2
+13-Sep-2026 Orbit_Y71 3/64 GB Rework Night GNDPinBroken 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ConnectorShifting 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day GNDPinBroken 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 4
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldTap 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 9
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SimBaseHard 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SimBasePinUp 3
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day TCardBaseBroken 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ComponentShifting 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ComponentBroken 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Day GNDPinBroken 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Day GNDPinShifting 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 8
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldTap 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SimBasePinUp 1
+15-Sep-2026 Olvio_MM26i Null Rework Day ExtraLead 1
+16-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 10
+16-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 10
+16-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 1
+16-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 2
+17-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Barcode 1
+18-Sep-2026 NEXG_N77 4/128 GB Mass Production Day PCBABroken 1
+19-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 1
+19-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 5
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Night GNDPinBroken 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Night GNDPinShifting 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldTap 1
+20-Sep-2026 Axion_A1100_i100 Null Rework Day ComponentBroken 3
+20-Sep-2026 Axion_A1100_i100 Null Rework Day ComponentShifting 1
+20-Sep-2026 Axion_A1100_i100 Null Rework Day DrySolder 1
+20-Sep-2026 Axion_A1100_i100 Null Rework Day MakeCallPoint 1
+20-Sep-2026 Axion_A1100_i100 Null Rework Day MakeCallPointSkip 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 8
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SimBasePinUp 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Night GNDPinMissing 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ComponentBroken 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day GNDPinBroken 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 2
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Night GNDPinMissing 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Night PCBABroken 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SimBasePinUp 1
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 1

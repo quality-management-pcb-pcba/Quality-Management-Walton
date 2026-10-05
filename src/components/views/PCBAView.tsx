@@ -224,7 +224,11 @@ export const PCBAView: React.FC<PCBAViewProps> = ({
 
           <button
             id="btn-pcba-reports"
-            onClick={() => setActiveModal('report')}
+            onClick={() => {
+              setPortalInitialLine(undefined as any);
+              setPortalInitialNav({ type: 'home', value: 'Home' });
+              setActiveModal('report');
+            }}
             className="px-4 sm:px-6 py-2.5 bg-[#182a52] hover:bg-[#22376b] text-white text-xs sm:text-sm font-bold rounded-xl border border-[#2d4c8e] shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
           >
             <span>Reports</span>

@@ -67,6 +67,107 @@ interface TaskManagerViewProps {
 
 const TASKS_STORAGE_KEY = 'walton_qms_tasks_v1';
 
+const generateAutoTaskToken = (title?: string): string => {
+  let prefix = 'WQM';
+  if (title && title.trim()) {
+    const words = title.trim().split(/[\s\-_/]+/).filter(Boolean);
+    if (words.length >= 2) {
+      const letters = words.map((w) => w[0].toUpperCase().replace(/[^A-Z0-9]/g, '')).filter(Boolean);
+      if (letters.length >= 2) {
+        prefix = letters.slice(0, 5).join('');
+      }
+    } else {
+      const clean = title.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      if (clean.length >= 3) {
+        prefix = clean.slice(0, 4);
+      }
+    }
+  }
+  if (!prefix || prefix.length < 2) prefix = 'WQM';
+
+  const midNum = Math.floor(100000 + Math.random() * 900000);
+  const chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const suffix = Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return `${prefix}-${midNum}-${suffix}`;
+};
+
+const calculateDaysLate = (deadlineStr?: string, fallbackDaysLate?: number): number => {
+  if (!deadlineStr || !deadlineStr.trim()) return fallbackDaysLate || 0;
+  const str = deadlineStr.trim();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 1. Check ISO format YYYY-MM-DD
+  const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoMatch) {
+    const y = parseInt(isoMatch[1], 10);
+    const m = parseInt(isoMatch[2], 10) - 1;
+    const d = parseInt(isoMatch[3], 10);
+    const deadlineDate = new Date(y, m, d);
+    deadlineDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((today.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(diffDays, 0);
+  }
+
+  // 2. Month names map
+  const monthMap: Record<string, number> = {
+    jan: 0, january: 0,
+    feb: 1, february: 1,
+    mar: 2, march: 2,
+    apr: 3, april: 3,
+    may: 4,
+    jun: 5, june: 5,
+    jul: 6, july: 6,
+    aug: 7, august: 7,
+    sep: 8, sept: 8, september: 8,
+    oct: 9, october: 9,
+    nov: 10, november: 10,
+    dec: 11, december: 11,
+  };
+
+  // 3. Format "Mon DD" or "Mon DD, YYYY" (e.g. "Jul 12", "Sep 1", "August 10, 2026")
+  const m1 = str.match(/^([a-zA-Z]+)\s+(\d{1,2})(?:,?\s+(\d{4}))?/i);
+  if (m1) {
+    const monthKey = m1[1].toLowerCase();
+    if (monthMap[monthKey] !== undefined) {
+      const month = monthMap[monthKey];
+      const day = parseInt(m1[2], 10);
+      const year = m1[3] ? parseInt(m1[3], 10) : today.getFullYear();
+      const deadlineDate = new Date(year, month, day);
+      deadlineDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((today.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(diffDays, fallbackDaysLate || 0);
+    }
+  }
+
+  // 4. Format "DD Mon" or "DD-Mon-YYYY" (e.g. "12 Jul", "12-Jul-2026")
+  const m2 = str.match(/^(\d{1,2})[-/\s]+([a-zA-Z]+)(?:[-/\s]+(\d{4}))?/i);
+  if (m2) {
+    const monthKey = m2[2].toLowerCase();
+    if (monthMap[monthKey] !== undefined) {
+      const day = parseInt(m2[1], 10);
+      const month = monthMap[monthKey];
+      const year = m2[3] ? parseInt(m2[3], 10) : today.getFullYear();
+      const deadlineDate = new Date(year, month, day);
+      deadlineDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((today.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(diffDays, fallbackDaysLate || 0);
+    }
+  }
+
+  // 5. Native Date parse
+  const parsed = Date.parse(str);
+  if (!isNaN(parsed)) {
+    const deadlineDate = new Date(parsed);
+    deadlineDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((today.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(diffDays, fallbackDaysLate || 0);
+  }
+
+  return fallbackDaysLate || 0;
+};
+
 export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
   onNavigate = (_page: PageId) => {},
   onPendingCountChange,
@@ -89,13 +190,58 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
 
   // New task form state
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskToken, setNewTaskToken] = useState('QM-' + Math.floor(100000 + Math.random() * 900000));
-  const [newTaskAssignee, setNewTaskAssignee] = useState('38949');
+  const [isAutoToken, setIsAutoToken] = useState(true);
+  const [newTaskToken, setNewTaskToken] = useState<string>(() => generateAutoTaskToken());
+  const [newTaskAssignee, setNewTaskAssignee] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('HIGH');
   const [newTaskStatus, setNewTaskStatus] = useState<'IN PROGRESS' | 'COMPLETED' | 'ON HOLD'>('IN PROGRESS');
   const [newTaskTotalSubtasks, setNewTaskTotalSubtasks] = useState<number>(0);
-  const [newTaskDeadline, setNewTaskDeadline] = useState('Sep 18');
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
+
+  const getTodayISOString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDeadline = (dateStr: string): string => {
+    if (!dateStr) return 'Oct 05';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    return dateStr;
+  };
+
+  const [newTaskDeadline, setNewTaskDeadline] = useState<string>(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
+
+  const setQuickDeadline = (daysFromNow: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysFromNow);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    setNewTaskDeadline(`${year}-${month}-${day}`);
+  };
+
   const [newTaskSpace, setNewTaskSpace] = useState('SMT in PCBA-2023');
+
+  // Auto update token when title changes if auto mode is on
+  const handleTitleChange = (val: string) => {
+    setNewTaskTitle(val);
+    if (isAutoToken) {
+      setNewTaskToken(generateAutoTaskToken(val));
+    }
+  };
 
   // Initial Task Dataset directly replicating user screenshot
   const [tasks, setTasks] = useState<TaskItem[]>(() => {
@@ -341,15 +487,39 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
   ];
   });
 
+  // Enrich tasks with dynamic daysLate and overdue status based on actual deadline dates
+  const enrichedTasks = useMemo(() => {
+    return tasks.map((t) => {
+      const calcLate = calculateDaysLate(t.deadline, t.daysLate);
+      const isLate = t.status !== 'COMPLETED' && calcLate > 0;
+      return {
+        ...t,
+        daysLate: calcLate,
+        isOverdue: isLate || (Boolean(t.isOverdue) && t.status !== 'COMPLETED'),
+      };
+    });
+  }, [tasks]);
+
+  // Tasks that crossed 10 days past deadline (User requirement: if deadline crossed 10 days then show on Task Delayed section)
+  const delayedPast10DaysTasks = useMemo(() => {
+    return enrichedTasks
+      .filter((t) => t.status !== 'COMPLETED' && (t.daysLate || 0) >= 10)
+      .sort((a, b) => (b.daysLate || 0) - (a.daysLate || 0));
+  }, [enrichedTasks]);
+
+  const topDelayedTask = delayedPast10DaysTasks[0] || null;
+  const otherDelayedTasks = delayedPast10DaysTasks.slice(1, 5);
+  const overdueCount = delayedPast10DaysTasks.length;
+  const delayed10DaysCount = delayedPast10DaysTasks.length;
+
   // Calculations for Metrics Row
   const totalTasksCount = 78 + tasks.length; // 95 with default 17 tasks, scales dynamically
-  const inProgressCount = tasks.filter((t) => t.status === 'IN PROGRESS').length;
-  const onHoldCount = tasks.filter((t) => t.status === 'ON HOLD').length;
+  const inProgressCount = enrichedTasks.filter((t) => t.status === 'IN PROGRESS').length;
+  const onHoldCount = enrichedTasks.filter((t) => t.status === 'ON HOLD').length;
   const pendingTasksCount = inProgressCount + onHoldCount;
-  const overdueTasks = tasks.filter((t) => t.isOverdue && t.status !== 'COMPLETED');
-  const overdueCount = overdueTasks.length;
-  const criticalCount = 0;
-  const doneLast7DaysCount = tasks.filter((t) => t.status === 'COMPLETED').length;
+  const overdueTasks = delayedPast10DaysTasks;
+  const criticalCount = delayedPast10DaysTasks.filter((t) => (t.daysLate && t.daysLate >= 10) || t.priority === 'HIGH').length;
+  const doneLast7DaysCount = enrichedTasks.filter((t) => t.status === 'COMPLETED').length;
 
   const [subtasks, setSubtasks] = useState<TaskSubtaskRecord[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -360,24 +530,28 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
     const unsub = subscribeTasks((liveTasks) => {
       if (liveTasks.length > 0) {
         setTasks(
-          liveTasks.map((t) => ({
-            id: t.id,
-            title: t.title,
-            token: t.token || t.taskId || t.id,
-            assignee: t.assignee || t.assignedTo || '38949',
-            priority: (t.priority === 'CRITICAL' ? 'HIGH' : t.priority) || 'HIGH',
-            status:
-              t.status === 'IN PROGRESS' || t.status === 'COMPLETED' || t.status === 'ON HOLD'
-                ? t.status
-                : 'IN PROGRESS',
-            progressDone: Number(t.progressDone) || 0,
-            progressTotal: Number(t.progressTotal) || 0,
-            deadline: t.deadline || 'Sep 18',
-            isOverdue: Boolean(t.isOverdue),
-            daysLate: t.daysLate,
-            space: t.space || 'SMT in PCBA-2023',
-            category: t.category || 'Quality Check',
-          }))
+          liveTasks.map((t) => {
+            const calculatedLate = calculateDaysLate(t.deadline, t.daysLate);
+            const isLate = t.status !== 'COMPLETED' && calculatedLate > 0;
+            return {
+              id: t.id,
+              title: t.title,
+              token: t.token || t.taskId || t.id,
+              assignee: t.assignee || t.assignedTo || '38949',
+              priority: (t.priority === 'CRITICAL' ? 'HIGH' : t.priority) || 'HIGH',
+              status:
+                t.status === 'IN PROGRESS' || t.status === 'COMPLETED' || t.status === 'ON HOLD'
+                  ? t.status
+                  : 'IN PROGRESS',
+              progressDone: Number(t.progressDone) || 0,
+              progressTotal: Number(t.progressTotal) || 0,
+              deadline: t.deadline || 'Sep 18',
+              isOverdue: isLate || Boolean(t.isOverdue),
+              daysLate: calculatedLate,
+              space: t.space || 'SMT in PCBA-2023',
+              category: t.category || 'Quality Check',
+            };
+          })
         );
       } else if (!seeded) {
         seeded = true;
@@ -424,7 +598,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
 
   // Filtered Task List
   const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
+    return enrichedTasks.filter((task) => {
       const matchesSearch =
         task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         task.token.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -436,14 +610,14 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
         selectedStatus === 'ALL'
           ? true
           : selectedStatus === 'OVERDUE'
-          ? task.isOverdue
+          ? (task.daysLate && task.daysLate >= 10 && task.status !== 'COMPLETED')
           : task.status === selectedStatus;
       const matchesAssignee = selectedAssignee === 'ALL' || task.assignee === selectedAssignee;
       const matchesSpace = selectedSpace === 'ALL' || task.space === selectedSpace;
 
       return matchesSearch && matchesPriority && matchesStatus && matchesAssignee && matchesSpace;
     });
-  }, [tasks, searchQuery, selectedPriority, selectedStatus, selectedAssignee, selectedSpace]);
+  }, [enrichedTasks, searchQuery, selectedPriority, selectedStatus, selectedAssignee, selectedSpace]);
 
   // Handle Quick Status Change
   const handleStatusToggle = (taskId: string, newStatus: 'IN PROGRESS' | 'COMPLETED' | 'ON HOLD') => {
@@ -480,7 +654,7 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
 
-    const tokenVal = newTaskToken || 'QM-' + Math.floor(100000 + Math.random() * 900000);
+    const tokenVal = (newTaskToken && newTaskToken.trim()) || generateAutoTaskToken(newTaskTitle);
     const tempId = 't-' + Date.now();
     const created: TaskItem = {
       id: tempId,
@@ -491,14 +665,19 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
       status: newTaskStatus,
       progressDone: newTaskStatus === 'COMPLETED' ? newTaskTotalSubtasks : 0,
       progressTotal: newTaskTotalSubtasks,
-      deadline: newTaskDeadline || 'Sep 20',
+      deadline: formatDeadline(newTaskDeadline) || 'Oct 05',
       space: newTaskSpace,
       category: 'Quality Check',
     };
 
     setTasks((prev) => [created, ...prev]);
     setNewTaskTitle('');
-    setNewTaskToken('QM-' + Math.floor(100000 + Math.random() * 900000));
+    setNewTaskAssignee('');
+    // Automatically change and update token for next task
+    const nextAutoToken = generateAutoTaskToken();
+    setNewTaskToken(nextAutoToken);
+    setIsAutoToken(true);
+    setNewTaskDeadline(getTodayISOString());
     setNewTaskTotalSubtasks(0);
     setIsCreateModalOpen(false);
 
@@ -646,7 +825,11 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-extrabold text-[#0d1730] tracking-tight">Dashboard</h2>
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => {
+                setNewTaskToken(generateAutoTaskToken(newTaskTitle));
+                setIsAutoToken(true);
+                setIsCreateModalOpen(true);
+              }}
               className="px-4 py-2 bg-[#4f46e5] hover:bg-[#4338ca] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -758,34 +941,107 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
               </div>
             </div>
 
-            {/* NEEDS ATTENTION */}
-            <div className="bg-white p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs space-y-3">
+            {/* TOP DELAYED TASK / NEEDS ATTENTION */}
+            <div className="bg-white p-5 rounded-2xl border border-[#cbd5e1] shadow-2xs flex flex-col justify-between space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-xs font-extrabold text-[#475569] uppercase tracking-wider">
-                  NEEDS ATTENTION
+                <div className="text-xs font-extrabold text-[#475569] uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#ef4444]" />
+                  <span>Top Delayed Task (&gt;10 Days Overdue)</span>
                 </div>
-                <span className="text-[11px] font-bold text-[#ef4444] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fecaca]">
-                  {overdueCount} {overdueCount === 1 ? 'Task' : 'Tasks'} Delayed
+                <span className="text-[11px] font-bold text-[#ef4444] bg-[#fee2e2] px-2 py-0.5 rounded-md border border-[#fecaca] flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>{delayed10DaysCount} {delayed10DaysCount === 1 ? 'Task' : 'Tasks'} Delayed (&gt;10d)</span>
                 </span>
               </div>
 
-              {/* Needs Attention Items */}
-              <div className="space-y-2">
-                {overdueTasks.map((item) => (
+              {topDelayedTask ? (
+                <>
+                  {/* Top Delayed Highlight Card matching WORKING NOW */}
                   <div
-                    key={item.id}
-                    className={`p-2.5 bg-[#f8fafc] hover:bg-[#f1f5f9] rounded-xl border-l-4 ${
-                      item.status === 'ON HOLD' ? 'border-l-[#2563eb]' : 'border-l-[#f97316]'
-                    } border-y border-r border-[#e2e8f0] flex items-center justify-between gap-3 text-xs transition-colors`}
+                    onClick={() => setSelectedTaskDetail(topDelayedTask)}
+                    className="bg-linear-to-r from-[#ef4444] via-[#dc2626] to-[#b91c1c] text-white p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden cursor-pointer hover:shadow-md transition-all group"
+                    title="Click to view task details"
                   >
-                    <span className="font-semibold text-[#1e293b] truncate">{item.title}</span>
-                    <span className="text-[#ef4444] font-mono font-bold whitespace-nowrap text-[11px] bg-[#fee2e2] px-2 py-0.5 rounded">
-                      {item.deadline}
-                      {item.daysLate ? ` · ${item.daysLate}d late` : ' · Overdue'}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+                          <h4 className="text-base sm:text-lg font-extrabold leading-snug group-hover:underline">
+                            {topDelayedTask.title}
+                          </h4>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-white/90 font-mono">
+                          <span>{topDelayedTask.token}</span>
+                          <span>·</span>
+                          <span className="font-bold">
+                            {topDelayedTask.progressDone}/{topDelayedTask.progressTotal} subtasks
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 border border-white/30 whitespace-nowrap flex items-center gap-1">
+                        <Clock className="w-2.5 h-2.5" />
+                        <span>{topDelayedTask.daysLate ? `${topDelayedTask.daysLate}d Overdue` : 'Overdue'}</span>
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-4 w-full bg-white/30 h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-white h-full rounded-full transition-all"
+                        style={{
+                          width: `${
+                            topDelayedTask.progressTotal > 0
+                              ? Math.round((topDelayedTask.progressDone / topDelayedTask.progressTotal) * 100)
+                              : 0
+                          }%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-[#64748b] flex items-center justify-between pt-1">
+                    <span>
+                      Assigned QA Lead: <strong className="text-[#0d1730]">{topDelayedTask.assignee}</strong>
+                    </span>
+                    <span className="text-[#ef4444] font-bold flex items-center gap-1">
+                      <span>Due: {topDelayedTask.deadline}</span>
+                      {topDelayedTask.daysLate && <span>({topDelayedTask.daysLate}d late)</span>}
                     </span>
                   </div>
-                ))}
-              </div>
+
+                  {/* Other Delayed Tasks List */}
+                  {otherDelayedTasks.length > 0 && (
+                    <div className="space-y-1.5 pt-2 border-t border-[#f1f5f9]">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-[#94a3b8] flex items-center justify-between">
+                        <span>Other Delayed Tasks (&gt;10d)</span>
+                        <span>{otherDelayedTasks.length} More</span>
+                      </div>
+                      {otherDelayedTasks.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => setSelectedTaskDetail(item)}
+                          className={`p-2 bg-[#f8fafc] hover:bg-[#f1f5f9] rounded-xl border-l-4 ${
+                            item.status === 'ON HOLD' ? 'border-l-[#2563eb]' : 'border-l-[#ef4444]'
+                          } border-y border-r border-[#e2e8f0] flex items-center justify-between gap-3 text-xs transition-colors cursor-pointer`}
+                          title="Click to view task details"
+                        >
+                          <span className="font-semibold text-[#1e293b] truncate">{item.title}</span>
+                          <span className="text-[#ef4444] font-mono font-bold whitespace-nowrap text-[11px] bg-[#fee2e2] px-2 py-0.5 rounded">
+                            {item.deadline}
+                            {item.daysLate ? ` · ${item.daysLate}d late` : ' · Overdue'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="p-6 bg-[#f8fafc] rounded-xl border border-dashed border-[#cbd5e1] text-center space-y-1.5">
+                  <CheckCircle2 className="w-8 h-8 text-[#10b981] mx-auto" />
+                  <p className="text-xs font-bold text-[#0d1730]">All Tasks on Schedule</p>
+                  <p className="text-[11px] text-[#64748b]">No tasks have crossed 10 days past deadline.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -927,7 +1183,9 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                               className={`w-1.5 h-7 rounded-full shrink-0 ${
                                 task.status === 'COMPLETED'
                                   ? 'bg-[#10b981]'
-                                  : task.isOverdue
+                                  : task.daysLate && task.daysLate >= 10
+                                  ? 'bg-[#ef4444]'
+                                  : task.daysLate && task.daysLate > 0
                                   ? 'bg-[#f97316]'
                                   : 'bg-[#3b82f6]'
                               }`}
@@ -1006,11 +1264,20 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
 
                         {/* DEADLINE */}
                         <td className="py-3.5 px-4 whitespace-nowrap font-mono text-[11px]">
-                          {task.isOverdue ? (
-                            <span className="text-[#ef4444] font-bold flex items-center gap-1">
+                          {task.daysLate && task.daysLate >= 10 && task.status !== 'COMPLETED' ? (
+                            <span className="text-[#ef4444] font-bold flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse" />
                               <span>{task.deadline}</span>
-                              <span>·</span>
-                              <span>{task.daysLate}d late</span>
+                              <span className="bg-[#fee2e2] text-[#ef4444] px-1.5 py-0.5 rounded text-[10px] font-bold border border-[#fecaca]">
+                                {task.daysLate}d late
+                              </span>
+                            </span>
+                          ) : task.daysLate && task.daysLate > 0 && task.status !== 'COMPLETED' ? (
+                            <span className="text-[#f97316] font-semibold flex items-center gap-1">
+                              <span>{task.deadline}</span>
+                              <span className="text-[10px] text-[#ea580c] bg-[#ffedd5] px-1.5 py-0.5 rounded font-medium border border-[#fed7aa]">
+                                {task.daysLate}d late
+                              </span>
                             </span>
                           ) : (
                             <span className="text-[#64748b]">{task.deadline}</span>
@@ -1035,11 +1302,11 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                     <span>IN PROGRESS</span>
                   </span>
                   <span className="text-xs font-mono font-bold bg-[#dbeafe] text-[#1d4ed8] px-2 py-0.5 rounded-full">
-                    {tasks.filter((t) => t.status === 'IN PROGRESS').length}
+                    {enrichedTasks.filter((t) => t.status === 'IN PROGRESS').length}
                   </span>
                 </div>
                 <div className="space-y-2.5">
-                  {tasks
+                  {enrichedTasks
                     .filter((t) => t.status === 'IN PROGRESS')
                     .map((t) => (
                       <div
@@ -1056,8 +1323,8 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                         <h4 className="text-xs font-bold text-[#0d1730]">{t.title}</h4>
                         <div className="flex items-center justify-between text-[11px] text-[#64748b]">
                           <span>{t.assignee}</span>
-                          <span className={t.isOverdue ? 'text-[#ef4444] font-bold' : ''}>
-                            {t.deadline} {t.isOverdue && `· ${t.daysLate}d late`}
+                          <span className={t.daysLate && t.daysLate >= 10 ? 'text-[#ef4444] font-bold' : t.daysLate ? 'text-[#f97316] font-medium' : ''}>
+                            {t.deadline} {t.daysLate ? `· ${t.daysLate}d late` : ''}
                           </span>
                         </div>
                       </div>
@@ -1073,11 +1340,11 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                     <span>ON HOLD</span>
                   </span>
                   <span className="text-xs font-mono font-bold bg-[#fef9c3] text-[#a16207] px-2 py-0.5 rounded-full">
-                    {tasks.filter((t) => t.status === 'ON HOLD').length}
+                    {enrichedTasks.filter((t) => t.status === 'ON HOLD').length}
                   </span>
                 </div>
                 <div className="space-y-2.5">
-                  {tasks
+                  {enrichedTasks
                     .filter((t) => t.status === 'ON HOLD')
                     .map((t) => (
                       <div
@@ -1094,8 +1361,8 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                         <h4 className="text-xs font-bold text-[#0d1730]">{t.title}</h4>
                         <div className="flex items-center justify-between text-[11px] text-[#64748b]">
                           <span>{t.assignee}</span>
-                          <span className="text-[#ef4444] font-bold">
-                            {t.deadline} · {t.daysLate}d late
+                          <span className={t.daysLate && t.daysLate >= 10 ? 'text-[#ef4444] font-bold' : t.daysLate ? 'text-[#f97316] font-medium' : ''}>
+                            {t.deadline} {t.daysLate ? `· ${t.daysLate}d late` : ''}
                           </span>
                         </div>
                       </div>
@@ -1111,11 +1378,11 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                     <span>COMPLETED</span>
                   </span>
                   <span className="text-xs font-mono font-bold bg-[#dcfce7] text-[#15803d] px-2 py-0.5 rounded-full">
-                    {tasks.filter((t) => t.status === 'COMPLETED').length}
+                    {enrichedTasks.filter((t) => t.status === 'COMPLETED').length}
                   </span>
                 </div>
                 <div className="space-y-2.5">
-                  {tasks
+                  {enrichedTasks
                     .filter((t) => t.status === 'COMPLETED')
                     .map((t) => (
                       <div
@@ -1226,6 +1493,8 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                     onClick={() => {
                       setNewTaskTitle(tpl.title);
                       setNewTaskTotalSubtasks(tpl.subtasksCount);
+                      setNewTaskToken(generateAutoTaskToken(tpl.title));
+                      setIsAutoToken(true);
                       setIsCreateModalOpen(true);
                     }}
                     className="text-xs font-bold text-[#4f46e5] hover:underline flex items-center gap-1 cursor-pointer"
@@ -1265,32 +1534,57 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
                   required
                   placeholder="e.g. M55LU3UGQ MP Software and Audio output verification"
                   value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  onChange={(e) => handleTitleChange(e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-[#cbd5e1] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#4f46e5]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#475569] mb-1">Token ID</label>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-[#475569] flex items-center gap-1.5">
+                      <span>Token ID</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#ecfdf5] text-[#059669] border border-[#a7f3d0]">
+                        AUTO
+                      </span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const token = generateAutoTaskToken(newTaskTitle);
+                        setNewTaskToken(token);
+                        setIsAutoToken(true);
+                      }}
+                      className="text-[11px] font-semibold text-[#4f46e5] hover:text-[#3730a3] flex items-center gap-1 cursor-pointer hover:underline"
+                      title="Generate new auto Token ID"
+                    >
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      <span>Refresh ID</span>
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={newTaskToken}
-                    onChange={(e) => setNewTaskToken(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-mono border border-[#cbd5e1] rounded-xl focus:outline-hidden"
+                    onChange={(e) => {
+                      setNewTaskToken(e.target.value);
+                      setIsAutoToken(false);
+                    }}
+                    placeholder="e.g. MMSC-003796-A14"
+                    className="w-full px-3 py-2 pr-16 text-xs font-mono font-bold bg-[#f8fafc] text-[#0f172a] border border-[#cbd5e1] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#4f46e5]/20 focus:border-[#4f46e5]"
                   />
+                  <span className="absolute right-2.5 bottom-2 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#f1f5f9] text-[#64748b] border border-[#e2e8f0] pointer-events-none">
+                    {isAutoToken ? 'Auto' : 'Custom'}
+                  </span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[#475569] mb-1">Assignee</label>
-                  <select
+                  <input
+                    type="text"
                     value={newTaskAssignee}
                     onChange={(e) => setNewTaskAssignee(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-[#cbd5e1] rounded-xl focus:outline-hidden"
-                  >
-                    <option value="38949">38949 (QA Inspector)</option>
-                    <option value="task_manager1">task_manager1 (Lead)</option>
-                    <option value="QM-Inspector-02">QM-Inspector-02 (SMT)</option>
-                  </select>
+                    placeholder="e.g. 38949, Rubel Hosen, or Inspector ID"
+                    className="w-full px-3 py-2 text-xs font-medium border border-[#cbd5e1] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#4f46e5]/20 focus:border-[#4f46e5]"
+                  />
                 </div>
               </div>
 
@@ -1332,14 +1626,69 @@ export const TaskManagerView: React.FC<TaskManagerViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#475569] mb-1">Deadline</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-[#475569] flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#4f46e5]" />
+                      <span>Deadline</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (dateInputRef.current && 'showPicker' in dateInputRef.current) {
+                          dateInputRef.current.showPicker();
+                        } else {
+                          dateInputRef.current?.focus();
+                        }
+                      }}
+                      className="text-[11px] font-semibold text-[#4f46e5] hover:text-[#3730a3] flex items-center gap-1 cursor-pointer hover:underline"
+                      title="Open interactive calendar date picker"
+                    >
+                      <Calendar className="w-3 h-3" />
+                      <span>Calendar</span>
+                    </button>
+                  </div>
                   <input
-                    type="text"
+                    ref={dateInputRef}
+                    type="date"
                     value={newTaskDeadline}
                     onChange={(e) => setNewTaskDeadline(e.target.value)}
-                    placeholder="e.g. Sep 22"
-                    className="w-full px-3 py-2 text-xs border border-[#cbd5e1] rounded-xl focus:outline-hidden"
+                    className="w-full px-3 py-2 text-xs font-medium border border-[#cbd5e1] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#4f46e5]/20 focus:border-[#4f46e5] cursor-pointer bg-white text-[#0f172a]"
                   />
+                  {/* Quick Preset Date Buttons */}
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setQuickDeadline(0)}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] font-medium transition-colors cursor-pointer"
+                      title="Set deadline to Today"
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDeadline(1)}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] font-medium transition-colors cursor-pointer"
+                      title="Set deadline to Tomorrow"
+                    >
+                      Tomorrow
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDeadline(3)}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] font-medium transition-colors cursor-pointer"
+                      title="Set deadline to 3 days from now"
+                    >
+                      +3d
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDeadline(7)}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-[#e0e7ff] hover:bg-[#c7d2fe] text-[#4338ca] font-medium transition-colors cursor-pointer"
+                      title="Set deadline to 1 week from now"
+                    >
+                      +7d
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[#475569] mb-1">Assign By</label>

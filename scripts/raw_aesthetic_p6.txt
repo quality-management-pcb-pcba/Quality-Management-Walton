@@ -1,0 +1,77 @@
+31-Jul-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 1
+1-Aug-2026 NEXG_N77 4/128 GB Mass Production Day GNDPinBroken 1
+1-Aug-2026 NEXG_N77 4/128 GB Mass Production Day SimBasePinUp 1
+1-Aug-2026 NEXG_N77 4/128 GB Mass Production Night GNDPinBroken 1
+1-Aug-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 1
+2-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 1
+2-Aug-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 1
+2-Aug-2026 NEXG_N77 4/128 GB Mass Production Night ShieldUp 1
+3-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 3
+3-Aug-2026 NEXG_N77 4/128 GB Mass Production Day SimBasePinUp 1
+4-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 3
+4-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldTap 1
+4-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 6
+8-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 3
+8-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 2
+8-Aug-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 1
+9-Aug-2026 NEXG_N77 4/128 GB Mass Production Day GNDPinBroken 2
+9-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 7
+9-Aug-2026 NEXG_N77 4/128 GB Mass Production Day ShieldTap 1
+9-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 1
+9-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 2
+9-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinShifting 3
+9-Aug-2026 ZENX Z3 4/64 GB Mass Production Day ComponentBroken 9
+9-Aug-2026 ZENX Z3 4/64 GB Mass Production Day PCBARouting 5
+10-Aug-2026 ZENX Z3 4/64 GB Mass Production Day ShieldUp 2
+10-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ComponentBroken 7
+10-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 5
+11-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 5
+11-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinShifting 1
+12-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 9
+12-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 2
+12-Aug-2026 ZENX Z3 4/64 GB Mass Production Night ConnectorShifting 1
+13-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 2
+13-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinShifting 1
+13-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day PasteIssue 1
+13-Aug-2026 NEXG_N28 4/128 GB Trial Production Day ShieldUp 1
+13-Aug-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 2
+14-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinShifting 2
+14-Aug-2026 ZENX Z3 4/64 GB Mass Production Day ShieldUp 1
+14-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 3
+14-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinShifting 2
+15-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 2
+15-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 2
+15-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 3
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day ConnectorShifting 1
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day GNDPinBroken 4
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day ShieldUp 11
+16-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day ExtraLead 20
+16-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day GNDPinBroken 1
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Night ConnectorShifting 1
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Night GNDPinBroken 1
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Night ShieldTap 1
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Night ShieldUp 8
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Day GNDPinBroken 2
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Day ShieldUp 10
+17-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day ExtraLead 20
+17-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day GNDPinShifting 1
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Night ShieldUp 6
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Day GNDPinBroken 1
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Day GNDPinShifting 2
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Day ShieldUp 9
+18-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day ChargerPinUp 2
+18-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day HeadsetBasePinUp 3
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Night GNDPinShifting 2
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Night ShieldUp 5
+19-Aug-2026 NEXG_N28 4/128 GB Mass Production Day GNDPinBroken 2
+19-Aug-2026 NEXG_N28 4/128 GB Mass Production Day ShieldUp 5
+19-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day ExtraLead 10
+19-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day GNDPinBroken 1
+19-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day PCBADiscolour 2
+20-Aug-2026 NEXG_N28 4/128 GB Mass Production Day ShieldUp 2
+20-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day ExtraLead 18
+20-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day HeadsetBasePinUp 2
+20-Aug-2026 ZENX Z3 4/64 GB Mass Production Night ConnectorShifting 1
+20-Aug-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 1
+21-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinShifting 1
+21-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day ChargerPinUp 2

@@ -47,11 +47,7 @@ import {
   Check,
   Upload,
 } from 'lucide-react';
-import {
-  WALTON_EMBLEM_LEFT_PATH,
-  WALTON_EMBLEM_RIGHT_PATH,
-  WALTON_EMBLEM_RED_PATH,
-} from '../waltonLogoPaths';
+import { WaltonSealLogo } from '../WaltonSealLogo';
 import { saveIqcReport, getIqcReports } from '../../services/iqcReports';
 
 interface IqcViewProps {
@@ -467,36 +463,9 @@ export const IqcView: React.FC<IqcViewProps> = ({
         <div className="flex flex-col md:flex-row items-stretch border-b border-[#cbd5e1]">
           {/* Brand Left */}
           <div className="flex-1 p-5 sm:p-6 flex items-center gap-4 border-b md:border-b-0 md:border-r border-[#cbd5e1]">
-            <svg
-              className="shrink-0"
-              width="86"
-              height="60"
-              viewBox="140 172 220 154"
-              role="img"
-              aria-label="Walton"
-            >
-              <path
-                d={`${WALTON_EMBLEM_LEFT_PATH} ${WALTON_EMBLEM_RIGHT_PATH}`}
-                fill="#103f99"
-              />
-              <path
-                d={WALTON_EMBLEM_RED_PATH}
-                fill="#c8102e"
-                fillRule="evenodd"
-              />
-              <text
-                x="250"
-                y="314"
-                textAnchor="middle"
-                fontFamily="'Barlow Condensed', Inter, system-ui, sans-serif"
-                fontSize="36"
-                fontWeight="900"
-                letterSpacing="6"
-                fill="#103f99"
-              >
-                WALTON
-              </text>
-            </svg>
+            <div className="w-[60px] h-[60px] shrink-0 flex items-center justify-center filter drop-shadow-sm">
+              <WaltonSealLogo className="w-full h-full object-contain select-none" animated={false} />
+            </div>
             <div className="w-[1px] h-12 bg-[#cbd5e1] hidden sm:block" />
             <div>
               <h1 className="font-['Barlow_Condensed'] font-bold text-2xl sm:text-3xl text-[#123a6b] tracking-wide leading-tight">
@@ -533,11 +502,9 @@ export const IqcView: React.FC<IqcViewProps> = ({
                 Monthly Lot Inspection Summary
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-[#1565c0] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">
-                    Total Lots
-                    <br />
-                    Received
+                <div className="bg-[#1565c0] text-white p-3.5 rounded-xl flex flex-col items-center justify-center text-center gap-1.5 shadow-xs">
+                  <span className="block w-full text-center text-xs font-bold leading-tight uppercase tracking-wider text-white/90">
+                    Total Lots Received
                   </span>
                   <input
                     type="number"
@@ -545,15 +512,13 @@ export const IqcView: React.FC<IqcViewProps> = ({
                     value={totalLots}
                     disabled={!isLoggedIn}
                     onChange={(e) => setTotalLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                    className="w-full bg-transparent border-0 border-none outline-none ring-0 focus:outline-none focus:ring-0 text-white font-['Barlow_Condensed'] font-extrabold text-3xl sm:text-4xl text-center leading-tight p-0 mx-auto select-all cursor-text disabled:cursor-default disabled:opacity-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
 
-                <div className="bg-[#22a45d] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">
-                    Accepted
-                    <br />
-                    Lots
+                <div className="bg-[#22a45d] text-white p-3.5 rounded-xl flex flex-col items-center justify-center text-center gap-1.5 shadow-xs">
+                  <span className="block w-full text-center text-xs font-bold leading-tight uppercase tracking-wider text-white/90">
+                    Accepted Lots
                   </span>
                   <input
                     type="number"
@@ -561,15 +526,13 @@ export const IqcView: React.FC<IqcViewProps> = ({
                     value={acceptedLots}
                     disabled={!isLoggedIn}
                     onChange={(e) => setAcceptedLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                    className="w-full bg-transparent border-0 border-none outline-none ring-0 focus:outline-none focus:ring-0 text-white font-['Barlow_Condensed'] font-extrabold text-3xl sm:text-4xl text-center leading-tight p-0 mx-auto select-all cursor-text disabled:cursor-default disabled:opacity-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
 
-                <div className="bg-[#f2b134] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">
-                    Conditional
-                    <br />
-                    Accept
+                <div className="bg-[#f2b134] text-white p-3.5 rounded-xl flex flex-col items-center justify-center text-center gap-1.5 shadow-xs">
+                  <span className="block w-full text-center text-xs font-bold leading-tight uppercase tracking-wider text-white/90">
+                    Conditional Accept
                   </span>
                   <input
                     type="number"
@@ -577,15 +540,13 @@ export const IqcView: React.FC<IqcViewProps> = ({
                     value={condLots}
                     disabled={!isLoggedIn}
                     onChange={(e) => setCondLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                    className="w-full bg-transparent border-0 border-none outline-none ring-0 focus:outline-none focus:ring-0 text-white font-['Barlow_Condensed'] font-extrabold text-3xl sm:text-4xl text-center leading-tight p-0 mx-auto select-all cursor-text disabled:cursor-default disabled:opacity-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
 
-                <div className="bg-[#e2231a] text-white p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 shadow-xs">
-                  <span className="text-[11px] font-bold text-center leading-tight">
-                    Rejected
-                    <br />
-                    Lots
+                <div className="bg-[#e2231a] text-white p-3.5 rounded-xl flex flex-col items-center justify-center text-center gap-1.5 shadow-xs">
+                  <span className="block w-full text-center text-xs font-bold leading-tight uppercase tracking-wider text-white/90">
+                    Rejected Lots
                   </span>
                   <input
                     type="number"
@@ -593,7 +554,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
                     value={rejectedLots}
                     disabled={!isLoggedIn}
                     onChange={(e) => setRejectedLots(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-16 bg-white/20 border border-white/40 text-white font-['Barlow_Condensed'] font-bold text-2xl text-center rounded py-0.5 focus:outline-none"
+                    className="w-full bg-transparent border-0 border-none outline-none ring-0 focus:outline-none focus:ring-0 text-white font-['Barlow_Condensed'] font-extrabold text-3xl sm:text-4xl text-center leading-tight p-0 mx-auto select-all cursor-text disabled:cursor-default disabled:opacity-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>

@@ -62,6 +62,7 @@ import { ComplaintsView } from './components/views/ComplaintsView';
 import { DocsView } from './components/views/DocsView';
 import { TeamView } from './components/views/TeamView';
 import { LeadersView } from './components/views/LeadersView';
+import { ManpowerListView } from './components/views/ManpowerListView';
 import { PCBProcessFlowView } from './components/views/PCBProcessFlowView';
 import { PCBAProcessFlowView } from './components/views/PCBAProcessFlowView';
 import { IqcView } from './components/views/IqcView';
@@ -361,8 +362,8 @@ export default function App() {
       if (hash) {
         const validPages: PageType[] = [
           'home', 'dashboard', 'leaders', 'pcb', 'pcb-process', 'iqc', 'iqc-pcb', 'iqc-pcba',
-          'esd', 'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
-          'capa', 'complaints', 'docs', 'team', 'team-database', 'team-entry', 'users', 'settings'
+          'esd', 'esd-database', 'esd-entry', 'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
+          'capa', 'complaints', 'docs', 'team', 'team-database', 'team-entry', 'manpower', 'users', 'settings'
         ];
         if (validPages.includes(hash as PageType)) return hash as PageType;
       }
@@ -370,8 +371,8 @@ export default function App() {
       if (pathname) {
         const validPages: PageType[] = [
           'home', 'dashboard', 'leaders', 'pcb', 'pcb-process', 'iqc', 'iqc-pcb', 'iqc-pcba',
-          'esd', 'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
-          'capa', 'complaints', 'docs', 'team', 'team-database', 'team-entry', 'users', 'settings'
+          'esd', 'esd-database', 'esd-entry', 'rca', 'pcba', 'pcba-process', 'quality-dev', 'tasks', 'research', 'kpi', 'nc',
+          'capa', 'complaints', 'docs', 'team', 'team-database', 'team-entry', 'manpower', 'users', 'settings'
         ];
         if (validPages.includes(pathname as PageType)) return pathname as PageType;
       }
@@ -678,9 +679,12 @@ export default function App() {
                 />
               )}
 
-              {currentPage === 'esd' && (
+              {(currentPage === 'esd' ||
+                currentPage === 'esd-database' ||
+                currentPage === 'esd-entry') && (
                 <EsdView
                   onNavigate={handleNavigate}
+                  selectedSubsection={currentPage === 'esd-entry' ? 'entry' : 'database'}
                   isLoggedIn={isLoggedIn}
                   onOpenLoginModal={() => setShowLoginModal(true)}
                 />
@@ -762,6 +766,8 @@ export default function App() {
               )}
 
               {currentPage === 'leaders' && <LeadersView onNavigate={handleNavigate} />}
+
+              {currentPage === 'manpower' && <ManpowerListView onNavigate={handleNavigate} />}
 
               {currentPage === 'research' && <ResearchView onNavigate={handleNavigate} />}
 

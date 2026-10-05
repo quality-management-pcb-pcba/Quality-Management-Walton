@@ -25,6 +25,18 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { PageId } from '../../types';
 import {
   Zap,
@@ -46,12 +58,24 @@ import {
   Clock,
   Layers,
   Activity,
+  Database,
+  ClipboardList,
+  Search,
+  BarChart3,
+  Edit3,
+  Filter,
 } from 'lucide-react';
 import { db, doc, getDoc, setDoc } from '../../services/firebase';
-import { getEsdRecordByDate, saveEsdRecordByDate } from '../../services/esdRecords';
+import {
+  getEsdRecordByDate,
+  saveEsdRecordByDate,
+  listEsdRecords,
+  deleteEsdRecordByDate,
+} from '../../services/esdRecords';
 
 interface EsdViewProps {
   onNavigate?: (page: PageId) => void;
+  selectedSubsection?: 'database' | 'entry';
   isLoggedIn?: boolean;
   onOpenLoginModal?: () => void;
 }
@@ -313,17 +337,508 @@ function defaultState(): EsdState {
   };
 }
 
+function buildSeedDatabase(): Record<string, EsdState> {
+  const base = defaultState();
+  const today = todayStr();
+  return {
+    [today]: base,
+    '2026-08-25': {
+      ...base,
+      worksurface: [
+        { loc: 'SMT Line 1', value: '2.1*10^7' },
+        { loc: 'SMT Line 2', value: '3.4*10^7' },
+        { loc: 'SMT Line 3', value: '1.9*10^7' },
+        { loc: 'Routing', value: '4.2*10^7' },
+        { loc: 'Testing Line 1', value: '2.7*10^7' },
+        { loc: 'Repair Zone', value: '3.6*10^7' },
+      ],
+      iron: [
+        { n: 1, zone: 'Testing Line', voltage: '0.42', resistance: '2.2', tg: 'Pass' },
+        { n: 2, zone: 'Testing Line', voltage: '0.58', resistance: '2.9', tg: 'Pass' },
+        { n: 3, zone: 'Repair Zone', voltage: '0.35', resistance: '1.8', tg: 'Pass' },
+      ],
+      contmonitor: {
+        'SMT Line 1': { check: '12', fail: '0' },
+        'SMT Line 2': { check: '12', fail: '0' },
+        'SMT Line 3': { check: '12', fail: '0' },
+        'Routing Zone': { check: '6', fail: '0' },
+        'Testing Line 1': { check: '8', fail: '0' },
+        'Testing Line 2': { check: '8', fail: '0' },
+        'Repair Zone': { check: '4', fail: '0' },
+        'Packing Line': { check: '6', fail: '0' },
+      },
+      wristband: {
+        'SMT lines': { check: '36', fail: '1' },
+        'Routing Zone': { check: '6', fail: '0' },
+        'Testing line': { check: '16', fail: '0' },
+        'Repair Zone': { check: '4', fail: '0' },
+        'Packing Line': { check: '8', fail: '0' },
+      },
+      shoe: {
+        'SMT lines': { check: '36', fail: '0' },
+        'Routing Zone': { check: '6', fail: '0' },
+        'Testing line': { check: '16', fail: '0' },
+        'Repair Zone': { check: '4', fail: '0' },
+        'Packing Line': { check: '8', fail: '0' },
+      },
+      remarks: {
+        wristband: '1 operator cord replaced on SMT Line 2 during morning shift check.',
+        shoe: 'All footwear testers passed within specification.',
+        general: 'Weekly SMT & Testing Line ESD audit verified.',
+      },
+    },
+    '2026-08-18': {
+      ...base,
+      worksurface: [
+        { loc: 'SMT Line 1', value: '2.8*10^7' },
+        { loc: 'SMT Line 2', value: '3.0*10^7' },
+        { loc: 'SMT Line 3', value: '2.2*10^7' },
+        { loc: 'Routing', value: '5.1*10^7' },
+        { loc: 'Testing Line 1', value: '3.3*10^7' },
+      ],
+      ionizer: [
+        { n: 1, testline: '1.9', repairzone: '2.1' },
+        { n: 2, testline: '2.0', repairzone: '2.3' },
+      ],
+      epafloor: [
+        { pointId: 'FP-01', loc: 'SMT Line 1', value: '3.1*10^6' },
+        { pointId: 'FP-02', loc: 'SMT Line 2', value: '3.9*10^6' },
+        { pointId: 'FP-03', loc: 'Testing Line 1', value: '2.6*10^6' },
+        { pointId: 'FP-04', loc: 'Packing Line', value: '4.4*10^6' },
+      ],
+      remarks: {
+        wristband: '100% ring tester compliance across all zones.',
+        shoe: 'All ESD shoes and heel grounders verified.',
+        general: 'Mid-month EPA floor and ionizer decay audit completed.',
+      },
+    },
+    '2026-08-10': {
+      ...base,
+      apron: [
+        { name: 'Sample 1', color: 'Sky Blue', id: 'AP-01', value: '3.9*10^9' },
+        { name: 'Sample 2', color: 'Navy Blue', id: 'AP-02', value: '4.4*10^9' },
+        { name: 'Sample 3', color: 'White', id: 'AP-03', value: '5.0*10^9' },
+        { name: 'Sample 4', color: 'Pink', id: 'AP-04', value: '4.1*10^9' },
+      ],
+      iron: [
+        { n: 1, zone: 'Testing Line', voltage: '0.51', resistance: '2.6', tg: 'Pass' },
+        { n: 2, zone: 'Testing Line', voltage: '0.49', resistance: '2.8', tg: 'Pass' },
+        { n: 3, zone: 'Repair Zone', voltage: '2.30', resistance: '11.2', tg: 'Fail' },
+      ],
+      shoe: {
+        'SMT lines': { check: '36', fail: '1' },
+        'Routing Zone': { check: '6', fail: '0' },
+        'Testing line': { check: '16', fail: '0' },
+        'Repair Zone': { check: '4', fail: '0' },
+        'Packing Line': { check: '8', fail: '0' },
+      },
+      remarks: {
+        wristband: 'All wristband stations passed.',
+        shoe: '1 ESD slipper replaced on SMT Line 1.',
+        general: 'Soldering Iron #3 in Repair Zone recalibrated after tip-to-ground check.',
+      },
+    },
+    '2026-08-02': {
+      ...base,
+      chair: [
+        { chairId: 'CH-01', zone: 'SMT Line 1', value: '1.7*10^7' },
+        { chairId: 'CH-02', zone: 'Testing Line 1', value: '2.2*10^7' },
+        { chairId: 'CH-03', zone: 'Repair Zone', value: '2.9*10^7' },
+        { chairId: 'CH-04', zone: 'Routing', value: '3.4*10^7' },
+      ],
+      trolley: [
+        { trolleyId: 'TR-01', zone: 'SMT Line 1', value: '4.2*10^6' },
+        { trolleyId: 'TR-02', zone: 'Routing', value: '4.9*10^6' },
+        { trolleyId: 'TR-03', zone: 'Packing Line', value: '5.5*10^6' },
+      ],
+      traybox: [
+        { itemType: 'ESD Tray', sampleId: 'TB-01', zone: 'SMT Line 1', value: '5.8*10^7' },
+        { itemType: 'ESD Box', sampleId: 'TB-02', zone: 'Packing Line', value: '7.2*10^7' },
+        { itemType: 'Magazine Rack', sampleId: 'MR-01', zone: 'SMT Line 2', value: '3.1*10^6' },
+      ],
+      remarks: {
+        wristband: 'All operators grounded properly.',
+        shoe: 'Footwear check 100% pass.',
+        general: 'Monthly beginning full 11-section ESD qualification audit.',
+      },
+    },
+  };
+}
+
+export interface EsdDatabaseFlatRow {
+  id: string;
+  date: string;
+  sectionKey: TabKey;
+  sectionLabel: string;
+  location: string;
+  itemIdentifier: string;
+  measuredValue: string;
+  standardSpec: string;
+  checksCount: number;
+  passCount: number;
+  failCount: number;
+  status: 'PASS' | 'FAIL';
+  remarks: string;
+}
+
+function flattenEsdStateToRows(date: string, s: EsdState): EsdDatabaseFlatRow[] {
+  const rows: EsdDatabaseFlatRow[] = [];
+  const genRem = s.remarks?.general || '';
+
+  // 1. Work surface
+  (s.worksurface || []).forEach((r, idx) => {
+    if (r.value.trim() !== '') {
+      const v = parseR(r.value);
+      const isPass = v !== null && v >= 1e6 && v < 1e9;
+      rows.push({
+        id: `${date}-ws-${idx}`,
+        date,
+        sectionKey: 'worksurface',
+        sectionLabel: '1. ESD Work Surface',
+        location: r.loc,
+        itemIdentifier: `Mat #${idx + 1}`,
+        measuredValue: `${r.value} Ω (${fmtR(v)})`,
+        standardSpec: '10^6 ≤ R < 10^9 Ω',
+        checksCount: 1,
+        passCount: isPass ? 1 : 0,
+        failCount: isPass ? 0 : 1,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 2. Continuous Monitor
+  Object.keys(s.contmonitor || {}).forEach((zone, idx) => {
+    const d = s.contmonitor[zone];
+    if (d && d.check !== '') {
+      const chk = parseInt(d.check, 10) || 0;
+      const fail = parseInt(d.fail, 10) || 0;
+      const pass = Math.max(chk - fail, 0);
+      const isPass = fail === 0;
+      rows.push({
+        id: `${date}-cm-${idx}`,
+        date,
+        sectionKey: 'contmonitor',
+        sectionLabel: '2. Control Monitor',
+        location: zone,
+        itemIdentifier: `${chk} Monitors`,
+        measuredValue: `Check: ${chk} | Pass: ${pass} | Fail: ${fail}`,
+        standardSpec: '0 Fail (Continuous Ground)',
+        checksCount: chk,
+        passCount: pass,
+        failCount: fail,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 3. Soldering Iron
+  (s.iron || []).forEach((r, idx) => {
+    if (r.voltage !== '' && r.resistance !== '') {
+      const v = parseFloat(r.voltage);
+      const res = parseFloat(r.resistance);
+      const isPass = v < 2 && res < 10;
+      rows.push({
+        id: `${date}-iron-${idx}`,
+        date,
+        sectionKey: 'iron',
+        sectionLabel: '3. Soldering Iron',
+        location: r.zone,
+        itemIdentifier: `Iron #${r.n}`,
+        measuredValue: `${r.voltage} V / ${r.resistance} Ω`,
+        standardSpec: '< 2V & < 10 Ω',
+        checksCount: 1,
+        passCount: isPass ? 1 : 0,
+        failCount: isPass ? 0 : 1,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 4. Ionizer
+  (s.ionizer || []).forEach((r, idx) => {
+    if (r.testline !== '' || r.repairzone !== '') {
+      const t1 = parseFloat(r.testline);
+      const t2 = parseFloat(r.repairzone);
+      let ok = true;
+      if (r.testline !== '') ok = ok && t1 < 5;
+      if (r.repairzone !== '') ok = ok && t2 < 5;
+      rows.push({
+        id: `${date}-ion-${idx}`,
+        date,
+        sectionKey: 'ionizer',
+        sectionLabel: '4. Ionizer',
+        location: 'Testing Line & Repair Zone',
+        itemIdentifier: `Blower #${r.n}`,
+        measuredValue: `Test: ${r.testline || '—'}s | Repair: ${r.repairzone || '—'}s`,
+        standardSpec: 'Decay Td < 5 sec',
+        checksCount: 1,
+        passCount: ok ? 1 : 0,
+        failCount: ok ? 0 : 1,
+        status: ok ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 5. Wristband
+  Object.keys(s.wristband || {}).forEach((zone, idx) => {
+    const d = s.wristband[zone];
+    if (d && d.check !== '') {
+      const chk = parseInt(d.check, 10) || 0;
+      const fail = parseInt(d.fail, 10) || 0;
+      const pass = Math.max(chk - fail, 0);
+      const isPass = fail === 0;
+      rows.push({
+        id: `${date}-wb-${idx}`,
+        date,
+        sectionKey: 'wristband',
+        sectionLabel: '5. ESD Wristband',
+        location: zone,
+        itemIdentifier: `Personnel (${chk})`,
+        measuredValue: `Check: ${chk} | Pass: ${pass} | Fail: ${fail}`,
+        standardSpec: 'Green LED (Ring Tester)',
+        checksCount: chk,
+        passCount: pass,
+        failCount: fail,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: s.remarks?.wristband || genRem,
+      });
+    }
+  });
+
+  // 6. ESD Shoe
+  Object.keys(s.shoe || {}).forEach((zone, idx) => {
+    const d = s.shoe[zone];
+    if (d && d.check !== '') {
+      const chk = parseInt(d.check, 10) || 0;
+      const fail = parseInt(d.fail, 10) || 0;
+      const pass = Math.max(chk - fail, 0);
+      const isPass = fail === 0;
+      rows.push({
+        id: `${date}-shoe-${idx}`,
+        date,
+        sectionKey: 'shoe',
+        sectionLabel: '6. ESD Shoe',
+        location: zone,
+        itemIdentifier: `Footwear (${chk})`,
+        measuredValue: `Check: ${chk} | Pass: ${pass} | Fail: ${fail}`,
+        standardSpec: 'Green LED (Shoe Tester)',
+        checksCount: chk,
+        passCount: pass,
+        failCount: fail,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: s.remarks?.shoe || genRem,
+      });
+    }
+  });
+
+  // 7. ESD Apron
+  (s.apron || []).forEach((r, idx) => {
+    if (r.value.trim() !== '') {
+      const v = parseR(r.value);
+      const isPass = v !== null && v < 1e11;
+      rows.push({
+        id: `${date}-apron-${idx}`,
+        date,
+        sectionKey: 'apron',
+        sectionLabel: '7. ESD Apron',
+        location: `${r.color} Fabric`,
+        itemIdentifier: `${r.name} (${r.id})`,
+        measuredValue: `${r.value} Ω (${fmtR(v)})`,
+        standardSpec: 'Rss < 10^11 Ω',
+        checksCount: 1,
+        passCount: isPass ? 1 : 0,
+        failCount: isPass ? 0 : 1,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 8. EPA Floor
+  (s.epafloor || []).forEach((r, idx) => {
+    if (r.value.trim() !== '') {
+      const v = parseR(r.value);
+      const isPass = v !== null && v >= 1e5 && v < 1e9;
+      rows.push({
+        id: `${date}-floor-${idx}`,
+        date,
+        sectionKey: 'epafloor',
+        sectionLabel: '8. EPA Floor',
+        location: r.loc,
+        itemIdentifier: r.pointId,
+        measuredValue: `${r.value} Ω (${fmtR(v)})`,
+        standardSpec: '10^5 ≤ R < 10^9 Ω',
+        checksCount: 1,
+        passCount: isPass ? 1 : 0,
+        failCount: isPass ? 0 : 1,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 9. ESD chair
+  (s.chair || []).forEach((r, idx) => {
+    if (r.value.trim() !== '') {
+      const v = parseR(r.value);
+      const isPass = v !== null && v < 1e9;
+      rows.push({
+        id: `${date}-chair-${idx}`,
+        date,
+        sectionKey: 'chair',
+        sectionLabel: '9. ESD chair',
+        location: r.zone,
+        itemIdentifier: r.chairId,
+        measuredValue: `${r.value} Ω (${fmtR(v)})`,
+        standardSpec: 'R < 10^9 Ω',
+        checksCount: 1,
+        passCount: isPass ? 1 : 0,
+        failCount: isPass ? 0 : 1,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 10. Transport trolley
+  (s.trolley || []).forEach((r, idx) => {
+    if (r.value.trim() !== '') {
+      const v = parseR(r.value);
+      const isPass = v !== null && v < 1e9;
+      rows.push({
+        id: `${date}-trolley-${idx}`,
+        date,
+        sectionKey: 'trolley',
+        sectionLabel: '10. Transport trolley',
+        location: r.zone,
+        itemIdentifier: r.trolleyId,
+        measuredValue: `${r.value} Ω (${fmtR(v)})`,
+        standardSpec: 'R < 10^9 Ω',
+        checksCount: 1,
+        passCount: isPass ? 1 : 0,
+        failCount: isPass ? 0 : 1,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  // 11. ESD tray and box
+  (s.traybox || []).forEach((r, idx) => {
+    if (r.value.trim() !== '') {
+      const v = parseR(r.value);
+      const isPass = v !== null && v >= 1e4 && v < 1e11;
+      rows.push({
+        id: `${date}-traybox-${idx}`,
+        date,
+        sectionKey: 'traybox',
+        sectionLabel: '11. ESD tray and box',
+        location: r.zone,
+        itemIdentifier: `${r.itemType} (${r.sampleId})`,
+        measuredValue: `${r.value} Ω (${fmtR(v)})`,
+        standardSpec: '10^4 ≤ R < 10^11 Ω',
+        checksCount: 1,
+        passCount: isPass ? 1 : 0,
+        failCount: isPass ? 0 : 1,
+        status: isPass ? 'PASS' : 'FAIL',
+        remarks: genRem,
+      });
+    }
+  });
+
+  return rows;
+}
+
 export const EsdView: React.FC<EsdViewProps> = ({
   onNavigate,
+  selectedSubsection = 'database',
   isLoggedIn = true,
   onOpenLoginModal,
 }) => {
+  const [viewMode, setViewMode] = useState<'database' | 'entry'>(selectedSubsection);
   const [reportDate, setReportDate] = useState<string>(todayStr());
   const [activeTab, setActiveTab] = useState<TabKey>('worksurface');
   const [state, setState] = useState<EsdState>(defaultState);
   const [savedChip, setSavedChip] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+
+  // ESD Data Database state
+  const [esdDatabaseMap, setEsdDatabaseMap] = useState<Record<string, EsdState>>(buildSeedDatabase);
+  const [dbTableMode, setDbTableMode] = useState<'measurements' | 'daily'>('measurements');
+  const [dbSearch, setDbSearch] = useState<string>('');
+  const [dbDateFilter, setDbDateFilter] = useState<string>('ALL');
+  const [dbSectionFilter, setDbSectionFilter] = useState<string>('ALL');
+  const [dbStatusFilter, setDbStatusFilter] = useState<'ALL' | 'PASS' | 'FAIL'>('ALL');
+
+  useEffect(() => {
+    setViewMode(selectedSubsection);
+  }, [selectedSubsection]);
+
+  const handleSwitchMode = (mode: 'database' | 'entry') => {
+    setViewMode(mode);
+    if (onNavigate) {
+      onNavigate(mode === 'entry' ? 'esd-entry' : 'esd-database');
+    }
+  };
+
+  // Load all ESD records from localStorage and Firestore for the ESD Data Database
+  const refreshEsdDatabase = useCallback(async () => {
+    const base = defaultState();
+    const mergedMap: Record<string, EsdState> = { ...buildSeedDatabase() };
+
+    // 1. Scan localStorage for esd-log:<date>
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('esd-log:')) {
+          const dt = key.replace('esd-log:', '').trim();
+          const raw = localStorage.getItem(key);
+          if (dt && raw) {
+            const parsed = JSON.parse(raw);
+            mergedMap[dt] = {
+              ...base,
+              ...parsed,
+              remarks: { ...base.remarks, ...(parsed.remarks || {}) },
+            };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Local ESD scan notice:', e);
+    }
+
+    // 2. Scan Firestore esd_records
+    if (db) {
+      try {
+        const cloudDocs = await listEsdRecords();
+        cloudDocs.forEach((docItem) => {
+          const dt = docItem.date || docItem.id;
+          const payload = docItem.data || docItem;
+          if (dt && payload) {
+            mergedMap[dt] = {
+              ...base,
+              ...payload,
+              remarks: { ...base.remarks, ...(payload.remarks || {}) },
+            };
+          }
+        });
+      } catch (e) {
+        console.warn('Firestore ESD database load notice:', e);
+      }
+    }
+
+    setEsdDatabaseMap(mergedMap);
+  }, []);
+
+  useEffect(() => {
+    refreshEsdDatabase();
+  }, [refreshEsdDatabase]);
 
   // -------------------------------------------------------------------------------------
   // Load data whenever reportDate changes
@@ -385,7 +900,16 @@ export const EsdView: React.FC<EsdViewProps> = ({
       }
     }
 
-    // 3. Fallback to default state for new date
+    // 3. Check seeded database map for that date
+    const seeds = buildSeedDatabase();
+    if (seeds[date]) {
+      setState(seeds[date]);
+      setSavedChip('✓ সংরক্ষিত ডেটা লোড হয়েছে');
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    // 4. Fallback to default state for new date
     setState(defaultState());
     setSavedChip('');
     setHasUnsavedChanges(false);
@@ -401,8 +925,12 @@ export const EsdView: React.FC<EsdViewProps> = ({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // 1. Save to local storage
+      // 1. Save to local storage & live ESD database map
       localStorage.setItem(storageKey(reportDate), JSON.stringify(state));
+      setEsdDatabaseMap((prev) => ({
+        ...prev,
+        [reportDate]: state,
+      }));
 
       // 2. Save to Firestore esd_records & esd_reports if available
       if (db) {
@@ -430,6 +958,32 @@ export const EsdView: React.FC<EsdViewProps> = ({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleDeleteDatabaseDate = async (dateToDelete: string) => {
+    setEsdDatabaseMap((prev) => {
+      const next = { ...prev };
+      delete next[dateToDelete];
+      return next;
+    });
+    try {
+      localStorage.removeItem(storageKey(dateToDelete));
+    } catch {}
+    if (db) {
+      try {
+        await deleteEsdRecordByDate(dateToDelete);
+      } catch (e) {
+        console.warn('Firestore delete ESD record notice:', e);
+      }
+    }
+  };
+
+  const handleOpenDateInEntry = (targetDate: string, section?: TabKey) => {
+    setReportDate(targetDate);
+    if (section) {
+      setActiveTab(section);
+    }
+    handleSwitchMode('entry');
   };
 
   // -------------------------------------------------------------------------------------
@@ -952,8 +1506,198 @@ export const EsdView: React.FC<EsdViewProps> = ({
     setHasUnsavedChanges(true);
   };
 
+  // -------------------------------------------------------------------------------------
+  // ESD Data Database Computed Analytics & Flattened Records
+  // -------------------------------------------------------------------------------------
+  const sortedDates = useMemo(() => {
+    return Object.keys(esdDatabaseMap).sort((a, b) => b.localeCompare(a));
+  }, [esdDatabaseMap]);
+
+  const allFlatRows = useMemo(() => {
+    const list: EsdDatabaseFlatRow[] = [];
+    sortedDates.forEach((dt) => {
+      const st = esdDatabaseMap[dt];
+      if (st) {
+        list.push(...flattenEsdStateToRows(dt, st));
+      }
+    });
+    return list;
+  }, [sortedDates, esdDatabaseMap]);
+
+  const filteredFlatRows = useMemo(() => {
+    return allFlatRows.filter((r) => {
+      if (dbDateFilter !== 'ALL' && r.date !== dbDateFilter) return false;
+      if (dbSectionFilter !== 'ALL' && r.sectionKey !== dbSectionFilter) return false;
+      if (dbStatusFilter !== 'ALL' && r.status !== dbStatusFilter) return false;
+      if (dbSearch.trim()) {
+        const q = dbSearch.toLowerCase();
+        const match =
+          r.date.toLowerCase().includes(q) ||
+          r.sectionLabel.toLowerCase().includes(q) ||
+          r.location.toLowerCase().includes(q) ||
+          r.itemIdentifier.toLowerCase().includes(q) ||
+          r.measuredValue.toLowerCase().includes(q) ||
+          r.remarks.toLowerCase().includes(q);
+        if (!match) return false;
+      }
+      return true;
+    });
+  }, [allFlatRows, dbDateFilter, dbSectionFilter, dbStatusFilter, dbSearch]);
+
+  const dateSummaries = useMemo(() => {
+    return sortedDates.map((dt) => {
+      const rows = flattenEsdStateToRows(dt, esdDatabaseMap[dt]);
+      const totalChecks = rows.reduce((acc, r) => acc + r.checksCount, 0);
+      const totalPasses = rows.reduce((acc, r) => acc + r.passCount, 0);
+      const totalFails = rows.reduce((acc, r) => acc + r.failCount, 0);
+      const passRate = totalChecks > 0 ? Number(((totalPasses / totalChecks) * 100).toFixed(1)) : 100;
+
+      const bySection: Record<TabKey, { checks: number; pass: number; fail: number }> = {
+        worksurface: { checks: 0, pass: 0, fail: 0 },
+        contmonitor: { checks: 0, pass: 0, fail: 0 },
+        iron: { checks: 0, pass: 0, fail: 0 },
+        ionizer: { checks: 0, pass: 0, fail: 0 },
+        wristband: { checks: 0, pass: 0, fail: 0 },
+        shoe: { checks: 0, pass: 0, fail: 0 },
+        apron: { checks: 0, pass: 0, fail: 0 },
+        epafloor: { checks: 0, pass: 0, fail: 0 },
+        chair: { checks: 0, pass: 0, fail: 0 },
+        trolley: { checks: 0, pass: 0, fail: 0 },
+        traybox: { checks: 0, pass: 0, fail: 0 },
+      };
+
+      rows.forEach((r) => {
+        bySection[r.sectionKey].checks += r.checksCount;
+        bySection[r.sectionKey].pass += r.passCount;
+        bySection[r.sectionKey].fail += r.failCount;
+      });
+
+      return {
+        date: dt,
+        totalChecks,
+        totalPasses,
+        totalFails,
+        passRate,
+        bySection,
+        remarks: esdDatabaseMap[dt]?.remarks?.general || 'Standard ESD audit completed.',
+      };
+    });
+  }, [sortedDates, esdDatabaseMap]);
+
+  const dbKpis = useMemo(() => {
+    const totalReports = dateSummaries.length;
+    const totalChecks = dateSummaries.reduce((s, d) => s + d.totalChecks, 0);
+    const totalPasses = dateSummaries.reduce((s, d) => s + d.totalPasses, 0);
+    const totalFails = dateSummaries.reduce((s, d) => s + d.totalFails, 0);
+    const overallPassRate =
+      totalChecks > 0 ? ((totalPasses / totalChecks) * 100).toFixed(1) : '100.0';
+    return {
+      totalReports,
+      totalChecks,
+      totalPasses,
+      totalFails,
+      overallPassRate,
+    };
+  }, [dateSummaries]);
+
+  const sectionChartData = useMemo(() => {
+    const shortLabels: Record<TabKey, string> = {
+      worksurface: 'Work Surface',
+      contmonitor: 'Ctrl Monitor',
+      iron: 'Solder Iron',
+      ionizer: 'Ionizer',
+      wristband: 'Wristband',
+      shoe: 'ESD Shoe',
+      apron: 'ESD Apron',
+      epafloor: 'EPA Floor',
+      chair: 'ESD Chair',
+      trolley: 'Trolley',
+      traybox: 'Tray & Box',
+    };
+    return TABS.map((t) => {
+      const secRows = allFlatRows.filter((r) => r.sectionKey === t.key);
+      const pass = secRows.reduce((s, r) => s + r.passCount, 0);
+      const fail = secRows.reduce((s, r) => s + r.failCount, 0);
+      const total = pass + fail;
+      return {
+        name: shortLabels[t.key],
+        fullName: t.label,
+        pass,
+        fail,
+        total,
+        rate: total > 0 ? Number(((pass / total) * 100).toFixed(1)) : 100,
+      };
+    });
+  }, [allFlatRows]);
+
+  const zonePieData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allFlatRows.forEach((r) => {
+      const z = r.location || 'General';
+      counts[z] = (counts[z] || 0) + r.checksCount;
+    });
+    const colors = ['#1e3a8a', '#28ad6b', '#e35b2a', '#2f9bea', '#1fb6a6', '#e8a13a', '#6366f1', '#ec4899'];
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 7)
+      .map(([name, value], idx) => ({
+        name,
+        value,
+        color: colors[idx % colors.length],
+      }));
+  }, [allFlatRows]);
+
+  const handleExportFullDatabaseCSV = () => {
+    const rows: string[][] = [
+      [
+        'SL',
+        'Inspection Date',
+        'ESD Control Section',
+        'Location / Zone',
+        'Item / Sample ID',
+        'Measured Value / Check Count',
+        'Standard Specification',
+        'Total Checked',
+        'Passed',
+        'Failed',
+        'Result Status',
+        'Remarks',
+      ],
+    ];
+    filteredFlatRows.forEach((r, idx) => {
+      rows.push([
+        String(idx + 1),
+        r.date,
+        r.sectionLabel,
+        r.location,
+        r.itemIdentifier,
+        r.measuredValue,
+        r.standardSpec,
+        String(r.checksCount),
+        String(r.passCount),
+        String(r.failCount),
+        r.status,
+        r.remarks,
+      ]);
+    });
+    const csvContent = rows
+      .map((r) =>
+        r.map((c) => `"${String(c === undefined ? '' : c).replace(/"/g, '""')}"`).join(',')
+      )
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Walton_ESD_Data_Database_${todayStr()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="space-y-6 pb-16 print:p-0 print:space-y-4">
+    <div id="page-esd" className="space-y-6 pb-16 print:p-0 print:space-y-4">
       {/* Top Header Card */}
       <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden print:border-none print:shadow-none">
         <div className="bg-gradient-to-r from-[#172554] via-[#1e3a8a] to-[#0f172a] text-white px-5 py-4 sm:px-6 sm:py-5 flex flex-wrap items-center justify-between gap-4">
@@ -964,94 +1708,651 @@ export const EsdView: React.FC<EsdViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                  ESD QC Report Entry
+                  {viewMode === 'database' ? 'ESD Data Database' : 'ESD QC Report Entry'}
                 </h1>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  ANSI/ESD S20.20
+                </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-300">
-                Walton Hi Tech — PCBA ESD Monthly QC Inspection Log &amp; Calibration Record
+                Walton Hi Tech — PCBA ESD Monthly QC Inspection Database, Analytics &amp; Calibration Record
               </p>
             </div>
           </div>
 
-          {/* Date Picker Bar */}
-          <div className="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-lg border border-slate-700/60 backdrop-blur-xs">
-            <Calendar className="w-4 h-4 text-slate-400 ml-1.5" />
-            <input
-              type="date"
-              id="reportDate"
-              value={reportDate}
-              onChange={(e) => setReportDate(e.target.value)}
-              className="bg-transparent text-white font-mono text-sm px-2 py-1 outline-hidden cursor-pointer"
-            />
-            {savedChip && (
-              <span
-                id="savedChip"
-                className={`text-xs px-2 py-0.5 rounded font-medium ${
-                  savedChip.includes('⚠️')
-                    ? 'bg-red-500/20 text-red-300'
-                    : 'bg-emerald-500/20 text-emerald-300'
+          {/* Mode Switcher + Date Picker Bar */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Mode Switcher Tabs */}
+            <div className="flex items-center bg-slate-900/70 p-1 rounded-lg border border-slate-700/70 print:hidden">
+              <button
+                type="button"
+                onClick={() => handleSwitchMode('database')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'database'
+                    ? 'bg-amber-400 text-slate-950 shadow-xs'
+                    : 'text-slate-200 hover:text-white hover:bg-white/10'
                 }`}
               >
-                {savedChip}
-              </span>
-            )}
-            {hasUnsavedChanges && (
-              <span className="text-[11px] text-amber-300 animate-pulse px-1.5">
-                ● Unsaved
-              </span>
+                <Database className="w-3.5 h-3.5" />
+                <span>ESD Data Database ({dbKpis.totalReports})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSwitchMode('entry')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'entry'
+                    ? 'bg-amber-400 text-slate-950 shadow-xs'
+                    : 'text-slate-200 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                <span>ESD Data Entry</span>
+              </button>
+            </div>
+
+            {viewMode === 'entry' && (
+              <div className="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-lg border border-slate-700/60 backdrop-blur-xs">
+                <Calendar className="w-4 h-4 text-slate-400 ml-1.5" />
+                <input
+                  type="date"
+                  id="reportDate"
+                  value={reportDate}
+                  onChange={(e) => setReportDate(e.target.value)}
+                  className="bg-transparent text-white font-mono text-sm px-2 py-1 outline-hidden cursor-pointer"
+                />
+                {savedChip && (
+                  <span
+                    id="savedChip"
+                    className={`text-xs px-2 py-0.5 rounded font-medium ${
+                      savedChip.includes('⚠️')
+                        ? 'bg-red-500/20 text-red-300'
+                        : 'bg-emerald-500/20 text-emerald-300'
+                    }`}
+                  >
+                    {savedChip}
+                  </span>
+                )}
+                {hasUnsavedChanges && (
+                  <span className="text-[11px] text-amber-300 animate-pulse px-1.5">
+                    ● Unsaved
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Action Toolbar & Metric Cards */}
-        <div className="p-4 sm:p-5 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
-              <span className="text-xs text-slate-500 font-medium block">Total Inspected</span>
-              <span className="text-lg font-bold text-slate-800 font-mono">{stats.totalChecks}</span>
+        {/* Action Toolbar & Metric Cards for Entry Mode */}
+        {viewMode === 'entry' && (
+          <div className="p-4 sm:p-5 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+              <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                <span className="text-xs text-slate-500 font-medium block">Total Inspected</span>
+                <span className="text-lg font-bold text-slate-800 font-mono">{stats.totalChecks}</span>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                <span className="text-xs text-emerald-600 font-medium block">Passed Points</span>
+                <span className="text-lg font-bold text-emerald-700 font-mono">{stats.totalPasses}</span>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                <span className="text-xs text-red-600 font-medium block">Failures</span>
+                <span className="text-lg font-bold text-red-700 font-mono">{stats.totalFails}</span>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                <span className="text-xs text-blue-600 font-medium block">Pass Rate</span>
+                <span className="text-lg font-bold text-blue-700 font-mono">{stats.passRate}%</span>
+              </div>
             </div>
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
-              <span className="text-xs text-emerald-600 font-medium block">Passed Points</span>
-              <span className="text-lg font-bold text-emerald-700 font-mono">{stats.totalPasses}</span>
-            </div>
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
-              <span className="text-xs text-red-600 font-medium block">Failures</span>
-              <span className="text-lg font-bold text-red-700 font-mono">{stats.totalFails}</span>
-            </div>
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
-              <span className="text-xs text-blue-600 font-medium block">Pass Rate</span>
-              <span className="text-lg font-bold text-blue-700 font-mono">{stats.passRate}%</span>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-medium text-sm transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" />
-              <span>{isSaving ? 'সংরক্ষণ হচ্ছে...' : 'এই তারিখের ডেটা সেভ করুন'}</span>
-            </button>
-            <button
-              onClick={handleExportCSV}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium text-sm transition-colors shadow-2xs cursor-pointer"
-            >
-              <Download className="w-4 h-4 text-slate-500" />
-              <span>CSV এক্সপোর্ট করুন</span>
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium text-sm transition-colors shadow-2xs cursor-pointer"
-            >
-              <Printer className="w-4 h-4 text-slate-500" />
-              <span>প্রিন্ট</span>
-            </button>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-medium text-sm transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                <span>{isSaving ? 'সংরক্ষণ হচ্ছে...' : 'এই তারিখের ডেটা সেভ করুন'}</span>
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium text-sm transition-colors shadow-2xs cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-slate-500" />
+                <span>CSV এক্সপোর্ট করুন</span>
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium text-sm transition-colors shadow-2xs cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-slate-500" />
+                <span>প্রিন্ট</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Main Tabbed Container */}
+      {/* ================================================================================= */}
+      {/* VIEW MODE 1: ESD DATA DATABASE (KPI SCORECARDS, ANALYTICS CHARTS & MASTER TABLES) */}
+      {/* ================================================================================= */}
+      {viewMode === 'database' && (
+        <div className="space-y-6">
+          {/* 4 Headline ESD Database KPI Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white border border-[#e2e7f2] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#5b6480] uppercase tracking-wider">
+                  Total ESD Audit Logs
+                </span>
+                <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                  <Database className="w-4 h-4" />
+                </span>
+              </div>
+              <div className="font-mono text-3xl font-bold text-[#182a52] mt-2">
+                {dbKpis.totalReports}
+              </div>
+              <div className="text-[11px] text-[#5b6480] mt-1">
+                Registered inspection dates in database
+              </div>
+            </div>
+
+            <div className="bg-white border border-[#e2e7f2] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#5b6480] uppercase tracking-wider">
+                  Total Inspected Points
+                </span>
+                <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
+                  <Activity className="w-4 h-4" />
+                </span>
+              </div>
+              <div className="font-mono text-3xl font-bold text-[#2f9bea] mt-2">
+                {dbKpis.totalChecks}
+              </div>
+              <div className="text-[11px] text-[#5b6480] mt-1">
+                Across all 11 ESD control sections
+              </div>
+            </div>
+
+            <div className="bg-white border border-[#e2e7f2] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#5b6480] uppercase tracking-wider">
+                  Overall ESD Pass Rate
+                </span>
+                <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4" />
+                </span>
+              </div>
+              <div className="font-mono text-3xl font-bold text-[#28ad6b] mt-2">
+                {dbKpis.overallPassRate}%
+              </div>
+              <div className="text-[11px] text-[#128f83] font-semibold mt-1">
+                {dbKpis.totalPasses} Passed · Target ≥ 98.0%
+              </div>
+            </div>
+
+            <div className="bg-white border border-[#e2e7f2] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#5b6480] uppercase tracking-wider">
+                  Total ESD Failures
+                </span>
+                <span className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center">
+                  <AlertOctagon className="w-4 h-4" />
+                </span>
+              </div>
+              <div className="font-mono text-3xl font-bold text-[#d64545] mt-2">
+                {dbKpis.totalFails}
+              </div>
+              <div className="text-[11px] text-[#5b6480] mt-1">
+                Non-conforming grounding / resistance points
+              </div>
+            </div>
+          </div>
+
+          {/* 3 Interactive ESD Database Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Chart 1: Date-wise ESD Inspection Volume & Pass/Fail */}
+            <div className="bg-white border border-[#e2e7f2] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+              <div>
+                <h3 className="font-bold text-xs text-[#0d1730]">
+                  Date-wise ESD Inspection Trend
+                </h3>
+                <p className="text-[11px] text-[#5b6480] mb-2">
+                  Passed vs Failed points across recorded audit dates
+                </p>
+              </div>
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[...dateSummaries].reverse()}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eef1f8" />
+                    <XAxis dataKey="date" stroke="#5b6480" fontSize={10} />
+                    <YAxis stroke="#5b6480" fontSize={10} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e7f2',
+                        fontSize: '11px',
+                      }}
+                    />
+                    <Bar dataKey="totalPasses" name="Passed" fill="#28ad6b" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="totalFails" name="Failed" fill="#e35b2a" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="text-[10px] text-[#5b6480] text-center pt-1 border-t border-[#e2e7f2]">
+                Live historical compliance trend synced from ESD QC Report Entry.
+              </div>
+            </div>
+
+            {/* Chart 2: 11 ESD Control Sections Compliance */}
+            <div className="bg-white border border-[#e2e7f2] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+              <div>
+                <h3 className="font-bold text-xs text-[#0d1730]">
+                  11 ESD Control Sections Breakdown
+                </h3>
+                <p className="text-[11px] text-[#5b6480] mb-2">
+                  Cumulative checks across Work Surface, Wristband, Shoe, Floor &amp; Iron
+                </p>
+              </div>
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={sectionChartData.slice(0, 7)}
+                    margin={{ top: 5, right: 15, left: 25, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eef1f8" />
+                    <XAxis type="number" stroke="#5b6480" fontSize={10} allowDecimals={false} />
+                    <YAxis dataKey="name" type="category" stroke="#5b6480" fontSize={10} width={75} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e7f2',
+                        fontSize: '11px',
+                      }}
+                    />
+                    <Bar dataKey="pass" name="Pass" fill="#2f9bea" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="text-[10px] text-[#5b6480] text-center pt-1 border-t border-[#e2e7f2]">
+                All 11 ANSI/ESD S20.20 control categories monitored.
+              </div>
+            </div>
+
+            {/* Chart 3: Manufacturing Zone Distribution */}
+            <div className="bg-white border border-[#e2e7f2] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+              <div>
+                <h3 className="font-bold text-xs text-[#0d1730]">
+                  EPA Zone Inspection Distribution
+                </h3>
+                <p className="text-[11px] text-[#5b6480] mb-2">
+                  SMT Lines, Routing, Testing, Repair &amp; Packing zones
+                </p>
+              </div>
+              <div className="h-48 w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={zonePieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={36}
+                      outerRadius={58}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {zonePieData.map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        borderRadius: '8px',
+                        border: '1px solid #e2e7f2',
+                        fontSize: '11px',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] text-[#5b6480] pt-1 border-t border-[#e2e7f2]">
+                {zonePieData.slice(0, 4).map((z) => (
+                  <span key={z.name} className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: z.color }} />
+                    {z.name} ({z.value})
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Master ESD Data Database Card */}
+          <div className="bg-white border border-[#e2e7f2] rounded-xl shadow-xs overflow-hidden">
+            {/* Database Table Header & Mode Toggle */}
+            <div className="bg-gradient-to-r from-[#182a52] via-[#1e3a8a] to-[#0d1730] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-white">
+                    ESD DATA DATABASE REGISTRY
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    Complete historical &amp; live cloud-synced ESD measurements across all 11 control items
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center bg-slate-900/60 p-1 rounded-lg border border-white/15">
+                  <button
+                    type="button"
+                    onClick={() => setDbTableMode('measurements')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
+                      dbTableMode === 'measurements'
+                        ? 'bg-amber-400 text-slate-950 font-bold'
+                        : 'text-slate-200 hover:bg-white/10'
+                    }`}
+                  >
+                    1. All ESD Measurements ({filteredFlatRows.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDbTableMode('daily')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
+                      dbTableMode === 'daily'
+                        ? 'bg-amber-400 text-slate-950 font-bold'
+                        : 'text-slate-200 hover:bg-white/10'
+                    }`}
+                  >
+                    2. Daily Report Summary ({dateSummaries.length})
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleExportFullDatabaseCSV}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export Database CSV</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSwitchMode('entry')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#e35b2a] hover:bg-[#c74a1f] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ New ESD Entry</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Bar for Measurements Table */}
+            {dbTableMode === 'measurements' && (
+              <div className="p-4 bg-slate-50 border-b border-[#e2e7f2] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div className="lg:col-span-2 relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search by zone, sample ID, resistance value, section..."
+                    value={dbSearch}
+                    onChange={(e) => setDbSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-800 outline-hidden focus:border-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <select
+                    value={dbDateFilter}
+                    onChange={(e) => setDbDateFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 outline-hidden"
+                  >
+                    <option value="ALL">All Audit Dates ({sortedDates.length})</option>
+                    {sortedDates.map((d) => (
+                      <option key={d} value={d}>
+                        Date: {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <select
+                    value={dbSectionFilter}
+                    onChange={(e) => setDbSectionFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 outline-hidden"
+                  >
+                    <option value="ALL">All 11 ESD Control Sections</option>
+                    {TABS.map((t) => (
+                      <option key={t.key} value={t.key}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <select
+                    value={dbStatusFilter}
+                    onChange={(e) => setDbStatusFilter(e.target.value as 'ALL' | 'PASS' | 'FAIL')}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 outline-hidden"
+                  >
+                    <option value="ALL">All Status (PASS &amp; FAIL)</option>
+                    <option value="PASS">PASS Only</option>
+                    <option value="FAIL">FAIL Only</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* TABLE 1: ALL ESD MEASUREMENT RECORDS */}
+            {dbTableMode === 'measurements' && (
+              <div className="overflow-x-auto max-h-[540px] overflow-y-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="sticky top-0 z-10 bg-[#f1f5f9] text-[#0d1730] uppercase font-bold border-b border-slate-300">
+                    <tr>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center w-12">SL</th>
+                      <th className="px-3 py-3 border-r border-slate-200">Date</th>
+                      <th className="px-3 py-3 border-r border-slate-200">ESD Control Section</th>
+                      <th className="px-3 py-3 border-r border-slate-200">Zone / Location</th>
+                      <th className="px-3 py-3 border-r border-slate-200">Sample / Point ID</th>
+                      <th className="px-3 py-3 border-r border-slate-200">Measured Value / Check</th>
+                      <th className="px-3 py-3 border-r border-slate-200">Standard Specification</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Status</th>
+                      <th className="px-3 py-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 font-mono">
+                    {filteredFlatRows.map((row, idx) => (
+                      <tr key={row.id} className="hover:bg-blue-50/40 transition-colors">
+                        <td className="px-3 py-2.5 border-r border-slate-100 text-center text-slate-500 font-bold">
+                          {idx + 1}
+                        </td>
+                        <td className="px-3 py-2.5 border-r border-slate-100 font-bold text-[#182a52]">
+                          {row.date}
+                        </td>
+                        <td className="px-3 py-2.5 border-r border-slate-100 font-sans font-semibold text-slate-800">
+                          {row.sectionLabel}
+                        </td>
+                        <td className="px-3 py-2.5 border-r border-slate-100 font-sans text-slate-700">
+                          {row.location}
+                        </td>
+                        <td className="px-3 py-2.5 border-r border-slate-100 font-sans text-slate-700">
+                          {row.itemIdentifier}
+                        </td>
+                        <td className="px-3 py-2.5 border-r border-slate-100 text-slate-800 font-semibold">
+                          {row.measuredValue}
+                        </td>
+                        <td className="px-3 py-2.5 border-r border-slate-100 font-sans text-slate-500">
+                          {row.standardSpec}
+                        </td>
+                        <td className="px-3 py-2.5 border-r border-slate-100 text-center">
+                          {row.status === 'PASS' ? (
+                            <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                              PASS
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
+                              FAIL
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-center font-sans">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDateInEntry(row.date, row.sectionKey)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] border border-blue-200 cursor-pointer"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                            <span>Edit</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredFlatRows.length === 0 && (
+                      <tr>
+                        <td colSpan={9} className="px-4 py-8 text-center text-slate-500 font-sans">
+                          No ESD database records match the selected filters.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* TABLE 2: DAILY ESD REPORT SUMMARY DATABASE */}
+            {dbTableMode === 'daily' && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-[#f1f5f9] text-[#0d1730] uppercase font-bold border-b border-slate-300">
+                    <tr>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">SL</th>
+                      <th className="px-3 py-3 border-r border-slate-200">Audit Date</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Work Surface</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Ctrl Monitor</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Solder Iron</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Wristband</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">ESD Shoe</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Floor / Chair / Packaging</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Total Checked</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Pass / Fail</th>
+                      <th className="px-3 py-3 border-r border-slate-200 text-center">Pass Rate</th>
+                      <th className="px-3 py-3 border-r border-slate-200">Audit Remarks</th>
+                      <th className="px-3 py-3 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 font-mono">
+                    {dateSummaries.map((d, idx) => {
+                      const epaMiscChecks =
+                        d.bySection.epafloor.checks +
+                        d.bySection.chair.checks +
+                        d.bySection.trolley.checks +
+                        d.bySection.traybox.checks +
+                        d.bySection.apron.checks +
+                        d.bySection.ionizer.checks;
+                      const epaMiscPass =
+                        d.bySection.epafloor.pass +
+                        d.bySection.chair.pass +
+                        d.bySection.trolley.pass +
+                        d.bySection.traybox.pass +
+                        d.bySection.apron.pass +
+                        d.bySection.ionizer.pass;
+
+                      return (
+                        <tr key={d.date} className="hover:bg-blue-50/40 transition-colors">
+                          <td className="px-3 py-3 border-r border-slate-100 text-center font-bold text-slate-500">
+                            {idx + 1}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 font-bold text-[#182a52]">
+                            {d.date}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            {d.bySection.worksurface.pass}/{d.bySection.worksurface.checks}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            {d.bySection.contmonitor.pass}/{d.bySection.contmonitor.checks}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            {d.bySection.iron.pass}/{d.bySection.iron.checks}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            {d.bySection.wristband.pass}/{d.bySection.wristband.checks}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            {d.bySection.shoe.pass}/{d.bySection.shoe.checks}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            {epaMiscPass}/{epaMiscChecks}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center font-bold text-slate-800">
+                            {d.totalChecks}
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            <span className="text-emerald-700 font-bold">{d.totalPasses}P</span>
+                            {' / '}
+                            <span className={d.totalFails > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}>
+                              {d.totalFails}F
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 text-center">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                d.passRate >= 98
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {d.passRate}%
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 border-r border-slate-100 font-sans text-slate-600 max-w-xs truncate">
+                            {d.remarks}
+                          </td>
+                          <td className="px-3 py-3 text-center font-sans">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenDateInEntry(d.date)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] border border-blue-200 cursor-pointer"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                                <span>Open / Edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteDatabaseDate(d.date)}
+                                className="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors cursor-pointer"
+                                title="Delete Date Record"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================================= */}
+      {/* VIEW MODE 2: ESD QC REPORT ENTRY (11 CONTROL SECTIONS)                            */}
+      {/* ================================================================================= */}
+      {viewMode === 'entry' && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Sub-Navigation Tabs */}
         <div className="lg:col-span-3 bg-white rounded-xl shadow-xs border border-slate-200 p-2.5 space-y-1 print:hidden">
@@ -2195,6 +3496,7 @@ export const EsdView: React.FC<EsdViewProps> = ({
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };

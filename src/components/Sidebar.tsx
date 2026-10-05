@@ -59,12 +59,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  WALTON_EMBLEM_LEFT_PATH,
-  WALTON_EMBLEM_RIGHT_PATH,
-  WALTON_EMBLEM_RED_PATH,
-  WALTON_WORDMARK_PATH,
-} from './waltonLogoPaths';
 import { WaltonSealLogo } from './WaltonSealLogo';
 
 interface SidebarProps {
@@ -115,10 +109,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isSidebarHovered, setIsSidebarHovered] = useState<boolean>(false);
   const isMenuOpen = isSidebarHovered || (isOpen && !collapsed);
   const ncrBadge = openNcrCount ?? openNcCount ?? 4;
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-    iqc: false,
-    team: true,
-  });
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(() => ({
+    iqc: currentPage === 'iqc' || currentPage === 'iqc-pcb' || currentPage === 'iqc-pcba',
+    esd: currentPage === 'esd' || currentPage === 'esd-database' || currentPage === 'esd-entry',
+    team: currentPage === 'team' || currentPage === 'team-database' || currentPage === 'team-entry',
+  }));
 
   const sidebarCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -185,20 +180,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       description: 'Incoming Quality Control dashboard and inspection reports for PCB & PCBA',
       subItems: [
         {
-          id: 'iqc' as PageId,
-          label: 'IQC Dashboard',
-          icon: BarChart3,
-          description: 'Monthly lot inspection summary, quality performance & supplier ranking',
-        },
-        {
           id: 'iqc-pcb' as PageId,
-          label: '1. PCB Bare Board IQC',
+          label: 'PCB IQC',
           icon: Cpu,
           description: 'Copper thickness, solder mask & solderability audit',
         },
         {
           id: 'iqc-pcba' as PageId,
-          label: '2. PCBA Component IQC',
+          label: 'PCBA IQC',
           icon: Layers,
           description: 'SMD active & passive components incoming inspection',
         },
@@ -209,6 +198,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'ESD',
       icon: Zap,
       description: 'SMT ESD Monthly Log: work surface, iron, ionizer, wristband, shoe, apron',
+      subItems: [
+        {
+          id: 'esd-database' as PageId,
+          label: 'ESD Data Database',
+          icon: BarChart3,
+          description: 'ESD audit analytics, KPI scorecards & historical inspection database',
+        },
+        {
+          id: 'esd-entry' as PageId,
+          label: 'ESD Data Entry',
+          icon: ClipboardList,
+          description: 'Daily/Monthly ESD QC report entry & 11-section calibration log',
+        },
+      ],
+    },
+    {
+      id: 'manpower' as PageId,
+      label: 'Manpower List',
+      icon: Users,
+      description: 'Quality Management personnel directory: SMT, MI & PCB inspector rosters',
+      badge: '31',
+      badgeColor: 'bg-[#2563eb]',
     },
     {
       id: 'tasks' as PageId,
@@ -316,30 +327,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Top Header Section inside Sidebar */}
         {isMenuOpen ? (
-          /* Full Header with Official Walton Logo */
-          <div className="h-16 px-4 flex items-center justify-between border-b border-[#1c2c54] bg-[#091226] shrink-0">
+          /* Full Header with Official Walton Quality Management Seal Logo */
+          <div className="h-16 px-3.5 flex items-center justify-between border-b border-[#1c2c54] bg-[#091226] shrink-0">
             <div
-              className="flex items-center gap-2 cursor-pointer group"
+              className="flex items-center gap-3 cursor-pointer group min-w-0"
               onClick={() => handleNavClick('home')}
               title="Walton Quality Management - Home"
             >
-              <svg
-                viewBox="130 170 240 160"
-                className="h-9 w-auto text-white drop-shadow-sm group-hover:scale-105 transition-transform"
-                aria-label="WALTON"
-              >
-                <path d={WALTON_EMBLEM_LEFT_PATH} fill="#ffffff" />
-                <path d={WALTON_EMBLEM_RIGHT_PATH} fill="#ffffff" />
-                <path d={WALTON_EMBLEM_RED_PATH} fill="#ef4444" />
-                <path d={WALTON_WORDMARK_PATH} fill="#ffffff" />
-              </svg>
+              <div className="w-[42px] h-[42px] shrink-0 flex items-center justify-center filter drop-shadow-md group-hover:scale-105 transition-transform">
+                <WaltonSealLogo className="w-full h-full object-contain select-none" animated={false} />
+              </div>
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="text-[15px] font-extrabold tracking-wide text-white group-hover:text-blue-200 transition-colors">
+                  Walton
+                </span>
+                <span className="text-[10px] text-[#9db0cc] font-medium leading-tight group-hover:text-[#b8c2e6] transition-colors truncate">
+                  Quality Management PCB &amp; PCBA
+                </span>
+              </div>
             </div>
             <button
               onClick={() => {
                 setIsSidebarHovered(false);
                 onCloseMobile();
               }}
-              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#182a52] transition-colors"
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#182a52] transition-colors shrink-0"
               aria-label="Close navigation sidebar"
             >
               <X className="w-4 h-4" />
@@ -351,9 +363,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={() => handleNavClick('home')}
               title="Walton Quality Management"
-              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center p-1 border border-white/20 shadow-xs cursor-pointer hover:bg-white/20 transition-all hover:scale-105"
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center p-0.5 border border-white/20 shadow-xs cursor-pointer hover:bg-white/20 transition-all hover:scale-105"
             >
-              <WaltonSealLogo className="w-full h-full" animated={false} />
+              <WaltonSealLogo className="w-full h-full object-contain select-none" animated={false} />
             </button>
           </div>
         )}
@@ -370,7 +382,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 const hasSubItems = item.subItems && item.subItems.length > 0;
                 const isSubActive = hasSubItems && item.subItems?.some((sub) => sub.id === currentPage);
                 const isActive = currentPage === item.id;
-                const isMenuExpanded = Boolean(expandedMenus[item.id] || isSubActive || isActive);
+                const isMenuExpanded = Boolean(expandedMenus[item.id]);
 
                 return (
                   <div key={item.id} className="space-y-0.5">
@@ -378,12 +390,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       id={`nav-${item.id}`}
                       onClick={() => {
                         if (hasSubItems) {
+                          const nextExpanded = !isMenuExpanded;
                           setExpandedMenus((prev) => ({
                             ...prev,
-                            [item.id]: !isMenuExpanded,
+                            [item.id]: nextExpanded,
                           }));
+                          if (nextExpanded || (!isActive && !isSubActive)) {
+                            handleNavClick(item.id);
+                          }
+                        } else {
+                          handleNavClick(item.id);
                         }
-                        handleNavClick(item.id);
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-all duration-150 cursor-pointer group ${
                         isActive
@@ -450,7 +467,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             const SubIcon = sub.icon;
                             const isItemSubActive =
                               currentPage === sub.id ||
-                              (item.id === 'team' && currentPage === 'team' && sub.id === 'team-database');
+                              (item.id === 'team' && currentPage === 'team' && sub.id === 'team-database') ||
+                              (item.id === 'esd' && currentPage === 'esd' && sub.id === 'esd-database');
                             return (
                               <button
                                 key={sub.id}
@@ -492,7 +510,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div key={item.id} className="relative">
                     <button
                       id={`nav-${item.id}`}
-                      onClick={() => handleNavClick(item.id)}
+                      onClick={() => {
+                        if (hasSubItems) {
+                          setExpandedMenus((prev) => ({
+                            ...prev,
+                            [item.id]: !prev[item.id],
+                          }));
+                        }
+                        handleNavClick(item.id);
+                      }}
                       className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-150 cursor-pointer ${
                         isActive
                           ? 'bg-[#182c57] text-white shadow-sm ring-1 ring-[#e35b2a] border-l-2 border-[#e35b2a]'

@@ -38,11 +38,6 @@ import { QmBadge } from './QmBadge';
 import { ContactModal } from './modals/ContactModal';
 import { AboutModal, AboutTabType } from './modals/AboutModal';
 import { ProductModal } from './modals/ProductModal';
-import {
-  WALTON_EMBLEM_LEFT_PATH,
-  WALTON_EMBLEM_RED_PATH,
-  WALTON_EMBLEM_RIGHT_PATH,
-} from './waltonLogoPaths';
 import { PageId } from '../types';
 import { db, doc, getDoc, setDoc } from '../services/firebase';
 import {
@@ -77,7 +72,11 @@ import {
   ClipboardCheck,
   BookOpenCheck,
   Image as ImageIcon,
+  Camera,
   RotateCcw,
+  Upload,
+  Trash2,
+  AlertCircle,
   Facebook,
   Youtube,
   Linkedin,
@@ -150,7 +149,13 @@ import heroImg2 from '../assets/images/walton_pcb_banner_1789903566969.jpg';
 import heroImg3 from '../assets/images/walton_tv_pcba_1789903587667.jpg';
 import heroImg4 from '../assets/images/walton_toy_pcba_1789903608083.jpg';
 
-const heroBannerImages = [
+export interface HeroBannerItem {
+  url: string;
+  title: string;
+  label: string;
+}
+
+const DEFAULT_HERO_BANNER_IMAGES: HeroBannerItem[] = [
   {
     url: heroImg1,
     title: 'Walton High-Tech Automated SMT Factory Production Line',
@@ -252,13 +257,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [kpiAnimKey, setKpiAnimKey] = useState(0);
   const [heroSlide, setHeroSlide] = useState(0);
 
+  // Dynamic Hero Banner Images state & persistence
+  const [heroBannerList, setHeroBannerList] = useState<HeroBannerItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('walton_landing_hero_banners');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_HERO_BANNER_IMAGES;
+  });
+
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [newImageTitle, setNewImageTitle] = useState('');
+  const [newImageLabel, setNewImageLabel] = useState('');
+  const [imageUploadType, setImageUploadType] = useState<'upload' | 'url'>('upload');
+  const [imagePreviewError, setImagePreviewError] = useState(false);
+  const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState<string>('');
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [isDraggingOver, setIsDraggingOver] = useState<boolean>(false);
+  const bannerFileInputRef = React.useRef<HTMLInputElement>(null);
+  const modalFileInputRef = React.useRef<HTMLInputElement>(null);
+
   // Auto-cycle hero banner images smoothly every 5 seconds
   useEffect(() => {
+    if (heroBannerList.length <= 1) return;
     const timer = setInterval(() => {
-      setHeroSlide((prev) => (prev + 1) % heroBannerImages.length);
+      setHeroSlide((prev) => (prev + 1) % heroBannerList.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroBannerList.length]);
 
   // Worker Talent Entry state & persistence
   const [talentData, setTalentData] = useState<WorkerTalentData>(() => {
@@ -315,6 +345,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           const cloudTalent = { ...DEFAULT_WORKER_TALENT, ...(snap.data() as Partial<WorkerTalentData>) };
           setTalentData(cloudTalent);
           localStorage.setItem('walton_worker_talent_data', JSON.stringify(cloudTalent));
+        }
+      })
+      .catch(() => {});
+
+    getDoc(doc(db, 'master_data', 'hero_banner_images'))
+      .then((snap) => {
+        if (snap.exists()) {
+          const cloudBanners = snap.data()?.banners;
+          if (Array.isArray(cloudBanners) && cloudBanners.length > 0) {
+            setHeroBannerList(cloudBanners);
+            try {
+              localStorage.setItem('walton_landing_hero_banners', JSON.stringify(cloudBanners));
+            } catch {}
+          }
         }
       })
       .catch(() => {});
@@ -462,12 +506,161 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     setTimeout(() => setSaveToast(false), 3500);
   };
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroSlide((prev) => (prev + 1) % heroBannerImages.length);
-    }, 7000);
-    return () => clearInterval(timer);
-  }, []);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setNewImageUrl(result);
+        setImagePreviewError(false);
+        if (!newImageTitle) {
+          const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+          setNewImageTitle(nameWithoutExt);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const processImageFile = (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (PNG, JPG, WEBP, SVG, etc.)');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds 10MB. Please choose a smaller image.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        setUploadedImageDataUrl(result);
+        setUploadedFileName(file.name);
+        if (!newImageTitle) {
+          const autoTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+          setNewImageTitle(autoTitle.charAt(0).toUpperCase() + autoTitle.slice(1));
+        }
+        if (!newImageLabel) {
+          setNewImageLabel('SMT PCB Assembly · Walton Quality');
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDirectBannerFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (result) {
+        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        const autoTitle = cleanName.charAt(0).toUpperCase() + cleanName.slice(1) || 'Walton High-Tech Facility';
+        const newItem: HeroBannerItem = {
+          url: result,
+          title: autoTitle,
+          label: 'Direct Upload · ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        };
+        const updated = [newItem, ...heroBannerList];
+        setHeroBannerList(updated);
+        try {
+          localStorage.setItem('walton_landing_hero_banners', JSON.stringify(updated));
+        } catch {}
+        if (db) {
+          setDoc(doc(db, 'master_data', 'hero_banner_images'), { banners: updated }, { merge: true }).catch(() => {});
+        }
+        setHeroSlide(0);
+        setSaveToastMessage({
+          title: 'Image Added & Set as Banner!',
+          subtitle: `"${newItem.title}" is now displaying on the hero banner.`,
+        });
+        setSaveToast(true);
+        setTimeout(() => setSaveToast(false), 3500);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleAddHeroImage = (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalUrl = imageUploadType === 'upload' ? uploadedImageDataUrl : newImageUrl.trim();
+    if (!finalUrl) {
+      alert(imageUploadType === 'upload' ? 'Please choose or drag & drop an image file first.' : 'Please enter an image URL.');
+      return;
+    }
+
+    const newItem: HeroBannerItem = {
+      url: finalUrl,
+      title: newImageTitle.trim() || (uploadedFileName ? uploadedFileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') : 'Walton PCB & PCBA Facility'),
+      label: newImageLabel.trim() || 'Quality Engineering & Manufacturing',
+    };
+
+    const updated = [newItem, ...heroBannerList];
+    setHeroBannerList(updated);
+    try {
+      localStorage.setItem('walton_landing_hero_banners', JSON.stringify(updated));
+    } catch {}
+
+    if (db) {
+      setDoc(doc(db, 'master_data', 'hero_banner_images'), { banners: updated }, { merge: true }).catch(() => {});
+    }
+
+    setHeroSlide(0); // Show newly added image immediately
+    setNewImageUrl('');
+    setUploadedImageDataUrl('');
+    setUploadedFileName('');
+    setNewImageTitle('');
+    setNewImageLabel('');
+    setIsImageModalOpen(false);
+
+    setSaveToastMessage({
+      title: 'Hero Banner Image Added!',
+      subtitle: `"${newItem.title}" is now live in the Walton showcase carousel.`,
+    });
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 3500);
+  };
+
+  const handleDeleteHeroImage = (indexToDelete: number) => {
+    if (heroBannerList.length <= 1) {
+      alert('You must keep at least one hero banner image.');
+      return;
+    }
+    const updated = heroBannerList.filter((_, idx) => idx !== indexToDelete);
+    setHeroBannerList(updated);
+    try {
+      localStorage.setItem('walton_landing_hero_banners', JSON.stringify(updated));
+    } catch {}
+    if (db) {
+      setDoc(doc(db, 'master_data', 'hero_banner_images'), { banners: updated }, { merge: true }).catch(() => {});
+    }
+    if (heroSlide >= updated.length) {
+      setHeroSlide(0);
+    }
+  };
+
+  const handleResetHeroImages = () => {
+    setHeroBannerList(DEFAULT_HERO_BANNER_IMAGES);
+    try {
+      localStorage.removeItem('walton_landing_hero_banners');
+    } catch {}
+    if (db) {
+      setDoc(doc(db, 'master_data', 'hero_banner_images'), { banners: DEFAULT_HERO_BANNER_IMAGES }, { merge: true }).catch(() => {});
+    }
+    setHeroSlide(0);
+    setSaveToastMessage({
+      title: 'Hero Images Reset',
+      subtitle: 'Restored original Walton manufacturing facility images.',
+    });
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 3500);
+  };
 
   // Departments according to the visual card structure in mockup
   const departmentCards = [
@@ -740,8 +933,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <img
               id="hero-banner-image"
               key={heroSlide}
-              src={heroBannerImages[heroSlide].url}
-              alt={heroBannerImages[heroSlide].title}
+              src={heroBannerList[heroSlide]?.url || DEFAULT_HERO_BANNER_IMAGES[0].url}
+              alt={heroBannerList[heroSlide]?.title || 'Hero Banner'}
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover object-center transition-all duration-700 ease-out"
             />
@@ -758,12 +951,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* High-tech Quality Optical Inspection Scanline */}
           <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(34,211,238,0.9)] animate-hero-scanline pointer-events-none z-10 opacity-70" />
 
+          {/* Hidden File Input for Direct Local Image Upload */}
+          <input
+            ref={bannerFileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleDirectBannerFileUpload}
+          />
 
+          {/* Hero Banner Image Entry Button Group */}
+          <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+            {/* Quick Upload Button directly from device */}
+            <button
+              type="button"
+              onClick={() => bannerFileInputRef.current?.click()}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 bg-black/60 hover:bg-black/85 text-white/95 text-xs font-bold rounded-xl border border-white/20 backdrop-blur-md transition-all shadow-md cursor-pointer active:scale-95 group"
+              title="Upload an image directly from your computer or device"
+            >
+              <Upload className="w-3.5 h-3.5 text-cyan-300 group-hover:-translate-y-0.5 transition-transform" />
+              <span>Upload Photo</span>
+            </button>
+
+            {/* Primary Entry Button to Add Image in this section */}
+            <button
+              id="hero-banner-image-entry-btn"
+              type="button"
+              onClick={() => setIsImageModalOpen(true)}
+              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-gradient-to-r from-[#1c356b] via-[#3730a3] to-[#4f46e5] hover:from-[#152a55] hover:via-[#312e81] hover:to-[#4338ca] text-white text-xs sm:text-sm font-bold rounded-xl border border-cyan-400/50 backdrop-blur-md transition-all shadow-[0_4px_16px_rgba(79,70,229,0.4)] hover:shadow-cyan-400/40 cursor-pointer active:scale-95 group"
+              title="Add or customize hero banner images in this section"
+            >
+              <Plus className="w-4 h-4 text-cyan-300 group-hover:scale-125 transition-transform" />
+              <ImageIcon className="w-4 h-4 text-white" />
+              <span>Add Image</span>
+              <span className="text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded text-cyan-100">
+                {heroBannerList.length}
+              </span>
+            </button>
+
+            {/* Remove / Delete Current Image from Hero Banner */}
+            {heroBannerList.length > 1 && (
+              <button
+                type="button"
+                onClick={() => handleDeleteHeroImage(heroSlide)}
+                className="p-2 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white rounded-xl border border-white/20 backdrop-blur-md transition-all shadow-md cursor-pointer active:scale-95"
+                title="Remove current image from banner carousel"
+              >
+                <Trash2 className="w-4 h-4 text-rose-400 group-hover:text-white" />
+              </button>
+            )}
+          </div>
 
           {/* Slide Navigation Buttons (Previous / Next) */}
           <button
             type="button"
-            onClick={() => setHeroSlide((prev) => (prev === 0 ? heroBannerImages.length - 1 : prev - 1))}
+            onClick={() => setHeroSlide((prev) => (prev === 0 ? heroBannerList.length - 1 : prev - 1))}
             aria-label="Previous slide"
             className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/45 hover:bg-black/75 text-white/80 hover:text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/20 cursor-pointer shadow-lg active:scale-95"
           >
@@ -771,7 +1013,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setHeroSlide((prev) => (prev + 1) % heroBannerImages.length)}
+            onClick={() => setHeroSlide((prev) => (prev + 1) % heroBannerList.length)}
             aria-label="Next slide"
             className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/45 hover:bg-black/75 text-white/80 hover:text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/20 cursor-pointer shadow-lg active:scale-95"
           >
@@ -780,7 +1022,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Slide Indicators */}
           <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-20 flex items-center gap-2">
-            {heroBannerImages.map((_, idx) => (
+            {heroBannerList.map((_, idx) => (
               <button
                 key={idx}
                 type="button"
@@ -788,7 +1030,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                   heroSlide === idx ? 'w-7 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'w-2 bg-white/40 hover:bg-white/70'
                 }`}
-                title={`Go to slide ${idx + 1}: ${heroBannerImages[idx].title}`}
+                title={`Go to slide ${idx + 1}: ${heroBannerList[idx]?.title || ''}`}
                 aria-label={`Slide ${idx + 1}`}
               />
             ))}
@@ -1816,6 +2058,285 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <span>Save &amp; Update Section</span>
                   </button>
                 </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Banner Image Entry Modal */}
+      {isImageModalOpen && (
+        <div
+          id="modal-hero-image-entry-backdrop"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsImageModalOpen(false);
+          }}
+        >
+          <div
+            id="modal-hero-image-entry"
+            className="bg-white rounded-2xl shadow-2xl border border-[#cbd5e1] w-full max-w-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150"
+          >
+            {/* Modal Header */}
+            <div className="bg-[#0d1730] text-white px-5 py-4 flex items-center justify-between border-b-2 border-cyan-400">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400">
+                  <ImageIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
+                    Hero Banner Image Entry
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded-full">
+                      Section Images
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#93c5fd] mt-0.5">
+                    Add or upload new images for the Walton PCB &amp; PCBA showcase banner
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsImageModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                title="Close dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Entry Form */}
+            <form onSubmit={handleAddHeroImage} className="p-5 overflow-y-auto space-y-4">
+              {/* Direct Image File Upload */}
+              <div className="space-y-3">
+                <input
+                  ref={modalFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) processImageFile(file);
+                  }}
+                />
+
+                {uploadedImageDataUrl ? (
+                  <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-950 group">
+                    <img
+                      src={uploadedImageDataUrl}
+                      alt="Preview"
+                      className="w-full h-52 object-cover object-center"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent flex items-end p-3.5 justify-between">
+                      <div className="text-white text-xs font-medium truncate max-w-[70%]">
+                        <span className="font-bold block text-cyan-300">Selected Image:</span>
+                        {uploadedFileName || 'Ready to add to banner'}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => modalFileInputRef.current?.click()}
+                          className="px-2.5 py-1 bg-white/20 hover:bg-white/30 backdrop-blur-xs text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                        >
+                          Change
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadedImageDataUrl('');
+                            setUploadedFileName('');
+                          }}
+                          className="p-1 bg-red-600/80 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer"
+                          title="Remove file"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingOver(true);
+                    }}
+                    onDragLeave={() => setIsDraggingOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingOver(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) processImageFile(file);
+                    }}
+                    onClick={() => modalFileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2.5 ${
+                      isDraggingOver
+                        ? 'border-cyan-500 bg-cyan-50/50'
+                        : 'border-slate-300 hover:border-[#1c356b] hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="p-3.5 bg-indigo-50 text-[#4f46e5] rounded-full">
+                      <Upload className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">
+                        Click to browse or drag &amp; drop an image here
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Supports PNG, JPG, JPEG, WEBP, or SVG
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="mt-1 px-4 py-2 bg-[#1c356b] text-white text-xs font-bold rounded-lg hover:bg-[#152a55] transition-colors"
+                    >
+                      Choose Image File
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Factory Presets */}
+              <div className="pt-2 border-t border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    Quick Factory Image Presets
+                  </span>
+                  <span className="text-[11px] text-slate-500">1-click to add</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { title: 'SMT Factory Line', url: heroImg1, tag: 'Cleanroom' },
+                    { title: 'Robotic Pick & Place', url: heroImg2, tag: 'Robotic SMD' },
+                    { title: 'TV Motherboard Assembly', url: heroImg3, tag: 'PCBA QA' },
+                    { title: 'Smart IoT Controller', url: heroImg4, tag: 'Testing' },
+                  ].map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        const newItem: HeroBannerItem = {
+                          url: preset.url,
+                          title: preset.title,
+                          label: preset.tag + ' · Walton High-Tech',
+                        };
+                        const updated = [newItem, ...heroBannerList];
+                        setHeroBannerList(updated);
+                        try {
+                          localStorage.setItem('walton_landing_hero_banners', JSON.stringify(updated));
+                        } catch {}
+                        if (db) {
+                          setDoc(doc(db, 'master_data', 'hero_banner_images'), { banners: updated }, { merge: true }).catch(() => {});
+                        }
+                        setHeroSlide(0);
+                        setIsImageModalOpen(false);
+                        setSaveToastMessage({
+                          title: 'Preset Image Added!',
+                          subtitle: `Added "${preset.title}" to hero banner carousel.`,
+                        });
+                        setSaveToast(true);
+                        setTimeout(() => setSaveToast(false), 3500);
+                      }}
+                      className="group/p p-1.5 rounded-xl border border-slate-200 hover:border-cyan-400 bg-slate-50 hover:bg-cyan-50/50 transition-all text-left cursor-pointer"
+                    >
+                      <div className="h-14 rounded-lg overflow-hidden mb-1 bg-slate-900">
+                        <img src={preset.url} alt={preset.title} className="w-full h-full object-cover group-hover/p:scale-105 transition-transform" />
+                      </div>
+                      <div className="text-[11px] font-bold text-slate-800 truncate">{preset.title}</div>
+                      <div className="text-[10px] text-cyan-600 font-medium">{preset.tag}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Current Banner Images Management */}
+              <div className="pt-2 border-t border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                    Current Banner Images in Rotation ({heroBannerList.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetHeroImages}
+                    className="text-[11px] text-slate-600 hover:text-slate-900 flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset Defaults</span>
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                  {heroBannerList.map((banner, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                        heroSlide === idx
+                          ? 'border-cyan-400 bg-cyan-50/60 shadow-xs'
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <div
+                        className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
+                        onClick={() => {
+                          setHeroSlide(idx);
+                        }}
+                      >
+                        <div className="w-12 h-8 rounded-md overflow-hidden bg-slate-900 shrink-0 border border-slate-200">
+                          <img src={banner.url} alt={banner.title} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-800 truncate flex items-center gap-1.5">
+                            <span>{banner.title}</span>
+                            {heroSlide === idx && (
+                              <span className="bg-cyan-500 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">
+                                Active Slide
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-slate-500 truncate">{banner.label}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
+                        <button
+                          type="button"
+                          onClick={() => setHeroSlide(idx)}
+                          className="px-2 py-1 text-[11px] font-semibold text-cyan-700 hover:bg-cyan-100 rounded-md transition-colors cursor-pointer"
+                          title="Show this slide now"
+                        >
+                          View
+                        </button>
+                        {heroBannerList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteHeroImage(idx)}
+                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                            title="Delete this banner image"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="border-t border-slate-200 pt-3 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsImageModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#1c356b] hover:bg-[#152a55] rounded-xl shadow-sm flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                >
+                  <Check className="w-4 h-4 text-cyan-400" />
+                  <span>Save &amp; Add to Banner</span>
+                </button>
               </div>
             </form>
           </div>

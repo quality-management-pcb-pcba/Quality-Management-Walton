@@ -22,6 +22,13 @@ import {
   CloudCheck,
 } from 'lucide-react';
 import { saveMultiplePcbaReports } from '../services/pcbaReportService';
+import { SMT_LINE_01_DEFECT_RECORDS } from '../data/smtLine01Records';
+import { SMT_LINE_02_DEFECT_RECORDS } from '../data/smtLine02Records';
+import { SMT_LINE_03_DEFECT_RECORDS } from '../data/smtLine03Records';
+import { SMT_LINE_04_DEFECT_RECORDS } from '../data/smtLine04Records';
+import { SMT_LINE_05_DEFECT_RECORDS } from '../data/smtLine05Records';
+import { MI_LINE_01_DEFECT_RECORDS } from '../data/miLine01Records';
+import { MI_LINE_CHARGER_DEFECT_RECORDS } from '../data/miLineChargerRecords';
 
 export interface AOIDefectRecord {
   id: string;
@@ -42,34 +49,173 @@ export interface AOILineDefectEntryProps {
   onNavigateToDatabase?: () => void;
 }
 
-// Initial master data from real AOI_LINE-01 history
+// Initial master data from real AOI_LINE-01, SMT Line-02, Line-03, Line-04, Line-05, MI Line-01 & MI Line-Charger history
 const DEFAULT_FORM_DATA = {
   shifts: ['Day', 'Night', 'Morning', 'Evening', 'General'],
-  products: ['AC', 'Fan', 'Fridge', 'LED', 'Local Fan', 'Remote', 'TV'],
+  products: ['AC', 'Adapter', 'Charger', 'Fan', 'Fridge', 'LED', 'Local', 'Remote', 'Rice Cooker', 'Toy', 'TV'],
   operators: [
+    'Abdul Wahab(64410)',
+    'Abdullah Al Mamun(53129)',
+    'Abu Saeed Ali (63929)',
+    'Abu Sayeed Ali(63929)',
+    'Akter Jahan Shelly(17577)',
     'Anik Sutradhar(50280)',
+    'Ariful Islam(63725)',
+    'Biojeth(C-14611)',
+    'C-14324 Habibur',
+    'C-14340 Salman Rahman',
+    'C-14395',
+    'C-14555 Mazharul',
+    'C-14709 Salman Rahman',
+    'Chandana rani das(1354)',
+    'Majedul Islam(64218)',
+    'Masum Miah (64193)',
+    'Masum Miah(64193)',
+    'Mazidul Islam(64218)',
+    'Md. Ariful Islam(63725)',
+    'Md.Belal Hossain(23978)',
+    'Md. Biojeth Hossain(C-14611)',
+    'Md. Gibon Mia(64848)',
+    'Md. Hamidul Islam(63923)',
+    'Md. Mamun Rana(64006)',
+    'Md. Masud Rana(15065)',
+    'Md. Maynul Islam(64842)',
+    'Md. Mazidul Islam(64218)',
+    'Md. Nazmul Haque(64411)',
+    'MD.Rabiul islam(14600)',
+    'Md. Rony Khan(14873)',
+    'Md. Rubel Hossen(37078)',
+    'Md. Shajahan(47276)',
+    'Mukta Akter(21578)',
+    'Nazmul islam(64227)',
+    'Nazmul Islam(64227)',
+    'Rashida khatun(17671)',
+    'Riazul Zannat(40558)',
+    'Rubel Hosen (37078)',
+    'Rubel Hossen(37078)',
+    'Sabbir Hossain(64395)',
     'Sazzad (39911)',
     'Shajahan(47276)',
+    'Shariful Islam(C-15206)',
     'Shuvo Kumar Das (50282)',
   ],
   faults: [
+    'Aging fail(TV)',
+    'AV Jack',
     'Broken',
+    'Burn Out-Aging',
+    'Burned',
+    'Button not work',
+    'Colour',
+    'Colour fault(TV)',
+    'Component Short',
     'Component Shorts',
+    'Cutting Problem',
+    'Display no output(TV)',
     'Dry Solder',
+    'Dust',
+    'Excess Solder',
+    'FCT fail(AC)',
+    'Functional jig test(AC)',
+    'Gap Problem',
+    'Glue',
+    'HDMI',
+    'HDMI signal abnormal(TV)',
+    'Hi-Pot-ATE',
+    'Hole Block',
     'Hole Blocked',
+    'Housing Scratch & Spot',
+    'LAN',
+    'Lan line not connect(TV)',
+    'Layer cut',
+    'LED High Light',
+    'LED Low Light',
+    'LED no light',
+    'LED Not Work',
+    'Leg Down',
+    'Leg Open',
+    'Leg Up',
     'Lift Up',
+    'Load Current (CC)-ATE',
+    'Load Voltage (CV)-Aging',
+    'Load Voltage (CV)-ATE',
+    'Load Voltage (CV)-DC Load',
+    'LVDS',
     'Missing',
+    'No audio output(TV)',
+    'No backlight(TV)',
+    'No Floating Voltage-Aging',
+    'No Floating Voltage-ATE',
+    'No Floating Voltage-DC Load',
+    'No Power',
+    'No Sound',
+    'Over Lead',
+    'Pad Lift Off',
     'PCB Joining together',
+    'PCBA Bend',
+    'Plug Pin Up',
     'Polarity Change',
+    'R.F fail(TV)',
+    'RF',
     'Scratch',
     'Shifting',
     'Solder Bridge',
+    'Solder Short',
+    'Sound Fault',
+    'Speaker Low sound',
+    'Speaker not work',
     'Swell Up',
+    'Switch keypad not work',
+    'Switch problem',
     'Upside Down',
+    'Usb not connect(TV)',
+    'Wi-Fi/Bluetooth failure(TV)',
+    'Wrong Component',
+    'Wrong LED',
+    'Wrong music',
+    'Wrong Part',
+    'Wrong Polarity',
+    'Wrong Position',
+    'Wrong position',
   ],
   productModels: {
-    AC: ['IDU-Common-12K/18K/24K'],
+    AC: [
+      'Ac display common',
+      'AC 12K IDU',
+      'AC 18K IDU',
+      'AC 24K ODU',
+      'Ac 12K IDU',
+      'Ac 24K ODU',
+      'F50WA-HS-L_ODU18k',
+      'IDU-Common-12K/18K/24K',
+      'Walton AC 12K INV IDU PCBA Model: MIVR35WA-W',
+      'Walton AC 18K INV IDU PCBA Model: MIVR50WA-W',
+      'Walton AC Display PCBA Model: MD50WA-E',
+      'Walton AC ODU 12K/18K INV',
+    ],
+    Adapter: [
+      'WFVADP12V2ASET200K_(CT-X017)',
+      'WFVADP12V2ASET200K_(CT-X018)',
+      'WFVADP12V2ASET200K_(CT-X017) PCBA',
+    ],
+    Charger: [
+      'PCBA-OC05008RC',
+      'PCBA-OC05008RC(500mA)',
+      'WMC20000GI-BK(Charger 2A)',
+    ],
+    Toy: [
+      'Akij Toy Controller V1.0',
+      'Common Toy Controller V1.0(Akij)',
+      'Common Toy Controller V1.0(Talukder)',
+      'Common Toy LED Driver_V1.0(Akij)',
+      'Common Toy LED Driver_V1.0(Akij) PCBA',
+      'Common Toy LED Driver_V1.0(Talukder)',
+      'Golden Wheel GW1',
+      'Redmin Toy Controller',
+    ],
     Fan: [
+      '16" SMPS Local Fan',
+      '16"Control Local FAN',
       '16 Inch Rechargeable Stand (Display Fan) -USB',
       '16 Inch Rechargeable Stand (Display Fan) Display Board',
       '16 Inch Rechargeable Stand Fan Display (SMPS)',
@@ -78,27 +224,57 @@ const DEFAULT_FORM_DATA = {
       '16 Inch Rechargeable Stand Fan Display Control (TOP)',
       '16 inch Local Control Fan',
       '16 inch Local Fan Smps',
-      '3 Inch Low Cost Rechargeable Fan - Top',
       '3 Inch Low Cost Rechargeable Fan - bottom',
+      '3 Inch Low Cost Rechargeable Fan - Top',
+      '3 Inch Low Cost Rechargeable Hand Fan(Bottom)',
+      '3 Inch Low Cost Rechargeable Hand Fan(Top)',
       '52 Inch BLDC Celling Fan',
       '52 inch BLDC Celling Fan',
+      '56 Inch BLDC Celling Fan',
       '56 inch BLDC Celling Fan',
+      '56 Inch Rechargeable-Fan Life -PO4',
       '6 Inch Rechargeable Fan Bottom',
       '6 Inch Rechargeable Fan Top',
       '6 inch Rechargeable Fan - Bottom',
       '6 inch Rechargeable Fan-Top',
+      '6 inch Rechargeable Fan - Top',
+      'MI Constant Fan Dimmer',
+      'PCBA-Surface-18w-Square-LED-Warm-DOB Bright',
     ],
     Fridge: [
       '06 Watt Round LED Tospoo',
       '16 Inch Rechargeable Stand Fan Display Control (Top)',
+      'Beverage Cololer LED PCB-L290-V03',
+      'Beverage Cooler LED PCB-L290-V03',
+      'Beverage Cooler LED PCB-L290-V04',
+      'Beverage cooler LED PCB- L290-V03',
+      'Beverage cooler LED PCB- L337-V01',
+      'Beverage cooler LED PCB- L337-V05',
+      'CFL-SR110-V07',
       'Electronic Control V217',
+      'Electronic Control-V217',
+      'Electronic Thermostat V02',
       'Electronics Control-V217',
+      'FID-Power-Board-V1.0',
       'Frost Controller Seven Segment Display V2.0',
+      'Frost Inside Display-V1.0',
+      'MI-R-LED-RS-V04',
+      'MI-R-LED-RS-V04 EXPORT',
+      'MI-R-LED-RSI-V04_Export',
+      'MI-SC-Dis-PCBA-V001',
+      'MI-SC-PWR-Board V3.1',
+      'Poweer Supply-V3',
+      'R-LED-RS-V04',
+      'RL-RS35-V05',
+      'RL-SS80-V05',
+      'Smart container-7 segment display',
+      'Smart Controler Display',
+      'Smart Controller 1.4',
       'SMT 255L Freezer Display',
       'SMT-255L-Freezer Display',
       'SMT-255L-Freezer-Display',
       'SMT-Electronic Control - V217',
-      'SMT-Electronics Thermostat -V2',
+      'SMT-Electronics Thermostat - V2',
       'SMT-R-LED-PCCL-386-V0',
       'SMT-R-LED-RS-V04',
       'SMT-RFDHL-619L - V02',
@@ -108,35 +284,145 @@ const DEFAULT_FORM_DATA = {
       'SMT-RL-SS80-V05-Bottom',
       'SMT-RL-SS80-V05-Top',
       'SMT-RPDHL-619L-V02',
+      'SMT-SBS-656L-ionizer-3in1(IFC)',
+      'SMT-SBS-656L-ionizer-3in1(WDL)',
       'SMT-SBS-RFPL-619L-V02',
+      'SMT-SBS-RPDHL-656L-V00',
+      'SMT-SBS-RPIL-619L-V02',
       'SMT-SBS-RPPL-619L-V02',
       'SMT-SBS-SL-12V-DC',
       'SMT-SC-DIS-PCBA-V1.4',
       'SMT-SC-PWR-PCBA-V3.1',
+      'SMT-SF-RGB-PIC-1572-V01-Bottom',
       'SMT-Splendor Light - V1.0',
       'SMT-TFT-LCD-Controller Display',
+      'SMT-WFR_IPP (IPS)_12V_V01',
       'SMT-WR-343-CTW-V02',
       'SMT-WRL-US-V03',
+      'SMT-WRL-USI-V02',
+      'WRF IBL V00',
     ],
     LED: [
+      '10W DC Bulb LED',
+      '10W Tospo Motion LED',
+      '12W DC Bulb LED',
+      '12W LED Driver',
+      '12W LED Driver PCBA',
+      '12W LED Driver(EMB)_New',
+      '12W LED Driver(EMB)_New PCBA',
+      'LED Driver-12W',
+      'LED Driver-12W AC/DC',
+      'LED Driver-20W',
+      'LED Driver-40W',
+      'LED Driver-50W',
+      'Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG)',
+      'YBL 9W LED',
+      'YBL-12W-LED',
+      'SpotLight-5W-Day',
+      'SpotLight-5W-Warm',
+      '12W-AC/DC-YJ-LED',
+      'Ac/Dc 12W LED (Cozum)',
+      '12W-LED-Driver',
+      '10W-LED-Driver',
+      '10W-AC/DC-Cozum',
+      'PCBA Origin A55 3W LED',
+      'PCBA Origin A55 5W LED',
+      'PCBA Origin A55 7W LED',
+      'PCBA Origin A65 12W LED',
+      'PCBA Origin A70 12W LED',
+      'PCBA Origin A80 18W LED',
+      '0.5 FEET DOUBLE PAD 10W',
       '06 Watt Round LED Tospo-Day',
       '06 Watt Round LED Tospoo-Warm',
+      '20W Tube light Driver',
+      '6W Round LED(Red)',
+      'Driver Surface Light 120mA-(6-9)W',
+      'K-NZ-12W-K03(LED Driver 12W ZY)',
+      'LED Driver 12W',
+      'LED Driver 9W',
+      'LED PCBA PSA A60 7W',
+      'PCBA-Surface-24w Square Day DOB Bright',
+      'PCBA-Surface-24w Square Warm DOB Bright',
+      'Redmin Toy Controller',
+      'YJ12W-3BBC-24DIC-70H9-V02(AC-DC-YJ12W)',
+      'ZS24-CKD-9W-15P-45.8-V10',
+      '1 FEET DTDL 9W',
+      '1FEET DTDL 9W',
+      '10 FEET DOUBLE',
+      '12W LED_Panel',
+      '12W Round',
+      '12W Round(Day)',
+      '12W Round(Warm)',
+      '12W Round_Day',
+      '12W Round_Warm',
       '12W-Square-LED-Day',
       '12W-Square-LED-Warm',
       '12Watt Square LED Tospoo -Warm',
+      '18W Round_Day',
+      '18W Round_Warm',
+      '18W-AC-DC-LED',
       '18Watt Square LED-DOB',
       '6 Watt Square LED Tospoo - Day',
       '6 Watt Square LED Tospoo - Warm',
+      '6W Round LED(Day)',
+      '6W Round LED(Green)',
       '6W-Round-Topso-Day',
       '6W-Round-Topso-Warm',
+      '6Watt Round LED Tospoo -Day',
+      'AC-DC-12W',
+      'Capsol LED 12W_Day',
+      'DC-Bulb-5W',
+      'DC-Bulb-5W(Day)',
+      'DPLP0279-V1(18W Round)',
+      'EBT-100-18W LED',
+      'FE-IN-DR-14S1P(Spotdown 5W LED Green)',
+      'FE-IN-DR-14SIP(Spotdown 5W LED Blue)',
+      'FE-IN-DR-14SIP(Spotdown 5W LED Day)',
+      'FE-IN-DR-14SIP(Spotdown 5W LED Green)',
+      'FE-IN-DR-14SIP(Spotdown 5W LED Red)',
+      'FE-IN-DR-14SIP(Spotdown 5W LED Warm)',
       'PCBA-Surface-18w Square Day DOB Bright',
+      'PCBA-Surface-18w-Square-LED-Warm-DOB Bright',
       'PCBA-Surface-24w Square Day DOB Bright',
+      'PSA A95 20w',
+      'Robust-Spotdown-7W',
+      'RSL-291*6mm 2835G3V 1B18*2- 6W',
+      'RSL291*6MM 2835G3V 1B18X2-6W',
       'SMT-R-LED-RS-V04',
+      'Solar DC Bulb 5W 12-36V PCBA',
+      'Splender Light-V1.0',
+      'Spot Down 5W LED(Blue)',
+      'Spot Down 5W LED(Day)',
+      'Spot Down 5W LED(Green)',
+      'Spot Down 5W LED(Red)',
+      'Spot Down 5W LED(Warm)',
+      'Spot Down 7W LED(Blue)',
+      'Spot Down 7W LED(Day)',
+      'Spot Down 7W LED(Red)',
+      'Spot Down 7W LED(Warm)',
+      'WLCL-EBF12-A-V1.1',
+      'YBL-12W LED_Day',
+      'YBL-18W LED',
+      'YBL-18W LED(Day)',
+      'YBL-30W LED',
+      'YBL-5W LED',
+      'YBL-5W LED(Day)',
+      'YBL-5W LED-Day',
+      'YBL-7W LED(Day)',
       'YBL15 W-LED-DAY',
+      'ZS23-T1109-D54.65DC9-26V-V04',
+      'ZS23-T1109-D54.65DC9-36V-5W-V04(5W DC Light)',
+      'ZS24-CKD-15W-10C2B-51.4MM-V2.1',
+      'ZS24-CKD-3,7,5,W-9P45.8-V1.0(YBL 5W Day)',
+      'ZS24-CKD-9W-15P-45.8-V1.0',
+      'ZS24-CKD-9W-15P-45.8-V1.1',
+      'ZS24-T1212-D5815-18W-HV-V3(YBL 18W)',
+      'ZS25-T0729-D514-DC9-36V-10W-V03(10W DC Light)',
     ],
-    'Local Fan': ['16 inch Local Control Fan'],
+    Local: ['Fan 16 inch Local Control Fan'],
     Remote: ['Remote Uniwalmar 09'],
-    TV: ['WD-24R CS TV'],
+    'Rice Cooker': ['Walton Rice Cooker LED PCBA Model: RCL01'],
+    TV: ['WD-24R CS TV', 'WD24RCS'],
   } as Record<string, string[]>,
 };
 
@@ -148,109 +434,318 @@ function getTodayString(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// Initial seed defect entries ONLY for SMT Line-01
+// Initial seed defect entries for lines
 function getSeedDefectRecords(line: string): AOIDefectRecord[] {
-  // SMT Line-01 has sample demonstration entries; SMT Line-02, Line-03, Line-04, Line-05 start clean
-  if (line !== 'SMT Line-01') {
-    return [];
+  // SMT Line-01 has all 578 real defect records from Walton PCBA QA inspection sheets
+  if (line === 'SMT Line-01') {
+    return SMT_LINE_01_DEFECT_RECORDS;
   }
-  const today = getTodayString();
-  return [
-    {
-      id: 'aoi-seed-1',
-      line: 'SMT Line-01',
-      date: today,
-      shift: 'Day',
-      product: 'Fridge',
-      model: 'SMT-255L-Freezer Display',
-      fault: 'Solder Bridge',
-      qty: 3,
-      operator: 'Anik Sutradhar(50280)',
-      remarks: 'Pin 12-13 bridged at U4 IC',
-      createdAt: Date.now() - 3600000 * 2,
-    },
-    {
-      id: 'aoi-seed-2',
-      line: 'SMT Line-01',
-      date: today,
-      shift: 'Day',
-      product: 'AC',
-      model: 'IDU-Common-12K/18K/24K',
-      fault: 'Missing',
-      qty: 2,
-      operator: 'Sazzad (39911)',
-      remarks: 'R14 and C22 missing on top layer',
-      createdAt: Date.now() - 3600000 * 4,
-    },
-    {
-      id: 'aoi-seed-3',
-      line: 'SMT Line-01',
-      date: getTodayString(),
-      shift: 'Morning',
-      product: 'LED',
-      model: '12W-Square-LED-Day',
-      fault: 'Dry Solder',
-      qty: 4,
-      operator: 'Shajahan(47276)',
-      remarks: 'Wave solder pre-heat profile adjusted',
-      createdAt: Date.now() - 3600000 * 6,
-    },
-    {
-      id: 'aoi-seed-4',
-      line: 'SMT Line-01',
-      date: '2026-09-15',
-      shift: 'Night',
-      product: 'Fan',
-      model: '16 Inch Rechargeable Stand (Display Fan) -USB',
-      fault: 'Shifting',
-      qty: 2,
-      operator: 'Shuvo Kumar Das (50282)',
-      remarks: 'Feeder nozzle #3 cleaned and aligned',
-      createdAt: Date.now() - 86400000,
-    },
-    {
-      id: 'aoi-seed-5',
-      line: 'SMT Line-01',
-      date: '2026-09-15',
-      shift: 'Day',
-      product: 'Fridge',
-      model: 'Electronic Control V217',
-      fault: 'Lift Up',
-      qty: 1,
-      operator: 'Anik Sutradhar(50280)',
-      remarks: 'Q1 Transistor lead lifted',
-      createdAt: Date.now() - 86400000 * 1.5,
-    },
-    {
-      id: 'aoi-seed-6',
-      line: 'SMT Line-01',
-      date: '2026-09-14',
-      shift: 'General',
-      product: 'TV',
-      model: 'WD-24R CS TV',
-      fault: 'Component Shorts',
-      qty: 2,
-      operator: 'Sazzad (39911)',
-      remarks: 'Power capacitor C108 touched heatsink',
-      createdAt: Date.now() - 86400000 * 2.2,
-    },
-  ];
+  // SMT Line-02 has all 248 real defect records from Walton PCBA QA inspection sheets
+  if (line === 'SMT Line-02') {
+    return SMT_LINE_02_DEFECT_RECORDS;
+  }
+  // SMT Line-03 has all 138 real defect records from Walton PCBA QA inspection sheets
+  if (line === 'SMT Line-03') {
+    return SMT_LINE_03_DEFECT_RECORDS;
+  }
+  // SMT Line-04 has all 424 real defect records from Walton PCBA QA inspection sheets
+  if (line === 'SMT Line-04') {
+    return SMT_LINE_04_DEFECT_RECORDS;
+  }
+  // SMT Line-05 has all 237 real defect records from Walton PCBA QA inspection sheets
+  if (line === 'SMT Line-05') {
+    return SMT_LINE_05_DEFECT_RECORDS;
+  }
+  // MI Line-01 has all 2,610 real defect records from Walton PCBA QA inspection sheets
+  if (line === 'MI Line-01') {
+    return MI_LINE_01_DEFECT_RECORDS;
+  }
+  // MI Line - Charger has all 128 real defect records from Walton PCBA QA inspection sheets
+  if (line === 'MI Line - Charger' || line === 'MI Line-Charger') {
+    return MI_LINE_CHARGER_DEFECT_RECORDS;
+  }
+  return [];
 }
 
 // Strictly retrieve records that belong ONLY to targetLine, preventing cross-line contamination
 function getLineRecordsFromStorage(targetLine: string): AOIDefectRecord[] {
+  if (targetLine === 'SMT Line-01') {
+    try {
+      const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Remove old minimal 6 demo seed entries if present
+          const lineSpecific = parsed.filter(
+            (r) => r && r.line === targetLine && !r.id?.startsWith('aoi-seed-')
+          );
+          const existingIds = new Set(lineSpecific.map((r) => r.id));
+          const missingSmtRecords = SMT_LINE_01_DEFECT_RECORDS.filter(
+            (r) => !existingIds.has(r.id)
+          );
+          // If the cached list has fewer than the full 578 inspection records, merge all
+          if (missingSmtRecords.length > 0 || lineSpecific.length < SMT_LINE_01_DEFECT_RECORDS.length) {
+            const userAdded = lineSpecific.filter(
+              (r) => !r.id?.startsWith('smt01-rec-') && !r.id?.startsWith('aoi-seed-')
+            );
+            const combined = [...userAdded, ...SMT_LINE_01_DEFECT_RECORDS];
+            try {
+              localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(combined));
+            } catch (e) {
+              // ignore quota
+            }
+            return combined;
+          }
+          return lineSpecific;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    return SMT_LINE_01_DEFECT_RECORDS;
+  }
+
+  if (targetLine === 'SMT Line-02') {
+    try {
+      const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const lineSpecific = parsed.filter(
+            (r) => r && r.line === targetLine && !r.id?.startsWith('aoi-seed-')
+          );
+          const existingIds = new Set(lineSpecific.map((r) => r.id));
+          const missingSmtRecords = SMT_LINE_02_DEFECT_RECORDS.filter(
+            (r) => !existingIds.has(r.id)
+          );
+          // If the cached list has fewer than the full 248 inspection records, merge all
+          if (missingSmtRecords.length > 0 || lineSpecific.length < SMT_LINE_02_DEFECT_RECORDS.length) {
+            const userAdded = lineSpecific.filter(
+              (r) => !r.id?.startsWith('smt02-rec-') && !r.id?.startsWith('aoi-seed-')
+            );
+            const combined = [...userAdded, ...SMT_LINE_02_DEFECT_RECORDS];
+            try {
+              localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(combined));
+            } catch (e) {
+              // ignore quota
+            }
+            return combined;
+          }
+          return lineSpecific;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    return SMT_LINE_02_DEFECT_RECORDS;
+  }
+
+  if (targetLine === 'SMT Line-03') {
+    try {
+      const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const lineSpecific = parsed.filter(
+            (r) => r && r.line === targetLine && !r.id?.startsWith('aoi-seed-')
+          );
+          const existingIds = new Set(lineSpecific.map((r) => r.id));
+          const missingSmtRecords = SMT_LINE_03_DEFECT_RECORDS.filter(
+            (r) => !existingIds.has(r.id)
+          );
+          // If the cached list has fewer than the full 138 inspection records, merge all
+          if (missingSmtRecords.length > 0 || lineSpecific.length < SMT_LINE_03_DEFECT_RECORDS.length) {
+            const userAdded = lineSpecific.filter(
+              (r) => !r.id?.startsWith('smt03-rec-') && !r.id?.startsWith('aoi-seed-')
+            );
+            const combined = [...userAdded, ...SMT_LINE_03_DEFECT_RECORDS];
+            try {
+              localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(combined));
+            } catch (e) {
+              // ignore quota
+            }
+            return combined;
+          }
+          return lineSpecific;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    try {
+      localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(SMT_LINE_03_DEFECT_RECORDS));
+    } catch (e) {}
+    return SMT_LINE_03_DEFECT_RECORDS;
+  }
+
+  if (targetLine === 'SMT Line-04') {
+    try {
+      const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const lineSpecific = parsed.filter(
+            (r) => r && r.line === targetLine && !r.id?.startsWith('aoi-seed-')
+          );
+          const existingIds = new Set(lineSpecific.map((r) => r.id));
+          const missingSmtRecords = SMT_LINE_04_DEFECT_RECORDS.filter(
+            (r) => !existingIds.has(r.id)
+          );
+          // If the cached list has fewer than the full 424 inspection records, merge all
+          if (missingSmtRecords.length > 0 || lineSpecific.length < SMT_LINE_04_DEFECT_RECORDS.length) {
+            const userAdded = lineSpecific.filter(
+              (r) => !r.id?.startsWith('smt04-rec-') && !r.id?.startsWith('aoi-seed-')
+            );
+            const combined = [...userAdded, ...SMT_LINE_04_DEFECT_RECORDS];
+            try {
+              localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(combined));
+            } catch (e) {
+              // ignore quota
+            }
+            return combined;
+          }
+          return lineSpecific;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    return SMT_LINE_04_DEFECT_RECORDS;
+  }
+
+  if (targetLine === 'SMT Line-05') {
+    try {
+      const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const lineSpecific = parsed.filter(
+            (r) => r && r.line === targetLine && !r.id?.startsWith('aoi-seed-')
+          );
+          const existingIds = new Set(lineSpecific.map((r) => r.id));
+          const missingSmtRecords = SMT_LINE_05_DEFECT_RECORDS.filter(
+            (r) => !existingIds.has(r.id)
+          );
+          // If the cached list has fewer than the full 237 inspection records, merge all
+          if (missingSmtRecords.length > 0 || lineSpecific.length < SMT_LINE_05_DEFECT_RECORDS.length) {
+            const userAdded = lineSpecific.filter(
+              (r) => !r.id?.startsWith('smt05-rec-') && !r.id?.startsWith('aoi-seed-')
+            );
+            const combined = [...userAdded, ...SMT_LINE_05_DEFECT_RECORDS];
+            try {
+              localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(combined));
+            } catch (e) {
+              // ignore quota
+            }
+            return combined;
+          }
+          return lineSpecific;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    try {
+      localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(SMT_LINE_05_DEFECT_RECORDS));
+    } catch (e) {}
+    return SMT_LINE_05_DEFECT_RECORDS;
+  }
+
+  if (targetLine === 'MI Line-01') {
+    try {
+      const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const lineSpecific = parsed.filter(
+            (r) => r && r.line === targetLine && !r.id?.startsWith('aoi-seed-')
+          );
+          const existingIds = new Set(lineSpecific.map((r) => r.id));
+          const missingMiRecords = MI_LINE_01_DEFECT_RECORDS.filter(
+            (r) => !existingIds.has(r.id)
+          );
+          // If the cached list has fewer than the full 2,610 inspection records, merge all
+          if (missingMiRecords.length > 0 || lineSpecific.length < MI_LINE_01_DEFECT_RECORDS.length) {
+            const userAdded = lineSpecific.filter(
+              (r) => !r.id?.startsWith('mi01-rec-') && !r.id?.startsWith('aoi-seed-')
+            );
+            const combined = [...userAdded, ...MI_LINE_01_DEFECT_RECORDS];
+            try {
+              localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(combined));
+            } catch (e) {
+              // ignore quota
+            }
+            return combined;
+          }
+          return lineSpecific;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    try {
+      localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(MI_LINE_01_DEFECT_RECORDS));
+    } catch (e) {}
+    return MI_LINE_01_DEFECT_RECORDS;
+  }
+
+  if (targetLine === 'MI Line - Charger' || targetLine === 'MI Line-Charger') {
+    try {
+      const saved =
+        localStorage.getItem(`aoi_defect_records_${targetLine}`) ||
+        localStorage.getItem('aoi_defect_records_MI Line - Charger') ||
+        localStorage.getItem('aoi_defect_records_MI Line-Charger');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const lineSpecific = parsed.filter(
+            (r) =>
+              r &&
+              (r.line === 'MI Line - Charger' || r.line === 'MI Line-Charger') &&
+              !r.id?.startsWith('aoi-seed-')
+          );
+          const existingIds = new Set(lineSpecific.map((r) => r.id));
+          const missingChargerRecords = MI_LINE_CHARGER_DEFECT_RECORDS.filter(
+            (r) => !existingIds.has(r.id)
+          );
+          // If the cached list has fewer than the full 128 inspection records, merge all
+          if (
+            missingChargerRecords.length > 0 ||
+            lineSpecific.length < MI_LINE_CHARGER_DEFECT_RECORDS.length
+          ) {
+            const userAdded = lineSpecific.filter(
+              (r) => !r.id?.startsWith('micharger-rec-') && !r.id?.startsWith('aoi-seed-')
+            );
+            const combined = [...userAdded, ...MI_LINE_CHARGER_DEFECT_RECORDS];
+            try {
+              localStorage.setItem(`aoi_defect_records_${targetLine}`, JSON.stringify(combined));
+            } catch (e) {
+              // ignore quota
+            }
+            return combined;
+          }
+          return lineSpecific;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+    try {
+      localStorage.setItem(
+        `aoi_defect_records_${targetLine}`,
+        JSON.stringify(MI_LINE_CHARGER_DEFECT_RECORDS)
+      );
+    } catch (e) {}
+    return MI_LINE_CHARGER_DEFECT_RECORDS;
+  }
+
   try {
     const saved = localStorage.getItem(`aoi_defect_records_${targetLine}`);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
-        // Enforce strict line matching: exclude any record belonging to another line
         const lineSpecific = parsed.filter((r) => r && r.line === targetLine);
-        // Exclude accidental duplicate seed entries if this is not SMT Line-01
-        if (targetLine !== 'SMT Line-01') {
-          return lineSpecific.filter((r) => !r.id?.startsWith('aoi-seed-'));
-        }
-        return lineSpecific;
+        return lineSpecific.filter((r) => !r.id?.startsWith('aoi-seed-'));
       }
     }
   } catch (e) {
@@ -268,7 +763,23 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     const saved = localStorage.getItem('aoi_defect_master_lists');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          shifts: Array.from(new Set([...DEFAULT_FORM_DATA.shifts, ...(parsed.shifts || [])])),
+          products: Array.from(new Set([...DEFAULT_FORM_DATA.products, ...(parsed.products || [])])),
+          operators: Array.from(new Set([...DEFAULT_FORM_DATA.operators, ...(parsed.operators || [])])),
+          faults: Array.from(new Set([...DEFAULT_FORM_DATA.faults, ...(parsed.faults || [])])),
+          productModels: {
+            ...DEFAULT_FORM_DATA.productModels,
+            ...(parsed.productModels || {}),
+            ...Object.fromEntries(
+              Object.entries(DEFAULT_FORM_DATA.productModels).map(([k, v]) => [
+                k,
+                Array.from(new Set([...v, ...(parsed.productModels?.[k] || [])])),
+              ])
+            ),
+          },
+        };
       } catch (e) {
         return DEFAULT_FORM_DATA;
       }
@@ -326,6 +837,14 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
   const [reportTo, setReportTo] = useState<string>('');
   const [appliedReportFrom, setAppliedReportFrom] = useState<string>('');
   const [appliedReportTo, setAppliedReportTo] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [filterShift, setFilterShift] = useState<string>('');
+  const [filterProduct, setFilterProduct] = useState<string>('');
+  const [filterFault, setFilterFault] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [isSyncingToCloud, setIsSyncingToCloud] = useState<boolean>(false);
+  const [syncProgress, setSyncProgress] = useState<{ current: number; total: number } | null>(null);
 
   // Manage Lists Modal
   const [showManageModal, setShowManageModal] = useState(false);
@@ -520,19 +1039,75 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     }
   };
 
+  // Applied filters state
+  const [appliedFilterShift, setAppliedFilterShift] = useState<string>('');
+  const [appliedFilterProduct, setAppliedFilterProduct] = useState<string>('');
+  const [appliedFilterFault, setAppliedFilterFault] = useState<string>('');
+
   // Filtered rows for Details Report
   const filteredRows = useMemo(() => {
     return records.filter((r) => {
       if (appliedReportFrom && r.date < appliedReportFrom) return false;
       if (appliedReportTo && r.date > appliedReportTo) return false;
+      if (appliedFilterShift && r.shift !== appliedFilterShift) return false;
+      if (appliedFilterProduct && r.product !== appliedFilterProduct) return false;
+      if (appliedFilterFault && r.fault !== appliedFilterFault) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matches =
+          r.date?.toLowerCase().includes(q) ||
+          r.product?.toLowerCase().includes(q) ||
+          r.model?.toLowerCase().includes(q) ||
+          r.fault?.toLowerCase().includes(q) ||
+          r.operator?.toLowerCase().includes(q) ||
+          r.shift?.toLowerCase().includes(q) ||
+          r.remarks?.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
       return true;
     });
-  }, [records, appliedReportFrom, appliedReportTo]);
+  }, [
+    records,
+    appliedReportFrom,
+    appliedReportTo,
+    appliedFilterShift,
+    appliedFilterProduct,
+    appliedFilterFault,
+    searchQuery,
+  ]);
+
+  // Total defect qty for filtered rows
+  const totalFilteredDefectQty = useMemo(() => {
+    return filteredRows.reduce((acc, r) => acc + (Number(r.qty) || 0), 0);
+  }, [filteredRows]);
+
+  // Pagination calculations
+  const totalPages = useMemo(() => {
+    if (pageSize === 0) return 1;
+    return Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  }, [filteredRows.length, pageSize]);
+
+  // Clamp current page when total pages shrinks
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedRows = useMemo(() => {
+    if (pageSize === 0) return filteredRows;
+    const start = (currentPage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, currentPage, pageSize]);
 
   // Apply Filter
   const handleApplyFilter = () => {
     setAppliedReportFrom(reportFrom);
     setAppliedReportTo(reportTo);
+    setAppliedFilterShift(filterShift);
+    setAppliedFilterProduct(filterProduct);
+    setAppliedFilterFault(filterFault);
+    setCurrentPage(1);
   };
 
   // Clear Filter
@@ -541,6 +1116,101 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     setReportTo('');
     setAppliedReportFrom('');
     setAppliedReportTo('');
+    setSearchQuery('');
+    setFilterShift('');
+    setFilterProduct('');
+    setFilterFault('');
+    setAppliedFilterShift('');
+    setAppliedFilterProduct('');
+    setAppliedFilterFault('');
+    setCurrentPage(1);
+  };
+
+  // Quick Date Presets
+  const handleQuickPreset = (preset: 'all' | 'may' | 'jun' | 'jul' | 'aug' | 'sep') => {
+    if (preset === 'all') {
+      handleClearFilter();
+      return;
+    }
+    const yearMonth = {
+      may: { from: '2026-05-01', to: '2026-05-31' },
+      jun: { from: '2026-06-01', to: '2026-06-30' },
+      jul: { from: '2026-07-01', to: '2026-07-31' },
+      aug: { from: '2026-08-01', to: '2026-08-31' },
+      sep: { from: '2026-09-01', to: '2026-09-30' },
+    }[preset];
+
+    setReportFrom(yearMonth.from);
+    setReportTo(yearMonth.to);
+    setAppliedReportFrom(yearMonth.from);
+    setAppliedReportTo(yearMonth.to);
+    setCurrentPage(1);
+  };
+
+  // Sync all records to Firestore
+  const handleSyncToFirestore = async () => {
+    if (isSyncingToCloud) return;
+    setIsSyncingToCloud(true);
+    setSyncProgress({ current: 0, total: records.length });
+    try {
+      const CHUNK_SIZE = 40;
+      let count = 0;
+      for (let i = 0; i < records.length; i += CHUNK_SIZE) {
+        const chunk = records.slice(i, i + CHUNK_SIZE);
+        const payload = chunk.map((r) => ({
+          date: r.date,
+          shift: r.shift,
+          product: r.product,
+          model: r.model,
+          line: r.line,
+          type: 'Aesthetic' as const,
+          desc: r.fault,
+          qty: r.qty,
+          status: 'Open' as const,
+          operator: r.operator,
+          remarks: r.remarks,
+          source: `Walton ${lineName} QA Sheet`,
+        }));
+        await saveMultiplePcbaReports(payload);
+        count += chunk.length;
+        setSyncProgress({ current: count, total: records.length });
+      }
+      showToast(`Successfully synced ${records.length} records to Firestore!`, 'success');
+    } catch (err: any) {
+      console.error('Error syncing SMT records to Firestore:', err);
+      showToast('Sync error: ' + (err?.message || 'Database error'), 'error');
+    } finally {
+      setIsSyncingToCloud(false);
+      setSyncProgress(null);
+    }
+  };
+
+  // Reload / reset to original attached inspection sheet records
+  const handleReloadAttachedSheet = () => {
+    let freshRecords: AOIDefectRecord[] = [];
+    if (lineName === 'SMT Line-02') {
+      freshRecords = SMT_LINE_02_DEFECT_RECORDS;
+    } else if (lineName === 'SMT Line-03') {
+      freshRecords = SMT_LINE_03_DEFECT_RECORDS;
+    } else if (lineName === 'SMT Line-04') {
+      freshRecords = SMT_LINE_04_DEFECT_RECORDS;
+    } else if (lineName === 'SMT Line-05') {
+      freshRecords = SMT_LINE_05_DEFECT_RECORDS;
+    } else if (lineName === 'MI Line-01') {
+      freshRecords = MI_LINE_01_DEFECT_RECORDS;
+    } else if (lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') {
+      freshRecords = MI_LINE_CHARGER_DEFECT_RECORDS;
+    } else {
+      freshRecords = SMT_LINE_01_DEFECT_RECORDS;
+    }
+
+    setRecords(freshRecords);
+    try {
+      localStorage.setItem(`aoi_defect_records_${lineName}`, JSON.stringify(freshRecords));
+    } catch (e) {
+      // ignore
+    }
+    showToast(`Loaded all ${freshRecords.length} records from attached ${lineName} inspection sheet!`, 'success');
   };
 
   // Download CSV
@@ -740,9 +1410,34 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
               <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#16a34a]/25 text-[#86efac] border border-[#16a34a]/40">
                 Live Production Entry
               </span>
+              {lineName === 'SMT Line-02' && (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/25 text-cyan-200 border border-cyan-400/40">
+                  248 Records from AOI LINE-02.pdf
+                </span>
+              )}
+              {lineName === 'SMT Line-03' && (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-violet-500/25 text-violet-200 border border-violet-400/40">
+                  138 Records from AOI LINE-03.pdf
+                </span>
+              )}
+              {lineName === 'SMT Line-05' && (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/25 text-rose-200 border border-rose-400/40">
+                  237 Records from AOI LINE-05.pdf
+                </span>
+              )}
+              {lineName === 'MI Line-01' && (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-400/40">
+                  2,610 Records from MI LINE-01.pdf
+                </span>
+              )}
+              {(lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') && (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-400/40">
+                  128 Records from MI LINE-Charger.pdf
+                </span>
+              )}
             </div>
             <p id="aoi-header-subtitle" className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5">
-              PCBA AOI (Automatic Optical Inspection)
+              {lineName.startsWith('MI') ? 'PCBA MI (Manual Insertion) Defect Entry' : 'PCBA AOI (Automatic Optical Inspection)'}
             </p>
           </div>
         </div>
@@ -1029,62 +1724,104 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
       </section>
 
       {/* DETAILS REPORT: Table matching user template */}
+      {/* DETAILS REPORT: Table matching user template */}
       <section className="bg-white border border-[#e2e8f0] rounded-2xl shadow-xs overflow-hidden">
         {/* Report Header */}
         <div className="p-5 bg-[#0f2942] text-white space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <span className="text-lg">📄</span>
-              <h2 className="font-bold text-base text-white">
-                Details Report — {lineName}
-              </h2>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-bold text-base text-white m-0">
+                    Details Report — {lineName}
+                  </h2>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40">
+                    {filteredRows.length} record{filteredRows.length === 1 ? '' : 's'}
+                  </span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-400/30">
+                    {totalFilteredDefectQty} defect pcs
+                  </span>
+                  {lineName === 'SMT Line-02' && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/30 text-cyan-200 border border-cyan-400/40">
+                      248 records from AOI LINE-02.pdf
+                    </span>
+                  )}
+                  {lineName === 'SMT Line-03' && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-violet-500/30 text-violet-200 border border-violet-400/40">
+                      138 records from AOI LINE-03.pdf
+                    </span>
+                  )}
+                  {lineName === 'SMT Line-05' && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-200 border border-rose-400/40">
+                      237 records from AOI LINE-05.pdf
+                    </span>
+                  )}
+                  {lineName === 'MI Line-01' && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40">
+                      2,610 records from MI LINE-01.pdf
+                    </span>
+                  )}
+                  {(lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40">
+                      128 records from MI LINE-Charger.pdf
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-[#94a3b8] mt-0.5">
+                  Complete QA Inspection Records from Walton PCBA {lineName}
+                  {lineName === 'SMT Line-02' && ' · 248 Total Records from AOI LINE-02 Inspection Sheet (May – Sep 2026)'}
+                  {lineName === 'SMT Line-03' && ' · 138 Total Records from AOI LINE-03 Inspection Sheet (May – Sep 2026)'}
+                  {lineName === 'SMT Line-05' && ' · 237 Total Records from AOI LINE-05 Inspection Sheet (May – Sep 2026)'}
+                  {lineName === 'MI Line-01' && ' · 2,610 Total Records from MI LINE-01 Inspection Sheet (Jun – Sep 2026)'}
+                  {(lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') && ' · 128 Total Records from MI LINE-Charger Inspection Sheet (May – Sep 2026)'}
+                </div>
+              </div>
             </div>
-            <span className="text-xs text-[#cbd5e1] font-mono font-medium">
-              {filteredRows.length} row{filteredRows.length === 1 ? '' : 's'}
-            </span>
-          </div>
 
-          {/* Date Filter & Export Controls */}
-          <div className="flex flex-wrap items-center gap-2.5 pt-1">
-            <div className="flex items-center gap-1.5 text-xs text-[#cbd5e1]">
-              <span>From</span>
-              <input
-                type="date"
-                value={reportFrom}
-                onChange={(e) => setReportFrom(e.target.value)}
-                className="px-2.5 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs"
-              />
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-[#cbd5e1]">
-              <span>To</span>
-              <input
-                type="date"
-                value={reportTo}
-                onChange={(e) => setReportTo(e.target.value)}
-                className="px-2.5 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs"
-              />
-            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Reload / Reset to Original Attached Sheet */}
+              <button
+                type="button"
+                onClick={handleReloadAttachedSheet}
+                className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 text-xs font-bold rounded-md cursor-pointer transition-colors border border-cyan-400/30 flex items-center gap-1.5 shadow-xs"
+                title={`Reset to all original ${lineName} inspection records from attached sheet`}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reload Attached Sheet ({lineName === 'SMT Line-02' ? '248' : lineName === 'SMT Line-03' ? '138' : lineName === 'SMT Line-04' ? '424' : lineName === 'SMT Line-05' ? '237' : lineName === 'MI Line-01' ? '2,610' : (lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') ? '128' : '578'})</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={handleApplyFilter}
-              className="px-3.5 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-md cursor-pointer transition-colors shadow-xs"
-            >
-              Apply
-            </button>
-            <button
-              type="button"
-              onClick={handleClearFilter}
-              className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-md cursor-pointer transition-colors border border-white/20"
-            >
-              Clear
-            </button>
+              {/* Cloud Sync to Firestore */}
+              <button
+                type="button"
+                onClick={handleSyncToFirestore}
+                disabled={isSyncingToCloud}
+                className={`px-3.5 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                  isSyncingToCloud
+                    ? 'bg-blue-600/50 text-white/80 cursor-wait'
+                    : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white'
+                }`}
+                title="Save all records to Firestore pcba_reports collection"
+              >
+                {isSyncingToCloud ? (
+                  <>
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                    <span>
+                      Syncing… {syncProgress ? `(${syncProgress.current}/${syncProgress.total})` : ''}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CloudCheck className="w-3.5 h-3.5" />
+                    <span>Sync to Cloud Database</span>
+                  </>
+                )}
+              </button>
 
-            <div className="sm:ml-auto flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleDownloadCsv}
-                className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-md cursor-pointer transition-colors border border-white/20 flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-md cursor-pointer transition-colors border border-white/20 flex items-center gap-1.5"
                 title="Download filtered report as CSV"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -1093,7 +1830,7 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
               <button
                 type="button"
                 onClick={handlePrintPdf}
-                className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-md cursor-pointer transition-colors border border-white/20 flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-md cursor-pointer transition-colors border border-white/20 flex items-center gap-1.5"
                 title="Print or Save PDF"
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -1101,19 +1838,208 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Quick Month Presets */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+            <span className="text-[#94a3b8] font-medium mr-1">Quick Range:</span>
+            {[
+              { id: 'all', label: `All (${records.length})` },
+              { id: 'may', label: 'May 2026' },
+              { id: 'jun', label: 'Jun 2026' },
+              { id: 'jul', label: 'Jul 2026' },
+              { id: 'aug', label: 'Aug 2026' },
+              { id: 'sep', label: 'Sep 2026' },
+            ].map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => handleQuickPreset(p.id as any)}
+                className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-[#cbd5e1] hover:text-white transition-colors cursor-pointer text-[11px] font-semibold"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Search, Filter & Date Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
+            {/* Search Input */}
+            <div className="lg:col-span-2 relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search model, fault, operator, remarks…"
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs"
+              />
+              <Search className="w-3.5 h-3.5 text-[#64748b] absolute left-2.5 top-2.5 pointer-events-none" />
+            </div>
+
+            {/* Product Filter */}
+            <div>
+              <select
+                value={filterProduct}
+                onChange={(e) => setFilterProduct(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs cursor-pointer"
+              >
+                <option value="">All Products</option>
+                {formData.products.map((p: string) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Shift Filter */}
+            <div>
+              <select
+                value={filterShift}
+                onChange={(e) => setFilterShift(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs cursor-pointer"
+              >
+                <option value="">All Shifts</option>
+                {formData.shifts.map((s: string) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Fault Filter */}
+            <div>
+              <select
+                value={filterFault}
+                onChange={(e) => setFilterFault(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs cursor-pointer"
+              >
+                <option value="">All Faults</option>
+                {formData.faults.map((f: string) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleApplyFilter}
+                className="flex-1 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-md cursor-pointer transition-colors shadow-xs"
+              >
+                Filter
+              </button>
+              <button
+                type="button"
+                onClick={handleClearFilter}
+                className="px-2.5 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-md cursor-pointer transition-colors border border-white/20"
+                title="Reset all filters"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Pagination Toolbar */}
+        <div className="px-5 py-2.5 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748b]">
+          <div className="flex items-center gap-2">
+            <span>Show</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 py-1 bg-white border border-[#cbd5e1] rounded text-[#1e293b] font-bold text-xs cursor-pointer outline-none"
+            >
+              <option value="15">15 rows</option>
+              <option value="25">25 rows</option>
+              <option value="50">50 rows</option>
+              <option value="100">100 rows</option>
+              <option value="0">All ({filteredRows.length})</option>
+            </select>
+            <span>
+              Showing {pageSize === 0 ? 1 : Math.min((currentPage - 1) * pageSize + 1, filteredRows.length)} to{' '}
+              {pageSize === 0 ? filteredRows.length : Math.min(currentPage * pageSize, filteredRows.length)} of{' '}
+              <strong className="text-[#1e293b]">{filteredRows.length}</strong> entries
+            </span>
+          </div>
+
+          {pageSize > 0 && totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className={`px-2 py-1 rounded text-xs font-semibold ${
+                  currentPage === 1
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                « First
+              </button>
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className={`px-2.5 py-1 rounded text-xs font-semibold ${
+                  currentPage === 1
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                ‹ Prev
+              </button>
+              <span className="px-2 py-1 font-bold text-[#1e293b]">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className={`px-2.5 py-1 rounded text-xs font-semibold ${
+                  currentPage === totalPages
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                Next ›
+              </button>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className={`px-2 py-1 rounded text-xs font-semibold ${
+                  currentPage === totalPages
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                Last »
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Scrollable Table */}
-        <div className="max-h-[380px] overflow-auto">
+        <div className="max-h-[460px] overflow-auto">
           {filteredRows.length === 0 ? (
             <div className="p-10 text-center text-sm text-[#64748b]">
-              No rows found — fill in the form above and click{' '}
-              <strong className="text-[#2563eb]">SAVE DEFECT DATA</strong> to add records.
+              No rows matching current filters — try clearing filters or resetting the search.
             </div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-[#f1f5f9] sticky top-0 z-10 text-[#475569] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
                 <tr>
+                  <th className="py-2.5 px-3 whitespace-nowrap text-center text-[#94a3b8] w-12">#</th>
                   <th className="py-2.5 px-3.5 whitespace-nowrap">Date</th>
                   <th className="py-2.5 px-3.5 whitespace-nowrap">Shift</th>
                   <th className="py-2.5 px-3.5 whitespace-nowrap">Product</th>
@@ -1125,40 +2051,113 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f1f5f9]">
-                {filteredRows.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#f8fafc] transition-colors">
-                    <td className="py-2.5 px-3.5 font-mono text-[#1e293b] whitespace-nowrap font-medium">
-                      {r.date}
-                    </td>
-                    <td className="py-2.5 px-3.5 whitespace-nowrap font-medium text-[#334155]">
-                      {r.shift}
-                    </td>
-                    <td className="py-2.5 px-3.5 whitespace-nowrap font-bold text-[#0f2942]">
-                      {r.product}
-                    </td>
-                    <td className="py-2.5 px-3.5 whitespace-nowrap text-[#475569]">
-                      {r.model}
-                    </td>
-                    <td className="py-2.5 px-3.5 whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded-md bg-[#fee2e2] text-[#b91c1c] font-bold text-[11px]">
-                        {r.fault}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3.5 whitespace-nowrap font-mono font-bold text-center text-[#2563eb]">
-                      {r.qty}
-                    </td>
-                    <td className="py-2.5 px-3.5 whitespace-nowrap text-[#475569]">
-                      {r.operator}
-                    </td>
-                    <td className="py-2.5 px-3.5 text-[#64748b] max-w-[220px] truncate" title={r.remarks}>
-                      {r.remarks || '—'}
-                    </td>
-                  </tr>
-                ))}
+                {paginatedRows.map((r, idx) => {
+                  const globalIndex = pageSize === 0 ? idx + 1 : (currentPage - 1) * pageSize + idx + 1;
+                  return (
+                    <tr key={r.id} className="hover:bg-[#f8fafc] transition-colors">
+                      <td className="py-2.5 px-3 font-mono text-[#94a3b8] text-center text-[11px]">
+                        {globalIndex}
+                      </td>
+                      <td className="py-2.5 px-3.5 font-mono text-[#1e293b] whitespace-nowrap font-medium">
+                        {r.date}
+                      </td>
+                      <td className="py-2.5 px-3.5 whitespace-nowrap font-medium text-[#334155]">
+                        <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                          r.shift === 'Night' ? 'bg-indigo-50 text-indigo-700' : 'bg-amber-50 text-amber-800'
+                        }`}>
+                          {r.shift}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3.5 whitespace-nowrap font-bold text-[#0f2942]">
+                        {r.product}
+                      </td>
+                      <td className="py-2.5 px-3.5 whitespace-nowrap text-[#475569] font-medium">
+                        {r.model}
+                      </td>
+                      <td className="py-2.5 px-3.5 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded-md bg-[#fee2e2] text-[#b91c1c] font-bold text-[11px]">
+                          {r.fault}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3.5 whitespace-nowrap font-mono font-bold text-center text-[#2563eb]">
+                        {r.qty}
+                      </td>
+                      <td className="py-2.5 px-3.5 whitespace-nowrap text-[#475569]">
+                        {r.operator}
+                      </td>
+                      <td className="py-2.5 px-3.5 text-[#64748b] max-w-[220px] truncate" title={r.remarks}>
+                        {r.remarks || '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
         </div>
+
+        {/* Bottom Pagination Bar */}
+        {pageSize > 0 && totalPages > 1 && (
+          <div className="px-5 py-2.5 bg-[#f8fafc] border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748b]">
+            <div>
+              Showing {Math.min((currentPage - 1) * pageSize + 1, filteredRows.length)} to{' '}
+              {Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length} records
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className={`px-2 py-1 rounded text-xs font-semibold ${
+                  currentPage === 1
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                « First
+              </button>
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className={`px-2.5 py-1 rounded text-xs font-semibold ${
+                  currentPage === 1
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                ‹ Prev
+              </button>
+              <span className="px-2 py-1 font-bold text-[#1e293b]">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className={`px-2.5 py-1 rounded text-xs font-semibold ${
+                  currentPage === totalPages
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                Next ›
+              </button>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className={`px-2 py-1 rounded text-xs font-semibold ${
+                  currentPage === totalPages
+                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
+                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
+                }`}
+              >
+                Last »
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* STICKY SAVE BAR matching user template */}

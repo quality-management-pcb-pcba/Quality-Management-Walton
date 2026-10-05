@@ -1,0 +1,83 @@
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night SimBaseShifting 16
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day ChargerPinUp 1
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 2
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentShifting 1
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day MakeCallPoint 10
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Night Barcode 6
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Night ComponentBroken 1
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Night ExtraLead 6
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Night HeadsetBasePinUp 1
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPointSkip 3
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 2
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day HeadsetBasePinUp 1
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldShifting 5
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Night Barcode 8
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPoint 1
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Night PCBADiscolour 3
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Night ShieldShifting 10
+25-Jun-2026 Axion_A1100_i100 Null Mass Production Day ChargerPinUp 1
+25-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 3
+25-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldShifting 5
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night Barcode 9
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night ChargerPinUp 1
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night ComponentBroken 3
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night DrySolder 1
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night PCBADiscolour 3
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night ShieldShifting 16
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night ShieldUp 6
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Day MakeCallPointSkip 5
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Day PCBADiscolour 2
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldUp 21
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night Barcode 6
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night ShieldShifting 3
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night ShieldUp 14
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day Barcode 19
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day ChargerPinUp 3
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 1
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentMissing 2
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentShifting 3
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day PCBADiscolour 1
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day PCBAScratch 2
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldUp 32
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimBaseShifting 1
+27-Jun-2026 ZENX Z3 4/64 GB Mass Production Night ComponentBroken 12
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day ChargerPinUp 2
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 3
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day DrySolder 1
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day HeadsetBaseBroken 2
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldShifting 1
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day PasteIssue 2
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldUp 4
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinMissing 1
+28-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day GNDPinShifting 7
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 1
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Night PCBABroken 1
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day ChargerPinUp 1
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 4
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentShifting 1
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day DrySolder 4
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day HeadsetBaseBroken 1
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day MakeCallPointSkip 3
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day PCBAScratch 3
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldTap 1
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldUp 4
+29-Jun-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 3
+29-Jun-2026 ZENX Z3 4/64 GB Mass Production Day SimBasePinUp 1
+29-Jun-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 3
+29-Jun-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinMissing 1
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day BatteryConnectorIssue 2
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 3
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day DrySolder 4
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day LEDLightShifting 1
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day MakeCallPointSkip 2
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldUp 1
+30-Jun-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 2
+30-Jun-2026 ZENX Z3 4/64 GB Mass Production Day PCBARouting 3
+30-Jun-2026 ZENX Z3 4/64 GB Mass Production Day PCBAScratch 1
+30-Jun-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 3
+30-Jun-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ComponentBroken 2
+30-Jun-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 1
+1-Jul-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 2
+1-Jul-2026 Axion_A1100_i100 Null Mass Production Day DrySolder 3
+1-Jul-2026 Axion_A1100_i100 Null Mass Production Day HeadsetBaseBroken 1
+1-Jul-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 5

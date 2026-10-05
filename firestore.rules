@@ -75,6 +75,16 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // 2.1 Quality Management Leaders Directory
+    match /qm_leaders/{leaderId} {
+      allow read, write: if true;
+    }
+
+    // 2.2 Quality Management Manpower Directory
+    match /qm_manpower/{manpowerId} {
+      allow read, write: if true;
+    }
+
     // 3. PCB & PCBA Quality Records
     match /pcb_records/{recordId} {
       allow read, write: if true;

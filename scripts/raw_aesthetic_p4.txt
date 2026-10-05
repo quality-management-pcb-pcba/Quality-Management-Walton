@@ -1,0 +1,77 @@
+1-Jul-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinShifting 1
+1-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 2
+1-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day HeadsetBasePinUp 5
+1-Jul-2026 NEXG_N76_Sub(B) 4/128 GB Trial Production Day ChargerPinUp 1
+1-Jul-2026 NEXG_N76_Sub(NB) 4/128 GB Trial Production Day ExtraLead 5
+1-Jul-2026 NEXG_N76_Sub(NB) 4/128 GB Trial Production Day GNDPinShifting 1
+1-Jul-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 1
+2-Jul-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 1
+2-Jul-2026 Axion_A1100_i100 Null Mass Production Day DrySolder 8
+2-Jul-2026 Axion_A1100_i100 Null Mass Production Day HeadsetBaseBroken 1
+2-Jul-2026 Axion_A1100_i100 Null Mass Production Day MakeCallPointSkip 1
+2-Jul-2026 Axion_A1100_i100 Null Mass Production Day ShieldUp 2
+2-Jul-2026 NEXG_N76(B) 4/128 GB Trial Production Day GNDPinBroken 1
+2-Jul-2026 NEXG_N76(NB) 4/128 GB Trial Production Day GNDPinBroken 2
+2-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ExtraLead 3
+2-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 2
+2-Jul-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 1
+4-Jul-2026 ZENX Z3 4/64 GB Mass Production Day ConnectorMissing 1
+4-Jul-2026 ZENX Z3 4/64 GB Mass Production Day ConnectorShifting 1
+4-Jul-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 3
+4-Jul-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinShifting 1
+4-Jul-2026 ZENX Z3 4/64 GB Mass Production Day PCBAScratch 1
+4-Jul-2026 ZENX Z3 4/64 GB Mass Production Day ShieldUp 1
+4-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day HeadsetBasePinUp 4
+4-Jul-2026 NEXG_N28 4/128 GB Rework Day ConnectorShifting 1
+4-Jul-2026 NEXG_N28 4/128 GB Rework Day GNDPinBroken 1
+4-Jul-2026 Axion_A1100 Null Rework Day PCBAScratch 3
+4-Jul-2026 Axion_A1100 Null Rework Day ChargerPinUp 1
+4-Jul-2026 Axion_A1100 Null Rework Day ConnectorBroken 1
+4-Jul-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 4
+4-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Night GNDPinBroken 3
+4-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Night HeadsetBasePinUp 3
+5-Jul-2026 ZENX Z3 4/64 GB Mass Production Day GNDPinBroken 1
+5-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 8
+5-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 3
+5-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinShifting 2
+5-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day HeadsetBasePinUp 40
+5-Jul-2026 ZENX Z3 4/64 GB Mass Production Night GNDPinBroken 1
+5-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Night ExtraLead 2
+5-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Night GNDPinBroken 2
+6-Jul-2026 Orbit_Y72 Null Rework Day ConnectorShifting 1
+6-Jul-2026 Orbit_Y72 Null Rework Day GNDPinBroken 4
+6-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 4
+6-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ComponentLiftUp 1
+6-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day GNDPinBroken 2
+6-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day HeadsetBasePinUp 9
+6-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Night ChargerPinUp 1
+6-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Night HeadsetBasePinUp 6
+6-Jul-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 2
+6-Jul-2026 Axion_A1100_i100 Null Mass Production Day ComponentLiftUp 1
+6-Jul-2026 Axion_A1100_i100 Null Mass Production Day LEDLightMissing 2
+6-Jul-2026 Axion_A1100_i100 Null Mass Production Day ShieldShifting 2
+6-Jul-2026 Axion_A1100_i100 Null Mass Production Day ShieldUp 2
+8-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day ChargerPinUp 6
+8-Jul-2026 ZENX Z3_Sub 4/64 GB Mass Production Day HeadsetBasePinUp 25
+8-Jul-2026 Olvio_MM30 Null Rework Night ComponentBroken 3
+8-Jul-2026 Olvio_MM30 Null Rework Night MakeCallPoint 1
+8-Jul-2026 Olvio_MM30 Null Rework Night SimBasePinUp 2
+8-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night ExtraLead 2
+8-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night GNDPinShifting 7
+8-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night PasteIssue 2
+8-Jul-2026 NEXG_N76 4/128 GB Mass Production Night ComponentBroken 1
+8-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinBroken 4
+8-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinShifting 4
+9-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinBroken 5
+9-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinMissing 3
+9-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinShifting 4
+9-Jul-2026 NEXG_N76 4/128 GB Mass Production Day ShieldUp 2
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ChargerPinUp 17
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ComponentLiftUp 1
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ExtraLead 2
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinMissing 7
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinShifting 15
+9-Jul-2026 Olvio_MM30 Null Rework Day ExtraLead 1
+9-Jul-2026 Olvio_MM30 Null Rework Day HeadsetBaseBroken 16
+9-Jul-2026 Olvio_MM30 Null Rework Day HeadsetBasePinUp 3
+9-Jul-2026 Olvio_MM30 Null Rework Day MakeCallPoint 1

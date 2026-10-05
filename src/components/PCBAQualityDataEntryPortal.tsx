@@ -32,6 +32,7 @@ import { MILineDefectEntry } from './MILineDefectEntry';
 import { MILineChargerDefectEntry } from './MILineChargerDefectEntry';
 import { DailyQMReportSMT } from './DailyQMReportSMT';
 import { DailyQMReportMI } from './DailyQMReportMI';
+import { MobileAestheticDefectPortal } from './MobileAestheticDefectPortal';
 import {
   savePcbaReport,
   updatePcbaReport,
@@ -39,6 +40,15 @@ import {
   subscribeToPcbaReports,
   saveMultiplePcbaReports,
 } from '../services/pcbaReportService';
+import { SMT_LINE_01_DEFECT_RECORDS } from '../data/smtLine01Records';
+import { SMT_LINE_02_DEFECT_RECORDS } from '../data/smtLine02Records';
+import { SMT_LINE_03_DEFECT_RECORDS } from '../data/smtLine03Records';
+import { SMT_LINE_04_DEFECT_RECORDS } from '../data/smtLine04Records';
+import { SMT_LINE_05_DEFECT_RECORDS } from '../data/smtLine05Records';
+import { MI_LINE_01_DEFECT_RECORDS } from '../data/miLine01Records';
+import { MI_LINE_CHARGER_DEFECT_RECORDS } from '../data/miLineChargerRecords';
+import { SMT_SUMMARY_RECORDS } from '../data/smtSummaryRecords';
+import { AESTHETIC_DEFECT_RECORDS } from '../data/aestheticDefectRecords';
 
 export interface PCBAQualityDataEntryPortalProps {
   onClose: () => void;
@@ -123,6 +133,22 @@ function fmtDate(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// 566 Official Aesthetic Defect Records from attached inspection sheet
+const AESTHETIC_REPORT_RECORDS: ReportRecord[] = AESTHETIC_DEFECT_RECORDS.map((r) => ({
+  id: r.id,
+  date: r.date,
+  line: r.line,
+  model: r.spec ? `${r.model} (${r.spec})` : r.model,
+  type: 'Aesthetic' as const,
+  desc: r.desc,
+  qty: r.qty,
+  status: r.status,
+  shift: r.shift,
+  product: r.product,
+  remarks: `${r.stage} - ${r.shift} Shift`,
+  createdBy: 'QC Aesthetic Inspector',
+}));
+
 // Generate realistic seed records matching user template
 function generateSeedData(): ReportRecord[] {
   const out: ReportRecord[] = [];
@@ -174,6 +200,9 @@ function generateSeedData(): ReportRecord[] {
     });
   }
 
+  // Include all 566 real records from the Walton Mobile PCBA Aesthetic Inspection Sheet
+  out.push(...AESTHETIC_REPORT_RECORDS);
+
   out.sort((a, b) => (a.date < b.date ? 1 : -1));
   return out;
 }
@@ -185,11 +214,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
   initialNav,
 }) => {
   const handleGoHome = () => {
-    if (onNavigateHome) {
-      onNavigateHome();
-    } else {
-      onClose();
-    }
+    setActiveNav({ type: 'home', value: 'Home' });
   };
   // Firestore Data State
   const [data, setData] = useState<ReportRecord[]>([]);
@@ -273,14 +298,61 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
   // Mobile sidebar overlay state
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
-  // Active navigation selection
+  // Active navigation selection - defaults to 'home' to match PCB Reports portal layout
   const [activeNav, setActiveNav] = useState<{ type: string; value: string }>(() => {
     if (initialNav) return initialNav;
+    if (initialLine) {
+      return {
+        type: 'line',
+        value: initialLine,
+      };
+    }
     return {
-      type: 'line',
-      value: initialLine,
+      type: 'home',
+      value: 'Home',
     };
   });
+
+  useEffect(() => {
+    if (initialNav) {
+      setActiveNav(initialNav);
+    } else if (initialLine) {
+      setActiveNav({ type: 'line', value: initialLine });
+    } else {
+      setActiveNav({ type: 'home', value: 'Home' });
+    }
+  }, [initialNav, initialLine]);
+
+  // Home KPI calculations matching PCB Portal format
+  const homeStats = useMemo(() => {
+    const today = fmtDate(new Date());
+    const smtInFirestore = data.filter((r) => r.line && r.line.startsWith('SMT')).length;
+    const smtCount = Math.max(
+      smtInFirestore,
+      SMT_LINE_01_DEFECT_RECORDS.length +
+        SMT_LINE_02_DEFECT_RECORDS.length +
+        SMT_LINE_03_DEFECT_RECORDS.length +
+        SMT_LINE_04_DEFECT_RECORDS.length +
+        SMT_LINE_05_DEFECT_RECORDS.length
+    );
+    const miInFirestore = data.filter((r) => r.line && r.line.startsWith('MI')).length;
+    const miCount = Math.max(
+      miInFirestore,
+      MI_LINE_01_DEFECT_RECORDS.length + MI_LINE_CHARGER_DEFECT_RECORDS.length
+    );
+    const aestheticCount = AESTHETIC_DEFECT_RECORDS.length;
+    const totalRecords = Math.max(data.length, smtCount + miCount + aestheticCount);
+    const todayRecords = data.filter((r) => r.date === today).length;
+    return {
+      totalRecords,
+      todayRecords,
+      totalChecked: 3400339,
+      failRate: '1.24%',
+      smtCount,
+      miCount,
+      aestheticCount,
+    };
+  }, [data]);
 
   // Filter Form State
   const [fDateFrom, setFDateFrom] = useState<string>('');
@@ -372,7 +444,9 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
     setActiveNav({ type, value });
     setSidebarOpen(false);
 
-    if (type === 'database') {
+    if (type === 'home') {
+      return;
+    } else if (type === 'database') {
       handleReset();
     } else if (type === 'line') {
       setFLine(value);
@@ -399,7 +473,9 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
 
   // Filtered dataset
   const filteredData = useMemo(() => {
-    return data.filter((r) => {
+    const hasAestheticInDb = data.some((r) => r.id && r.id.startsWith('aesthetic-rec-'));
+    const sourceData = hasAestheticInDb ? data : [...data, ...AESTHETIC_REPORT_RECORDS];
+    return sourceData.filter((r) => {
       if (appliedFilters.dateFrom && r.date < appliedFilters.dateFrom) return false;
       if (appliedFilters.dateTo && r.date > appliedFilters.dateTo) return false;
       if (appliedFilters.line && r.line !== appliedFilters.line) return false;
@@ -557,6 +633,21 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
 
         {/* Scrollable Nav Items */}
         <div className="flex-1 overflow-y-auto py-3 space-y-1.5 px-0">
+          {/* Home Nav Item */}
+          <div className="px-3 pb-1">
+            <button
+              onClick={() => handleSelectNav('home', 'Home')}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold transition-all cursor-pointer ${
+                activeNav.type === 'home'
+                  ? 'bg-[#1b2b62] text-white shadow-xs font-bold border-l-2 border-[#5b8bff]'
+                  : 'text-[#c7cee6] hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <Home className="w-4 h-4 text-[#8b93b4]" />
+              <span>Home</span>
+            </button>
+          </div>
+
           {/* Group 1: Line Wise Defect */}
           <div className="mt-1">
             <button
@@ -582,12 +673,24 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                   const isMICharger = l === 'MI Line - Charger' || l === 'MI Line-02';
                   const isSMT = l.startsWith('SMT');
                   const isSMTLine01 = l === 'SMT Line-01';
+                  const isSMTLine02 = l === 'SMT Line-02';
+                  const isSMTLine03 = l === 'SMT Line-03';
+                  const isSMTLine04 = l === 'SMT Line-04';
+                  const isSMTLine05 = l === 'SMT Line-05';
                   return (
                     <button
                       key={l}
                       id={
                         isSMTLine01
                           ? 'btn-nav-smt-line-01'
+                          : isSMTLine02
+                          ? 'btn-nav-smt-line-02'
+                          : isSMTLine03
+                          ? 'btn-nav-smt-line-03'
+                          : isSMTLine04
+                          ? 'btn-nav-smt-line-04'
+                          : isSMTLine05
+                          ? 'btn-nav-smt-line-05'
                           : isMILine01
                           ? 'btn-nav-mi-line-01'
                           : isMICharger
@@ -601,7 +704,13 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                           : isMICharger
                           ? 'text-[#e6fbf2] hover:text-white hover:bg-emerald-500/10 border-transparent'
                           : isMILine01
-                          ? 'text-[#f0f4ff] hover:text-white hover:bg-white/10 border-transparent'
+                          ? 'text-[#ecfdf5] hover:text-white hover:bg-emerald-500/10 border-transparent'
+                          : isSMTLine02
+                          ? 'text-[#e0f2fe] hover:text-white hover:bg-white/10 border-transparent'
+                          : isSMTLine03
+                          ? 'text-[#ede9fe] hover:text-white hover:bg-white/10 border-transparent'
+                          : isSMTLine05
+                          ? 'text-[#ffe4e6] hover:text-white hover:bg-white/10 border-transparent'
                           : 'text-[#a7aecb] hover:text-white hover:bg-white/5 border-transparent'
                       }`}
                     >
@@ -613,13 +722,19 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                               : isMICharger
                               ? 'bg-emerald-400'
                               : isMILine01
-                              ? 'bg-amber-400'
+                              ? 'bg-emerald-400'
+                              : isSMTLine02
+                              ? 'bg-cyan-400'
+                              : isSMTLine03
+                              ? 'bg-violet-400'
+                              : isSMTLine05
+                              ? 'bg-rose-400'
                               : 'bg-[#7f88ac]/40'
                           }`}
                         />
                         <span
                           className={
-                            (isMILine01 || isMICharger) && !isActive
+                            (isMILine01 || isMICharger || isSMTLine02 || isSMTLine03 || isSMTLine05) && !isActive
                               ? 'font-medium text-white/90'
                               : undefined
                           }
@@ -631,21 +746,41 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                         className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold transition-all ${
                           isActive
                             ? 'bg-[#5b8bff] text-white shadow-xs'
+                            : isSMTLine01
+                            ? 'bg-blue-500/25 text-blue-200 border border-blue-400/40'
+                            : isSMTLine02
+                            ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400/40'
+                            : isSMTLine03
+                            ? 'bg-violet-500/25 text-violet-200 border border-violet-400/40'
+                            : isSMTLine04
+                            ? 'bg-indigo-500/25 text-indigo-200 border border-indigo-400/40'
+                            : isSMTLine05
+                            ? 'bg-rose-500/25 text-rose-200 border border-rose-400/40'
                             : isMICharger
-                            ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
+                            ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40'
                             : isMILine01
-                            ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                            ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40'
                             : isSMT
                             ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                             : 'bg-white/5 text-[#8b93b4]'
                         }`}
                       >
-                        {isSMT
-                          ? 'AOI Entry'
-                          : isMICharger
-                          ? 'Charger Entry'
+                        {isSMTLine01
+                          ? '578 Records'
+                          : isSMTLine02
+                          ? '248 Records'
+                          : isSMTLine03
+                          ? '138 Records'
+                          : isSMTLine04
+                          ? '424 Records'
+                          : isSMTLine05
+                          ? '237 Records'
                           : isMILine01
-                          ? 'MI Entry'
+                          ? '2,610 Records'
+                          : isMICharger
+                          ? '128 Records'
+                          : isSMT
+                          ? 'AOI Entry'
                           : 'Entry'}
                       </span>
                     </button>
@@ -679,14 +814,20 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                   return (
                     <button
                       key={t}
+                      id={t === 'Aesthetic' ? 'btn-nav-mobile-aesthetic' : 'btn-nav-mobile-function'}
                       onClick={() => handleSelectNav('defectType', t)}
-                      className={`text-left pl-11 pr-5 py-2 text-[13px] transition-colors cursor-pointer flex items-center gap-2 border-l-2 ${
+                      className={`text-left pl-11 pr-5 py-2 text-[13px] transition-colors cursor-pointer flex items-center justify-between border-l-2 ${
                         isActive
                           ? 'text-white bg-white/10 font-bold border-[#5b8bff]'
                           : 'text-[#a7aecb] hover:text-white hover:bg-white/5 border-transparent'
                       }`}
                     >
                       <span>{t}</span>
+                      {t === 'Aesthetic' && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
+                          566 Records
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -770,7 +911,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                               : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                           }`}
                         >
-                          QM Report
+                          {SMT_SUMMARY_RECORDS.length} Logs
                         </span>
                       ) : null}
                     </button>
@@ -796,13 +937,17 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
           </div>
         </div>
 
-        {/* Sidebar Bottom: Home / Return to PCBA View */}
+        {/* Sidebar Bottom: Home */}
         <div className="p-3 border-t border-white/10 mt-auto">
           <button
             id="btn-sidebar-bottom-home"
-            onClick={handleGoHome}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13.5px] font-semibold text-[#c7cee6] hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
-            title="Return to Home page"
+            onClick={() => handleSelectNav('home', 'Home')}
+            className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-[13.5px] font-semibold rounded-lg transition-colors cursor-pointer ${
+              activeNav.type === 'home'
+                ? 'bg-[#16296b] text-white border-l-2 border-[#5b8bff]'
+                : 'text-[#c7cee6] hover:text-white hover:bg-white/10'
+            }`}
+            title="Return to PCBA Quality Portal Home"
           >
             <Home className="w-4 h-4 text-[#8b93b4]" />
             <span>Home</span>
@@ -870,7 +1015,389 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
 
         {/* Content Body */}
         <main className="flex-1 p-4 sm:p-7 max-w-[1400px] w-full mx-auto space-y-5">
-          {activeNav.type === 'line' ? (
+          {activeNav.type === 'home' ? (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              {/* Top Banner Header */}
+              <div className="bg-gradient-to-r from-[#0f2942] to-[#16395c] text-white rounded-2xl shadow-md border border-[#234b73] px-5 py-4 sm:px-6 sm:py-5 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-2xl shadow-inner border border-white/15">
+                    🔍
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h1 className="text-xl sm:text-2xl font-extrabold tracking-wide text-white m-0">
+                        Daily PCBA Report
+                      </h1>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#16a34a]/25 text-[#86efac] border border-[#16a34a]/40">
+                        Live Production Entry
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5 m-0">
+                      PCBA — SMT High-Speed Assembly · Manual Insertion (MI) · AOI Defect Data Entry
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectNav('database', 'Database')}
+                    className="px-3.5 py-2 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                  >
+                    <Database className="w-3.5 h-3.5" />
+                    <span>All Database</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 KPI Metric Cards matching reference image */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[14px]">
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
+                    {homeStats.totalRecords}
+                  </div>
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
+                    Total Records
+                  </div>
+                </div>
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
+                    {homeStats.todayRecords}
+                  </div>
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
+                    Entries Today
+                  </div>
+                </div>
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
+                    {homeStats.totalChecked.toLocaleString()}
+                  </div>
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
+                    Units Checked (QC)
+                  </div>
+                </div>
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
+                    {homeStats.failRate}
+                  </div>
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
+                    Overall Fail Rate
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Entry Portals Section matching reference image */}
+              <div className="bg-white border border-[#e2e8f0] rounded-[14px] overflow-hidden shadow-xs">
+                <header className="px-5 py-3.5 flex items-center justify-between font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0] bg-gradient-to-r from-[#f8fafc] to-white">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb] animate-pulse" />
+                    <span>Quick Entry Portals</span>
+                    <span className="text-[11px] font-semibold text-[#64748b] bg-[#f1f5f9] px-2 py-0.5 rounded-full border border-[#e2e8f0]">
+                      5 Process Stages
+                    </span>
+                  </div>
+                  <span className="text-xs text-[#64748b] font-medium hidden sm:inline">
+                    Click any module to open live data entry form
+                  </span>
+                </header>
+                <div className="p-4 sm:p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* SMT Line Inspection - Sapphire Blue */}
+                    <div
+                      onClick={() => handleSelectNav('line', 'SMT Line-01')}
+                      className="group relative bg-gradient-to-br from-[#eff6ff] via-white to-[#dbeafe]/40 border-2 border-[#bfdbfe] hover:border-[#2563eb] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(37,99,235,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#2563eb]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#2563eb] to-[#1d4ed8] text-white shadow-md shadow-blue-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#dbeafe] text-[#1e40af] border border-[#bfdbfe]">
+                            SMT AOI
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#2563eb] transition-colors m-0 flex items-center gap-1.5">
+                          SMT Line Inspection
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          High-speed surface mount, pick-and-place AOI defect data entry
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#bfdbfe]/60">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1e40af]">
+                            <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
+                            <span className="font-mono font-bold">{homeStats.smtCount}</span>
+                            <span className="text-[#64748b] font-normal">records saved</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs font-bold text-[#2563eb] group-hover:translate-x-1 transition-transform">
+                            <span>Enter Data</span>
+                            <span className="text-sm">→</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-[#bfdbfe]/40 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectNav('line', 'SMT Line-01');
+                            }}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100/90 hover:bg-blue-200 text-[#1d4ed8] transition-colors"
+                          >
+                            Line-01 (578)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectNav('line', 'SMT Line-02');
+                            }}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-100 hover:bg-cyan-200 text-[#0e7490] transition-colors border border-cyan-300/60 font-mono shadow-2xs"
+                          >
+                            Line-02 (248)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectNav('line', 'SMT Line-03');
+                            }}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-violet-100 hover:bg-violet-200 text-[#6d28d9] transition-colors border border-violet-300/60 font-mono shadow-2xs"
+                          >
+                            Line-03 (138)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectNav('line', 'SMT Line-04');
+                            }}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100/90 hover:bg-indigo-200 text-[#4338ca] transition-colors"
+                          >
+                            Line-04 (424)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectNav('line', 'SMT Line-05');
+                            }}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 hover:bg-rose-200 text-[#be123c] transition-colors border border-rose-300/60 font-mono shadow-2xs"
+                          >
+                            Line-05 (237)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* MI Line Inspection - Emerald Green */}
+                    <div
+                      onClick={() => handleSelectNav('line', 'MI Line-01')}
+                      className="group relative bg-gradient-to-br from-[#ecfdf5] via-white to-[#d1fae5]/40 border-2 border-[#a7f3d0] hover:border-[#10b981] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(16,185,129,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#10b981]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#059669] to-[#047857] text-white shadow-md shadow-emerald-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="18" height="18" x="3" y="3" rx="2" />
+                              <path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01M12 12h.01M10 7h4M10 17h4M7 10v4M17 10v4" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#d1fae5] text-[#065f46] border border-[#a7f3d0]">
+                            MI Manual
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#059669] transition-colors m-0 flex items-center gap-1.5">
+                          MI Line Inspection
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Manual insertion, through-hole solder &amp; component defect entry
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#a7f3d0]/60">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#065f46]">
+                            <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                            <span className="font-mono font-bold">{homeStats.miCount}</span>
+                            <span className="text-[#64748b] font-normal">records saved</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs font-bold text-[#059669] group-hover:translate-x-1 transition-transform">
+                            <span>Enter Data</span>
+                            <span className="text-sm">→</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-[#a7f3d0]/60 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectNav('line', 'MI Line-01');
+                            }}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 hover:bg-emerald-200 text-[#047857] transition-colors border border-emerald-300/60 font-mono shadow-2xs"
+                          >
+                            Line-01 (2,610)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectNav('line', 'MI Line - Charger');
+                            }}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 hover:bg-emerald-200 text-[#047857] transition-colors border border-emerald-300/60 font-mono shadow-2xs"
+                          >
+                            Charger (128)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Daily SMT QM Report - Purple & Indigo */}
+                    <div
+                      onClick={() => handleSelectNav('check', 'SMT Summary')}
+                      className="group relative bg-gradient-to-br from-[#f5f3ff] via-white to-[#ede9fe]/40 border-2 border-[#ddd6fe] hover:border-[#7c3aed] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(124,58,237,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#7c3aed]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] text-white shadow-md shadow-purple-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                              <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ede9fe] text-[#5b21b6] border border-[#ddd6fe]">
+                            SMT Summary
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#7c3aed] transition-colors m-0 flex items-center gap-1.5">
+                          Daily SMT QM Report
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Daily quality management inspection summary &amp; FPY for SMT lines
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#ddd6fe]/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#5b21b6]">
+                          <span className="w-2 h-2 rounded-full bg-[#7c3aed]" />
+                          <span className="font-mono font-bold">{homeStats.smtCount}</span>
+                          <span className="text-[#64748b] font-normal">records saved</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#7c3aed] group-hover:translate-x-1 transition-transform">
+                          <span>Enter Data</span>
+                          <span className="text-sm">→</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Daily MI QM Report - Tangerine & Amber */}
+                    <div
+                      onClick={() => handleSelectNav('check', 'MI Summary')}
+                      className="group relative bg-gradient-to-br from-[#fff7ed] via-white to-[#ffedd5]/40 border-2 border-[#fed7aa] hover:border-[#ea580c] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(234,88,12,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#ea580c]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white shadow-md shadow-orange-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+                              <path d="M15 18H9" />
+                              <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14v10" />
+                              <circle cx="17" cy="18" r="2" />
+                              <circle cx="7" cy="18" r="2" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ffedd5] text-[#9a3412] border border-[#fed7aa]">
+                            MI Summary
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#ea580c] transition-colors m-0 flex items-center gap-1.5">
+                          Daily MI QM Report
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Daily quality management inspection summary &amp; wave solder for MI lines
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#fed7aa]/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#9a3412]">
+                          <span className="w-2 h-2 rounded-full bg-[#ea580c]" />
+                          <span className="font-mono font-bold">{homeStats.miCount}</span>
+                          <span className="text-[#64748b] font-normal">records saved</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#ea580c] group-hover:translate-x-1 transition-transform">
+                          <span>Enter Data</span>
+                          <span className="text-sm">→</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile Defect: Aesthetic Inspection - Purple & Violet */}
+                    <div
+                      onClick={() => handleSelectNav('defectType', 'Aesthetic')}
+                      className="group relative bg-gradient-to-br from-[#faf5ff] via-white to-[#f3e8ff]/50 border-2 border-[#e9d5ff] hover:border-[#8b5cf6] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(139,92,246,0.25)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden sm:col-span-2"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#8b5cf6]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#8b5cf6] to-[#7c3aed] text-white shadow-md shadow-purple-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <Smartphone className="w-5 h-5" />
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#f3e8ff] text-[#6b21a8] border border-[#e9d5ff]">
+                            Mobile Defect
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#8b5cf6] transition-colors m-0 flex items-center gap-1.5">
+                          Aesthetic Defect Inspection
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Visual &amp; cosmetic inspection for Walton mobile PCBAs (Axion, NEXG, ZENX, Olvio)
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#e9d5ff]/60">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6b21a8]">
+                            <span className="w-2 h-2 rounded-full bg-[#8b5cf6]" />
+                            <span className="font-mono font-bold">{homeStats.aestheticCount || 566}</span>
+                            <span className="text-[#64748b] font-normal">records saved from sheet</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs font-bold text-[#8b5cf6] group-hover:translate-x-1 transition-transform">
+                            <span>Open Portal</span>
+                            <span className="text-sm">→</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-[#e9d5ff]/60 flex-wrap">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-[#6b21a8] border border-purple-200 font-mono">
+                            566 Records
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7c3aed] border border-purple-200 font-mono">
+                            1,872 Total Defects
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7c3aed] border border-purple-200 font-mono">
+                            83 Days
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7c3aed] border border-purple-200 font-mono">
+                            38 Defect Types
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : activeNav.type === 'line' ? (
             activeNav.value.includes('Charger') || activeNav.value === 'MI Line-02' ? (
               <MILineChargerDefectEntry
                 key={activeNav.value}
@@ -896,6 +1423,10 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
             />
           ) : activeNav.type === 'check' && activeNav.value === 'MI Summary' ? (
             <DailyQMReportMI
+              onNavigateToDatabase={() => handleSelectNav('database', 'Database')}
+            />
+          ) : activeNav.type === 'defectType' && activeNav.value === 'Aesthetic' ? (
+            <MobileAestheticDefectPortal
               onNavigateToDatabase={() => handleSelectNav('database', 'Database')}
             />
           ) : (

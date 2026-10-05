@@ -1,0 +1,288 @@
+SEPTEMBER 5-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 3 C-14324 Habibur
+SEPTEMBER 5-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 10 C-14555 Mazharul
+SEPTEMBER 5-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 4 C-14555 Mazharul
+SEPTEMBER 5-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 12 Majedul Islam(64218)
+SEPTEMBER 5-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 21 Nazmul Islam(64227)
+SEPTEMBER 5-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 7 Nazmul Islam(64227)
+SEPTEMBER 5-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 2 Nazmul Islam(64227)
+SEPTEMBER 5-Sep-2026 Day Toy Redmin Toy Controller Missing 18 C-14324 Habibur
+SEPTEMBER 5-Sep-2026 Day Toy Redmin Toy Controller Wrong Position 12 C-14324 Habibur
+SEPTEMBER 5-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 10 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 5-Sep-2026 Day Toy Redmin Toy Controller LED Not Work 15 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 85 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 1 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 5 C-14555 Mazharul
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 49 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 25 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 3 Nazmul Islam(64227)
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 10 Nazmul Islam(64227)
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 6 Nazmul Islam(64227)
+SEPTEMBER 6-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 29 Nazmul Islam(64227)
+SEPTEMBER 6-Sep-2026 Day Toy Redmin Toy Controller Missing 19 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Redmin Toy Controller Wrong Position 40 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Redmin Toy Controller Polarity Change 3 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 12 C-14324 Habibur
+SEPTEMBER 6-Sep-2026 Day Toy Redmin Toy Controller Speaker not work 12 C-14555 Mazharul
+SEPTEMBER 6-Sep-2026 Day Toy Redmin Toy Controller LED Not Work 43 C-14555 Mazharul
+SEPTEMBER 6-Sep-2026 Day Toy Redmin Toy Controller No Power 5 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 5 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Wrong Position 1 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 12 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 15 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 9 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) No Power 3 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller Missing 13 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller Wrong Position 9 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller Polarity Change 2 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 15 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller Solder Short 9 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller Leg Open 26 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller Speaker not work 22 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller LED Not Work 36 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Redmin Toy Controller No Power 2 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 69 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Component 9 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 2 C-14555 Mazharul
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 42 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 27 C-14324 Habibur
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 5 Nazmul Islam(64227)
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 13 Nazmul Islam(64227)
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 28 Nazmul Islam(64227)
+SEPTEMBER 7-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 9 Nazmul Islam(64227)
+SEPTEMBER 8-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 2 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 4 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 5 C-14555 Mazharul
+SEPTEMBER 8-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 3 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 1 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 5 Nazmul Islam(64227)
+SEPTEMBER 8-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 12 Nazmul Islam(64227)
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller Missing 21 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller Wrong Position 1 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller Polarity Change 5 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 9 C-14324 Habibur
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller Solder Short 2 C-14555 Mazharul
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller Leg Open 10 C-14555 Mazharul
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller Speaker not work 5 C-14555 Mazharul
+SEPTEMBER 8-Sep-2026 Day Toy Redmin Toy Controller LED Not Work 22 C-14555 Mazharul
+SEPTEMBER 9-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 120 C-14709 Salman Rahman
+SEPTEMBER 9-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 145 Rubel Hossen(37078)
+SEPTEMBER 9-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 10 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 18 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 1 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 2 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 7 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 10 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 3 C-14555 Mazharul
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 13 C-14555 Mazharul
+SEPTEMBER 9-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 4 C-14555 Mazharul
+SEPTEMBER 9-Sep-2026 Day Toy Redmin Toy Controller Missing 9 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Redmin Toy Controller Polarity Change 3 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 13 C-14324 Habibur
+SEPTEMBER 9-Sep-2026 Day Toy Redmin Toy Controller LED Not Work 1 C-14555 Mazharul
+SEPTEMBER 9-Sep-2026 Day Toy Redmin Toy Controller No Power 1 C-14555 Mazharul
+SEPTEMBER 10-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 65 Abdul Wahab(64410)
+SEPTEMBER 10-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 20 Abdul Wahab(64410)
+SEPTEMBER 10-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 5 Abdul Wahab(64410)
+SEPTEMBER 10-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 10 Abdul Wahab(64410)
+SEPTEMBER 10-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 9 Abdul Wahab(64410)
+SEPTEMBER 10-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 2 Abdul Wahab(64410)
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Missing 15 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Wrong Component 3 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Polarity Change 4 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 17 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Solder Short 5 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Leg Open 5 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Speaker not work 2 C-14555 Mazharul
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller LED Not Work 21 C-14555 Mazharul
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller No Power 2 C-14555 Mazharul
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Wrong LED 21 C-14555 Mazharul
+SEPTEMBER 12-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 10 Abdul Wahab(64410)
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Missing 20 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Wrong Component 1 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 18 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Solder Short 2 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Leg Open 7 C-14324 Habibur
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller Speaker not work 17 C-14555 Mazharul
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller LED Not Work 33 C-14555 Mazharul
+SEPTEMBER 10-Sep-2026 Day Toy Redmin Toy Controller No Power 20 C-14555 Mazharul
+SEPTEMBER 13-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 22 Abdul Wahab(64410)
+SEPTEMBER 13-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 1 Abdul Wahab(64410)
+SEPTEMBER 13-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 10 Abdul Wahab(64410)
+SEPTEMBER 13-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 15 Abdul Wahab(64410)
+SEPTEMBER 13-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 8 Abdul Wahab(64410)
+SEPTEMBER 13-Sep-2026 Day Toy Redmin Toy Controller Missing 32 C-14324 Habibur
+SEPTEMBER 13-Sep-2026 Day Toy Redmin Toy Controller Wrong Component 18 C-14324 Habibur
+SEPTEMBER 13-Sep-2026 Day Toy Redmin Toy Controller Dry Solder 14 C-14324 Habibur
+SEPTEMBER 13-Sep-2026 Day Toy Redmin Toy Controller Solder Short 6 C-14324 Habibur
+SEPTEMBER 13-Sep-2026 Day Toy Redmin Toy Controller Leg Open 11 C-14324 Habibur
+SEPTEMBER 13-Sep-2026 Day Toy Redmin Toy Controller Speaker not work 34 C-14555 Mazharul
+SEPTEMBER 13-Sep-2026 Day Toy Redmin Toy Controller No Power 8 C-14555 Mazharul
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 5 Abdul Wahab(64410)
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 35 Abdul Wahab(64410)
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 8 Abdul Wahab(64410)
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 27 C-14324 Habibur
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Wrong Position 39 C-14324 Habibur
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 5 C-14324 Habibur
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 35 C-14555 Mazharul
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 7 C-14555 Mazharul
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 90 Majedul Islam(64218)
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 36 Nazmul Islam(64227)
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 18 Nazmul Islam(64227)
+SEPTEMBER 14-Sep-2026 Day Toy Common Toy Controller V1.0(Talukder) No Power 10 Nazmul Islam(64227)
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 79 C-14324 Habibur
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 23 C-14324 Habibur
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 8 C-14555 Mazharul
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 15 C-14324 Habibur
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 17 C-14324 Habibur
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 28 C-14324 Habibur
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 21 C-14555 Mazharul
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 51 C-14555 Mazharul
+SEPTEMBER 15-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 5 C-14555 Mazharul
+SEPTEMBER 15-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 30 Abdul Wahab(64410)
+SEPTEMBER 15-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 6 Abdul Wahab(64410)
+SEPTEMBER 15-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 2 Abdul Wahab(64410)
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 47 C-14324 Habibur
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 9 C-14324 Habibur
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 11 C-14555 Mazharul
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 17 C-14324 Habibur
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 9 C-14324 Habibur
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 57 C-14324 Habibur
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 8 C-14555 Mazharul
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 46 C-14555 Mazharul
+SEPTEMBER 16-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 5 C-14555 Mazharul
+SEPTEMBER 17-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 2 Abdul Wahab(64410)
+SEPTEMBER 17-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 21 Abdul Wahab(64410)
+SEPTEMBER 17-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 3 Abdul Wahab(64410)
+SEPTEMBER 17-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 6 Abdul Wahab(64410)
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 15 C-14324 Habibur
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 4 C-14324 Habibur
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 5 C-14324 Habibur
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 16 C-14324 Habibur
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 5 C-14324 Habibur
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 9 C-14324 Habibur
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 7 C-14555 Mazharul
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 16 C-14555 Mazharul
+SEPTEMBER 17-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 4 C-14555 Mazharul
+SEPTEMBER 18-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 18 Abdul Wahab(64410)
+SEPTEMBER 18-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 6 Abdul Wahab(64410)
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 22 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 7 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 1 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 5 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 1 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 26 C-14555 Mazharul
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 22 C-14555 Mazharul
+SEPTEMBER 18-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 2 C-14555 Mazharul
+SEPTEMBER 20-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 19 Abdul Wahab(64410)
+SEPTEMBER 20-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 9 Abdul Wahab(64410)
+SEPTEMBER 20-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 5 Abdul Wahab(64410)
+SEPTEMBER 20-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 13 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 20-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 5 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 20-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 3 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 20-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 7 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 20-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 3 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 20-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 19 C-14555 Mazharul
+SEPTEMBER 20-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 10 C-14555 Mazharul
+SEPTEMBER 21-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 30 Abdul Wahab(64410)
+SEPTEMBER 21-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 15 Abdul Wahab(64410)
+SEPTEMBER 21-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 6 Abdul Wahab(64410)
+SEPTEMBER 21-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 13 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 21-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 3 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 21-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 7 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 21-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 2 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 21-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 29 C-14555 Mazharul
+SEPTEMBER 21-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 9 C-14555 Mazharul
+SEPTEMBER 21-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 6 C-14555 Mazharul
+SEPTEMBER 22-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 45 Abdul Wahab(64410)
+SEPTEMBER 22-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 8 Abdul Wahab(64410)
+SEPTEMBER 22-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 20 Abdul Wahab(64410)
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 19 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 5 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 13 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 3 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 9 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 25 C-14555 Mazharul
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 3 C-14555 Mazharul
+SEPTEMBER 22-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 2 C-14555 Mazharul
+SEPTEMBER 23-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 65 Abdul Wahab(64410)
+SEPTEMBER 23-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 70 Abdul Wahab(64410)
+SEPTEMBER 23-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 50 Abdul Wahab(64410)
+SEPTEMBER 23-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 20 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 23-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 3 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 23-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 15 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 23-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 6 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 23-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 23 C-14555 Mazharul
+SEPTEMBER 23-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 12 C-14555 Mazharul
+SEPTEMBER 23-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 1 C-14555 Mazharul
+SEPTEMBER 24-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 35 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 24-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 7 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 24-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 13 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 24-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 1 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 24-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 16 C-14555 Mazharul
+SEPTEMBER 24-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 9 C-14555 Mazharul
+SEPTEMBER 24-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 6 C-14555 Mazharul
+SEPTEMBER 24-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 60 Abdul Wahab(64410)
+SEPTEMBER 24-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 15 Abdul Wahab(64410)
+SEPTEMBER 24-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 5 Abdul Wahab(64410)
+SEPTEMBER 25-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 25 Abdul Wahab(64410)
+SEPTEMBER 25-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 10 Abdul Wahab(64410)
+SEPTEMBER 25-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 2 Abdul Wahab(64410)
+SEPTEMBER 26-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 75 Abdul Wahab(64410)
+SEPTEMBER 26-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 20 Abdul Wahab(64410)
+SEPTEMBER 26-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 10 Abdul Wahab(64410)
+SEPTEMBER 26-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 7 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 10 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 45 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 6 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 22 C-14555 Mazharul
+SEPTEMBER 26-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 8 C-14555 Mazharul
+SEPTEMBER 26-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 2 C-14555 Mazharul
+SEPTEMBER 26-Sep-2026 Day Toy Golden Wheel GW1 Missing 17 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Golden Wheel GW1 Polarity Change 3 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Golden Wheel GW1 Dry Solder 34 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Golden Wheel GW1 Solder Short 13 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 26-Sep-2026 Day Toy Golden Wheel GW1 LED Not Work 8 C-14555 Mazharul
+SEPTEMBER 26-Sep-2026 Day Toy Golden Wheel GW1 Speaker not work 37 C-14555 Mazharul
+SEPTEMBER 26-Sep-2026 Day Toy Golden Wheel GW1 No Power 1 C-14555 Mazharul
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 27 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 1 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 6 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 15 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 16 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 25 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 26 C-14555 Mazharul
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 11 C-14555 Mazharul
+SEPTEMBER 27-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 6 C-14555 Mazharul
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 Missing 29 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 Wrong Position 6 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 Polarity Change 7 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 Dry Solder 75 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 Solder Short 28 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 Leg Open 21 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 LED Not Work 18 C-14555 Mazharul
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 Speaker not work 18 C-14555 Mazharul
+SEPTEMBER 27-Sep-2026 Day Toy Golden Wheel GW1 No Power 13 C-14555 Mazharul
+SEPTEMBER 27-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 5 Abdul Wahab(64410)
+SEPTEMBER 27-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 4 Abdul Wahab(64410)
+SEPTEMBER 27-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 2 Abdul Wahab(64410)
+SEPTEMBER 27-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 4 Abdul Wahab(64410)
+SEPTEMBER 27-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 4 Abdul Wahab(64410)
+SEPTEMBER 27-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 1 Abdul Wahab(64410)
+SEPTEMBER 28-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 43 Abdul Wahab(64410)
+SEPTEMBER 28-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 15 Abdul Wahab(64410)
+SEPTEMBER 28-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 2 Abdul Wahab(64410)
+SEPTEMBER 30-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 10 Abdul Wahab(64410)
+SEPTEMBER 30-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 7 Abdul Wahab(64410)
+SEPTEMBER 30-Sep-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 5 Abdul Wahab(64410)
+SEPTEMBER 28-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 4 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 28-Sep-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 1 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 28-Sep-2026 Day Toy Akij Toy Controller V1.0 Solder Short 5 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 28-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 4 C-14555 Mazharul
+SEPTEMBER 28-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 1 C-14555 Mazharul
+SEPTEMBER 28-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 1 C-14555 Mazharul
+SEPTEMBER 29-Sep-2026 Day Toy Akij Toy Controller V1.0 Missing 7 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 29-Sep-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 8 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 29-Sep-2026 Day Toy Akij Toy Controller V1.0 Leg Open 20 Md. Biojeth Hossain(C-14611)
+SEPTEMBER 29-Sep-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 8 C-14555 Mazharul
+SEPTEMBER 29-Sep-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 4 C-14555 Mazharul
+SEPTEMBER 29-Sep-2026 Day Toy Akij Toy Controller V1.0 No Power 4 C-14555 Mazharul

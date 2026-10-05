@@ -12,6 +12,8 @@ import {
 } from "firebase/auth";
 import {
   getFirestore,
+  initializeFirestore,
+  setLogLevel,
   doc,
   getDoc,
   getDocFromServer,
@@ -39,29 +41,33 @@ import {
 } from "firebase/storage";
 import firebaseConfig from "../../firebase-applet-config.json";
 
+// Suppress transient WebChannelConnection RPC 'Listen' stream transport warnings
+setLogLevel("silent");
+
 // Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Firebase Authentication
 export const auth = getAuth(app);
 
-// Firestore Database (CRITICAL: passing firestoreDatabaseId is required for custom instance)
-export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
+// Firestore Database (passing firestoreDatabaseId for custom instance + long polling for iframe/proxy stability)
+const databaseId = (firebaseConfig as any).firestoreDatabaseId;
+export const db = (() => {
+  try {
+    return initializeFirestore(
+      app,
+      {
+        experimentalForceLongPolling: true,
+      },
+      databaseId
+    );
+  } catch {
+    return getFirestore(app, databaseId);
+  }
+})();
 
 // Firebase Cloud Storage for SOPs, Work Instructions, and Quality Evidence
 export const storage = getStorage(app);
-
-// Test Connection on boot (as required by Firestore Guidelines)
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn("Please check your Firebase configuration or connection.");
-    }
-  }
-}
-testConnection();
 
 // Operation Types for error tracing
 export enum OperationType {

@@ -1,0 +1,77 @@
+9-Jul-2026 Olvio_MM30 Null Rework Day MakeCallPointSkip 3
+9-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinBroken 2
+9-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinShifting 2
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night ChargerPinUp 3
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night ExtraLead 4
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night GNDPinShifting 1
+10-Jul-2026 NEXG_N76 4/128 GB Mass Production Morning GNDPinBroken 1
+10-Jul-2026 NEXG_N76 4/128 GB Mass Production Morning GNDPinShifting 1
+10-Jul-2026 NEXG_N76 4/128 GB Mass Production Morning ShieldUp 1
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Morning ChargerPinUp 17
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Morning GNDPinMissing 3
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Morning GNDPinShifting 13
+10-Jul-2026 NEXG_N76 4/128 GB Mass Production Evening GNDPinBroken 2
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Evening GNDPinBroken 3
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Evening GNDPinMissing 6
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Evening HeadsetBasePinUp 2
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinBroken 1
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ChargerPinUp 4
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinBroken 1
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinMissing 3
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinShifting 3
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinBroken 1
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinMissing 2
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Night PCBAScratch 2
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Night ShieldTap 1
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night GNDPinBroken 3
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night GNDPinMissing 3
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinBroken 1
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Day SimBasePinUp 1
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ChargerPinUp 3
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ExtraLead 1
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinBroken 1
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinMissing 2
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinShifting 8
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day HeadsetBaseBroken 1
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinBroken 1
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinShifting 1
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night ChargerPinUp 5
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night GNDPinBroken 3
+13-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinBroken 6
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ChargerPinUp 5
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day ExtraLead 3
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinBroken 1
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day GNDPinShifting 1
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day HeadsetBasePinUp 1
+13-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinBroken 1
+13-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinShifting 1
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night ChargerPinUp 1
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night GNDPinShifting 4
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night HeadsetBasePinUp 3
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinBroken 3
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinShifting 1
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Day ShieldUp 2
+14-Jul-2026 Axion_A1100_i100 Null Rework Day HeadsetBaseBroken 1
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GNDPinBroken 1
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Night TCardPinUp 1
+15-Jul-2026 NEXG_N76 4/128 GB Mass Production Day GNDPinBroken 4
+15-Jul-2026 Olvio_MM30 Null Rework Day MakeCallPoint 3
+15-Jul-2026 Olvio_MM30 Null Rework Day SimBasePinUp 5
+20-Jul-2026 NEXG_N77 4/128 GB Trial Production Night GNDPinShifting 1
+20-Jul-2026 NEXG_N77 4/128 GB Trial Production Night ShieldShifting 10
+20-Jul-2026 NEXG_N77 4/128 GB Trial Production Night ShieldUp 8
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night ConnectorShifting 1
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night GNDPinBroken 1
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night GNDPinShifting 4
+25-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Night ShieldTap 1
+26-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Day ShieldUp 1
+26-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Night GNDPinBroken 1
+26-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Night ShieldUp 1
+27-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Day GNDPinBroken 2
+27-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Day ShieldUp 3
+29-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Day GNDPinBroken 1
+29-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Day ShieldUp 2
+30-Jul-2026 NEXG_N77 4/128 GB Mass Production Day GNDPinMissing 1
+30-Jul-2026 NEXG_N77 4/128 GB Mass Production Day ShieldShifting 1
+30-Jul-2026 NEXG_N77 4/128 GB Mass Production Day ShieldUp 3
+30-Jul-2026 NEXG_N77 4/128 GB Mass Production Night ShieldShifting 2

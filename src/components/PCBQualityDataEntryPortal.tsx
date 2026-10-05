@@ -917,41 +917,179 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                 </div>
               </div>
 
-              <div className="bg-white border border-[#e2e8f0] rounded-[10px] mb-4 overflow-hidden">
-                <header className="px-4 py-3 flex items-center gap-[9px] font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0]">
-                  Quick Entry
+              <div className="bg-white border border-[#e2e8f0] rounded-[14px] mb-4 overflow-hidden shadow-xs">
+                <header className="px-5 py-3.5 flex items-center justify-between font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0] bg-gradient-to-r from-[#f8fafc] to-white">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb] animate-pulse" />
+                    <span>Quick Entry Portals</span>
+                    <span className="text-[11px] font-semibold text-[#64748b] bg-[#f1f5f9] px-2 py-0.5 rounded-full border border-[#e2e8f0]">
+                      4 Process Stages
+                    </span>
+                  </div>
+                  <span className="text-xs text-[#64748b] font-medium hidden sm:inline">
+                    Click any module to open live data entry form
+                  </span>
                 </header>
-                <div className="p-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {SHEET_KEYS.map((k) => (
-                      <div
-                        key={k}
-                        onClick={() => handleSelectPage(k)}
-                        className="bg-white border border-[#e2e8f0] hover:border-[#1565c0] hover:shadow-[0_2px_10px_rgba(21,101,192,0.12)] rounded-[10px] px-4 py-[14px] cursor-pointer flex items-center gap-2.5 transition-all"
-                      >
-                        <div className="w-[34px] h-[34px] rounded-[8px] bg-[#eaf2fb] grid place-items-center shrink-0 text-[#123a6b]">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M12 2l9 5-9 5-9-5 9-5z" />
-                            <path d="M3 12l9 5 9-5" />
-                          </svg>
+                <div className="p-4 sm:p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Visual Check Card - Sapphire Blue Color Grading */}
+                    <div
+                      onClick={() => handleSelectPage('visual')}
+                      className="group relative bg-gradient-to-br from-[#eff6ff] via-white to-[#dbeafe]/40 border-2 border-[#bfdbfe] hover:border-[#2563eb] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(37,99,235,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#2563eb]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#2563eb] to-[#1d4ed8] text-white shadow-md shadow-blue-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#dbeafe] text-[#1e40af] border border-[#bfdbfe]">
+                            AOI Inspection
+                          </span>
                         </div>
-                        <div>
-                          <div className="font-bold text-[12.5px] text-[#1c2733]">
-                            {PAGES[k].name}
-                          </div>
-                          <div className="text-[11px] text-[#64748b]">
-                            {store[k].length} records saved
-                          </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#2563eb] transition-colors m-0 flex items-center gap-1.5">
+                          Visual Check
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Bare board optical inspection, solder mask &amp; trace defect capture
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#bfdbfe]/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1e40af]">
+                          <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
+                          <span className="font-mono font-bold">{store.visual.length}</span>
+                          <span className="text-[#64748b] font-normal">records saved</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#2563eb] group-hover:translate-x-1 transition-transform">
+                          <span>Enter Data</span>
+                          <span className="text-sm">→</span>
                         </div>
                       </div>
-                    ))}
+                    </div>
+
+                    {/* AOI Panel Card - Emerald Green Color Grading */}
+                    <div
+                      onClick={() => handleSelectPage('aoi')}
+                      className="group relative bg-gradient-to-br from-[#ecfdf5] via-white to-[#d1fae5]/40 border-2 border-[#a7f3d0] hover:border-[#10b981] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(16,185,129,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#10b981]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#059669] to-[#047857] text-white shadow-md shadow-emerald-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="18" height="18" x="3" y="3" rx="2" />
+                              <path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01M12 12h.01M10 7h4M10 17h4M7 10v4M17 10v4" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#d1fae5] text-[#065f46] border border-[#a7f3d0]">
+                            Panel Scan
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#059669] transition-colors m-0 flex items-center gap-1.5">
+                          AOI Panel
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Automated panel optical test, short/open circuit ratio &amp; pass rate
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#a7f3d0]/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#065f46]">
+                          <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                          <span className="font-mono font-bold">{store.aoi.length}</span>
+                          <span className="text-[#64748b] font-normal">records saved</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#059669] group-hover:translate-x-1 transition-transform">
+                          <span>Enter Data</span>
+                          <span className="text-sm">→</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Receive Card - Purple & Indigo Color Grading */}
+                    <div
+                      onClick={() => handleSelectPage('receive')}
+                      className="group relative bg-gradient-to-br from-[#f5f3ff] via-white to-[#ede9fe]/40 border-2 border-[#ddd6fe] hover:border-[#7c3aed] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(124,58,237,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#7c3aed]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] text-white shadow-md shadow-purple-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                              <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ede9fe] text-[#5b21b6] border border-[#ddd6fe]">
+                            IQC Inbound
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#7c3aed] transition-colors m-0 flex items-center gap-1.5">
+                          Receive (IQC)
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Inbound raw materials, CCL copper laminate &amp; surface finish receiving
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#ddd6fe]/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#5b21b6]">
+                          <span className="w-2 h-2 rounded-full bg-[#7c3aed]" />
+                          <span className="font-mono font-bold">{store.receive.length}</span>
+                          <span className="text-[#64748b] font-normal">records saved</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#7c3aed] group-hover:translate-x-1 transition-transform">
+                          <span>Enter Data</span>
+                          <span className="text-sm">→</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Delivery Card - Tangerine & Amber Color Grading */}
+                    <div
+                      onClick={() => handleSelectPage('delivery')}
+                      className="group relative bg-gradient-to-br from-[#fff7ed] via-white to-[#ffedd5]/40 border-2 border-[#fed7aa] hover:border-[#ea580c] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(234,88,12,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#ea580c]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white shadow-md shadow-orange-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+                              <path d="M15 18H9" />
+                              <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14v10" />
+                              <circle cx="17" cy="18" r="2" />
+                              <circle cx="7" cy="18" r="2" />
+                            </svg>
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ffedd5] text-[#9a3412] border border-[#fed7aa]">
+                            OQC Outbound
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#ea580c] transition-colors m-0 flex items-center gap-1.5">
+                          Delivery (OQC)
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Finished bare board dispatch, shipping quality clearance &amp; packing
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#fed7aa]/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#9a3412]">
+                          <span className="w-2 h-2 rounded-full bg-[#ea580c]" />
+                          <span className="font-mono font-bold">{store.delivery.length}</span>
+                          <span className="text-[#64748b] font-normal">records saved</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#ea580c] group-hover:translate-x-1 transition-transform">
+                          <span>Enter Data</span>
+                          <span className="text-sm">→</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

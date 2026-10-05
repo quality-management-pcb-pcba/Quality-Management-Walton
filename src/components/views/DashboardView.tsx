@@ -45,7 +45,7 @@
  * @param {boolean} [showSidebar] - Indicates whether the sidebar is currently displayed.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -60,8 +60,31 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { AlertCircle, CheckCircle2, TrendingUp, ShieldAlert, ArrowUpRight, Calendar, Layers, Lock, ShieldCheck, Home, Menu, Users, UserCheck } from 'lucide-react';
+import { AlertCircle, CheckCircle2, TrendingUp, ShieldAlert, ArrowUpRight, Calendar, Layers, Lock, ShieldCheck, Home, Menu, Users, UserCheck, UserMinus } from 'lucide-react';
 import { PageId } from '../../types';
+import { db, doc, getDoc } from '../../services/firebase';
+import { loadPcbManpowerFromFirestore, PcbManpowerItem } from '../../services/pcbRecords';
+import { loadPcbaManpowerFromFirestore, PcbaManpowerItem } from '../../services/masterData';
+
+const DEFAULT_PCB_MANPOWER: PcbManpowerItem[] = [
+  { id: '1', process: 'IQC', department: 'QM', required: 2, available: 2 },
+  { id: '2', process: 'Process QC', department: 'QM', required: 4, available: 4 },
+  { id: '3', process: 'FQC', department: 'QM', required: 4, available: 4 },
+];
+
+const DEFAULT_PCBA_MANPOWER: PcbaManpowerItem[] = [
+  { id: '1', process: 'IQC', department: 'SMT', required: 2, available: 1 },
+  { id: '2', process: 'AOI', department: 'SMT', required: 7, available: 7 },
+  { id: '3', process: 'Aesthetic', department: 'SMT', required: 2, available: 2 },
+  { id: '4', process: 'Function Test', department: 'SMT', required: 5, available: 2 },
+  { id: '5', process: 'QC-Common', department: 'SMT', required: 2, available: 1 },
+  { id: '6', process: 'QC-Common', department: 'MI', required: 2, available: 2 },
+  { id: '7', process: 'Aesthetic', department: 'MI', required: 2, available: 2 },
+  { id: '8', process: 'Function Test', department: 'MI', required: 2, available: 2 },
+  { id: '9', process: 'ATE', department: 'MI', required: 2, available: 2 },
+  { id: '10', process: 'DC Load + Aging', department: 'MI', required: 1, available: 1 },
+  { id: '11', process: 'Sound Test', department: 'MI', required: 1, available: 1 },
+];
 
 interface DashboardViewProps {
   onNavigate?: (page: PageId) => void;
@@ -98,6 +121,97 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [localMonth, setLocalMonth] = useState<string>('August 2026');
   const [localProduct, setLocalProduct] = useState<string>('All Products');
+
+  const [frontPageMp, setFrontPageMp] = useState<{ totalMp: number; male: number; female: number }>(() => {
+    try {
+      const saved = localStorage.getItem('walton_landing_kpi_stats');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          totalMp: typeof parsed.totalMp === 'number' ? parsed.totalMp : 612,
+          male: typeof parsed.male === 'number' ? parsed.male : 402,
+          female: typeof parsed.female === 'number' ? parsed.female : 210,
+        };
+      }
+    } catch {
+      // Fallback to default
+    }
+    return { totalMp: 612, male: 402, female: 210 };
+  });
+
+  const [pcbManpower, setPcbManpower] = useState<PcbManpowerItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('pcb_manpower_attendance_qm_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // Fallback to default
+    }
+    return DEFAULT_PCB_MANPOWER;
+  });
+
+  const [pcbaManpower, setPcbaManpower] = useState<PcbaManpowerItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('pcba_manpower_attendance_qm_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // Fallback to default
+    }
+    return DEFAULT_PCBA_MANPOWER;
+  });
+
+  useEffect(() => {
+    if (db) {
+      getDoc(doc(db, 'master_data', 'landing_kpi_stats'))
+        .then((snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            setFrontPageMp((prev) => ({
+              totalMp: typeof data.totalMp === 'number' ? data.totalMp : prev.totalMp,
+              male: typeof data.male === 'number' ? data.male : prev.male,
+              female: typeof data.female === 'number' ? data.female : prev.female,
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+    loadPcbManpowerFromFirestore().then((remote) => {
+      if (remote && remote.length > 0) {
+        setPcbManpower(remote);
+        try {
+          localStorage.setItem('pcb_manpower_attendance_qm_v2', JSON.stringify(remote));
+        } catch {
+          // ignore storage quota errors
+        }
+      }
+    });
+    loadPcbaManpowerFromFirestore().then((remote) => {
+      if (remote && remote.length > 0) {
+        setPcbaManpower(remote);
+        try {
+          localStorage.setItem('pcba_manpower_attendance_qm_v2', JSON.stringify(remote));
+        } catch {
+          // ignore storage quota errors
+        }
+      }
+    });
+  }, []);
+
+  const pcbRequired = pcbManpower.reduce((sum, item) => sum + (Number(item.required) || 0), 0);
+  const pcbPresent = pcbManpower.reduce((sum, item) => sum + (Number(item.available) || 0), 0);
+  const pcbLeave = Math.max(0, pcbRequired - pcbPresent);
+
+  const pcbaRequired = pcbaManpower.reduce((sum, item) => sum + (Number(item.required) || 0), 0);
+  const pcbaPresent = pcbaManpower.reduce((sum, item) => sum + (Number(item.available) || 0), 0);
+  const pcbaLeave = Math.max(0, pcbaRequired - pcbaPresent);
+
+  const combinedPresentToday = pcbPresent + pcbaPresent;
+  const combinedLeaveToday = pcbLeave + pcbaLeave;
 
   const currentMonth = selectedMonth ?? localMonth;
   const currentProduct = selectedProduct ?? localProduct;
@@ -227,21 +341,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Primary Workforce Pill Row - Matching Image 2 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Primary Workforce Pill Row - Sequence: TOTAL MP, MALE, FEMALE, PRESENT TODAY, LEAVE TODAY */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <div className="p-5 rounded-2xl text-white shadow-xs bg-[#2563eb] flex flex-col items-center justify-center text-center">
           <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">TOTAL MP</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">612</div>
-        </div>
-        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#0d9488] flex flex-col items-center justify-center text-center">
-          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
-            <UserCheck className="w-5 h-5 text-white" />
-          </div>
-          <div className="text-xs font-bold uppercase tracking-wider text-white/90">PRESENT TODAY</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">589</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">{frontPageMp.totalMp}</div>
         </div>
         <div className="p-5 rounded-2xl text-white shadow-xs bg-[#6366f1] flex flex-col items-center justify-center text-center">
           <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
@@ -252,7 +359,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </svg>
           </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">MALE</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">402</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">{frontPageMp.male}</div>
         </div>
         <div className="p-5 rounded-2xl text-white shadow-xs bg-[#db2777] flex flex-col items-center justify-center text-center">
           <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
@@ -263,7 +370,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </svg>
           </div>
           <div className="text-xs font-bold uppercase tracking-wider text-white/90">FEMALE</div>
-          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">210</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">{frontPageMp.female}</div>
+        </div>
+        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#0d9488] flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
+            <UserCheck className="w-5 h-5 text-white" />
+          </div>
+          <div className="text-xs font-bold uppercase tracking-wider text-white/90">PRESENT TODAY</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">{combinedPresentToday}</div>
+        </div>
+        <div className="p-5 rounded-2xl text-white shadow-xs bg-[#e35b2a] flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-2">
+            <UserMinus className="w-5 h-5 text-white" />
+          </div>
+          <div className="text-xs font-bold uppercase tracking-wider text-white/90">LEAVE TODAY</div>
+          <div className="text-3xl sm:text-4xl font-bold font-mono mt-1.5">{combinedLeaveToday}</div>
         </div>
       </div>
 

@@ -1,0 +1,83 @@
+13-Jun-2026 Axion_A1100 Null Mass Production Day ShieldShifting 9
+13-Jun-2026 Axion_A1100 Null Mass Production Day SimBaseShifting 4
+13-Jun-2026 Axion_A1100 Null Mass Production Night ChargerPinUp 2
+13-Jun-2026 Axion_A1100 Null Mass Production Night ComponentBroken 5
+13-Jun-2026 Axion_A1100 Null Mass Production Night ComponentShifting 1
+13-Jun-2026 Axion_A1100 Null Mass Production Night ShieldShifting 1
+14-Jun-2026 Axion_A1100 Null Mass Production Day BatteryConnectorIssue 1
+14-Jun-2026 Axion_A1100 Null Mass Production Day ChargerPinUp 1
+14-Jun-2026 Axion_A1100 Null Mass Production Day ComponentBroken 1
+14-Jun-2026 Axion_A1100 Null Mass Production Day HeadsetBasePinUp 1
+14-Jun-2026 Axion_A1100 Null Mass Production Day MakeCallPointSkip 3
+14-Jun-2026 Axion_A1100 Null Mass Production Day ShieldShifting 9
+14-Jun-2026 XANON_X1_Ultra 8/128GB Rework Day ComponentBroken 6
+14-Jun-2026 XANON_X1_Ultra 8/128GB Rework Day GNDPinBroken 3
+14-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night GNDPinBroken 2
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night ChargerPinUp 3
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night ComponentMissing 1
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night ComponentShifting 2
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night GNDPinShifting 4
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night HeadsetBasePinUp 1
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night PCBABroken 1
+14-Jun-2026 Axion_A1100 Null Mass Production Night ComponentBroken 1
+14-Jun-2026 Axion_A1100 Null Mass Production Night ExtraLead 1
+15-Jun-2026 Axion_A1100 Null Mass Production Day ChargerPinUp 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day GNDPinBroken 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day ShieldUp 3
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day ChargerPinUp 10
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day ComponentMissing 1
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day GNDPinMissing 2
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day GNDPinShifting 4
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night ShieldTap 2
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night ShieldUp 7
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day GNDPinBroken 3
+16-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day ChargerPinUp 8
+16-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day GNDPinMissing 8
+16-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day GNDPinShifting 20
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night GNDPinBroken 3
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night ShieldUp 2
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day ConnectorShifting 1
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day GNDPinBroken 1
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day GNDPinShifting 1
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day ShieldUp 1
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night ShieldTap 2
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night ShieldUp 3
+17-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night ChargerPinUp 1
+18-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night ChargerPinUp 2
+18-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night ExtraLead 1
+18-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night GNDPinShifting 2
+18-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night GNDPinBroken 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day ChargerPinUp 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 6
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day DrySolder 5
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day LEDLightBroken 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day PCBAScratch 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day ShieldShifting 4
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night ChargerPinUp 3
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night ConnectorBroken 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night HeadsetBaseBroken 2
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPoint 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPointSkip 3
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night TCardBaseShifting 2
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Day BatteryConnectorIssue 1
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 2
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentShifting 3
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimBaseShifting 20
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night BatteryConnectorIssue 1
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night ComponentBroken 1
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPoint 1
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPointSkip 3
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night SimBaseShifting 47
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentBroken 5
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentLiftUp 3
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Day ComponentShifting 2
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimBaseShifting 4
+22-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day ChargerPinUp 7
+22-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day GNDPinShifting 10
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night Barcode 20
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night ChargerPinUp 1
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night ComponentBroken 6
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night HeadsetBaseBroken 1
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night HeadsetBasePinUp 1
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPoint 9
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night MakeCallPointSkip 3

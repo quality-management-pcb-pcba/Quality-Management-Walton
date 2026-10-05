@@ -14,8 +14,12 @@ import {
   Filter,
   Settings,
   X,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { savePcbaReport } from '../services/pcbaReportService';
+import { SMT_SUMMARY_RECORDS } from '../data/smtSummaryRecords';
 
 export interface DailyQMReportSMTRecord {
   id: string;
@@ -48,6 +52,7 @@ const DEFAULT_FORM_DATA = {
     Fan: [
       '16 Inch Local Fan Control',
       '16 Inch Rechargeable Stand (Display Fan) -USB',
+      '16 Inch Rechargeable Stand (Display Fan) - USB',
       '16 Inch Rechargeable Stand (Display Fan) Display Board',
       '16 Inch Rechargeable Stand Fan Display (SMPS)',
       '16 Inch Rechargeable Stand Fan Display Control (Bottom)',
@@ -112,6 +117,7 @@ const DEFAULT_FORM_DATA = {
       'SMT-WRL-US-V03',
       'SMT-WRL-USI-V02',
       'Smart Controller 1.4',
+      'Smart container-7 segment display',
       'WR-343-CTW-LED-V02',
       'WRF IBL V00',
     ],
@@ -123,6 +129,8 @@ const DEFAULT_FORM_DATA = {
       '10 FEET DOUBLE',
       '10W DC Bulb LED',
       '10W Tospo Motion LED',
+      '10W-AC/DC-Cozum',
+      '10W-LED-Driver',
       '12W DC Bulb LED',
       '12W LED_Panel',
       '12W Round_Day',
@@ -130,6 +138,8 @@ const DEFAULT_FORM_DATA = {
       '12W Round_Red',
       '12W Round_Warm',
       '12W-AC/DC-YJ-LED',
+      '12W-LED-Driver',
+      '12w-Ac/Dc-YJ-LED',
       '12W-Square-LED-Day',
       '12W-Square-LED-Warm',
       '12Watt Square LED Tospoo -Warm',
@@ -139,6 +149,7 @@ const DEFAULT_FORM_DATA = {
       '1FEET DTDL 9W',
       '20W Tube light Driver',
       '3 Inch Low Cost Rechargeable Fan - bottom',
+      'Ac/Dc 12W LED (Cozum)',
       '6 Watt Square LED Tospoo - Day',
       '6W Colour Change (GreenBlue)',
       '6W Colour Change (RedGreen)',
@@ -320,82 +331,35 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
     }
   }, [product, formData.productModels]);
 
-  // Persistent rows state
+  // Persistent rows state loaded with all official SMT summary records
   const [rows, setRows] = useState<DailyQMReportSMTRecord[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const existingIds = new Set(parsed.map((r: any) => r?.id));
+          const missingSeeds = SMT_SUMMARY_RECORDS.filter((r) => !existingIds.has(r.id));
+          // If cached data has only old dummy seeds or fewer than official 306 records, merge cleanly
+          if (missingSeeds.length > 0 || parsed.length < SMT_SUMMARY_RECORDS.length) {
+            const userAdded = parsed.filter(
+              (r: any) => !r?.id?.startsWith('smt-sum-') && !r?.id?.startsWith('qm-seed-')
+            );
+            const merged = [...userAdded, ...SMT_SUMMARY_RECORDS];
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            } catch (e) {
+              // ignore
+            }
+            return merged;
+          }
+          return parsed;
+        }
+      }
     } catch {
       // ignore
     }
-    // Seed with realistic rows from sheet
-    return [
-      {
-        id: 'qm-seed-1',
-        month: 'May',
-        date: '2026-05-17',
-        product: 'Fridge',
-        model: 'RL-SS80-V05',
-        line: 'Line-04',
-        prodType: 'Mass Production',
-        checkQty: 11000,
-        faultQty: 10,
-        faultPct: (10 / 11000) * 100,
-        remarks: '',
-      },
-      {
-        id: 'qm-seed-2',
-        month: 'May',
-        date: '2026-05-18',
-        product: 'LED',
-        model: '12W Round_Day',
-        line: 'Line-04',
-        prodType: 'Mass Production',
-        checkQty: 1330,
-        faultQty: 220,
-        faultPct: (220 / 1330) * 100,
-        remarks: '',
-      },
-      {
-        id: 'qm-seed-3',
-        month: 'May',
-        date: '2026-05-19',
-        product: 'LED',
-        model: 'FE-IN-DR-14S1P(Spotdown 5W LED Green)',
-        line: 'Line-04',
-        prodType: 'Mass Production',
-        checkQty: 11640,
-        faultQty: 101,
-        faultPct: (101 / 11640) * 100,
-        remarks: '',
-      },
-      {
-        id: 'qm-seed-4',
-        month: 'May',
-        date: '2026-05-18',
-        product: 'Fan',
-        model: '52 Inch BLDC Celling Fan',
-        line: 'Line-01',
-        prodType: 'Mass Production',
-        checkQty: 654,
-        faultQty: 46,
-        faultPct: (46 / 654) * 100,
-        remarks: '',
-      },
-      {
-        id: 'qm-seed-5',
-        month: 'May',
-        date: '2026-05-19',
-        product: 'Fridge',
-        model: 'SMT-WRL-US-V03',
-        line: 'Line-01',
-        prodType: 'Mass Production',
-        checkQty: 6288,
-        faultQty: 14,
-        faultPct: (14 / 6288) * 100,
-        remarks: '',
-      },
-    ];
+    return SMT_SUMMARY_RECORDS;
   });
 
   // Save to local storage
@@ -412,16 +376,24 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
   const [filterTo, setFilterTo] = useState('');
   const [filterLine, setFilterLine] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
+  const [filterSearch, setFilterSearch] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
   const [appliedLine, setAppliedLine] = useState('');
   const [appliedProduct, setAppliedProduct] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const handleApplyFilter = () => {
     setAppliedFrom(filterFrom);
     setAppliedTo(filterTo);
     setAppliedLine(filterLine);
     setAppliedProduct(filterProduct);
+    setAppliedSearch(filterSearch.trim());
+    setCurrentPage(1);
   };
 
   const handleClearFilter = () => {
@@ -429,10 +401,24 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
     setFilterTo('');
     setFilterLine('');
     setFilterProduct('');
+    setFilterSearch('');
     setAppliedFrom('');
     setAppliedTo('');
     setAppliedLine('');
     setAppliedProduct('');
+    setAppliedSearch('');
+    setCurrentPage(1);
+  };
+
+  const handleResetToOfficialData = () => {
+    setRows(SMT_SUMMARY_RECORDS);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(SMT_SUMMARY_RECORDS));
+    } catch (e) {
+      // ignore
+    }
+    showToast(`Loaded ${SMT_SUMMARY_RECORDS.length} Official SMT Summary Records!`, 'success');
+    setCurrentPage(1);
   };
 
   const filteredRows = useMemo(() => {
@@ -441,9 +427,26 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
       if (appliedTo && r.date > appliedTo) return false;
       if (appliedLine && r.line !== appliedLine) return false;
       if (appliedProduct && r.product !== appliedProduct) return false;
+      if (appliedSearch) {
+        const q = appliedSearch.toLowerCase();
+        const matches =
+          r.model?.toLowerCase().includes(q) ||
+          r.product?.toLowerCase().includes(q) ||
+          r.line?.toLowerCase().includes(q) ||
+          r.prodType?.toLowerCase().includes(q) ||
+          r.remarks?.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
       return true;
     });
-  }, [rows, appliedFrom, appliedTo, appliedLine, appliedProduct]);
+  }, [rows, appliedFrom, appliedTo, appliedLine, appliedProduct, appliedSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const paginatedRows = useMemo(() => {
+    if (pageSize >= 9999) return filteredRows;
+    const start = (currentPage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, currentPage, pageSize]);
 
   // Overall Statistics from filtered rows
   const stats = useMemo(() => {
@@ -1006,6 +1009,18 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
           {/* Filter Bar */}
           <div className="flex flex-wrap items-center gap-2 text-xs print:hidden">
             <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-lg">
+              <Search className="w-3.5 h-3.5 text-[#cbd5e1]" />
+              <input
+                type="text"
+                placeholder="Search model / product..."
+                value={filterSearch}
+                onChange={(e) => setFilterSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleApplyFilter()}
+                className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none w-[140px]"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-lg">
               <span className="text-[#cbd5e1] font-semibold">From</span>
               <input
                 type="date"
@@ -1074,6 +1089,16 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
 
             <button
               type="button"
+              onClick={handleResetToOfficialData}
+              title="Reset or re-sync all 306 official inspection records"
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Official Logs ({SMT_SUMMARY_RECORDS.length})</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleDownloadCsv}
               className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
             >
@@ -1102,7 +1127,7 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
         </div>
 
         {/* Scrollable Table Preview */}
-        <div className="overflow-x-auto max-h-[380px] overflow-y-auto">
+        <div className="overflow-x-auto max-h-[460px] overflow-y-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-[#f1f5f9] text-[#475569] font-bold sticky top-0 z-10 border-b border-[#e2e8f0]">
               <tr>
@@ -1123,11 +1148,11 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
               {filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="py-8 text-center text-sm text-[#94a3b8]">
-                    No rows yet — fill in the form above and click Save to see rows appear here.
+                    No rows match this filter — click Clear or Official Logs to reset.
                   </td>
                 </tr>
               ) : (
-                filteredRows.map((rec) => {
+                paginatedRows.map((rec) => {
                   const isHighFault = rec.faultPct >= 5;
                   return (
                     <tr key={rec.id} className="hover:bg-[#f8fafc] transition-colors">
@@ -1187,6 +1212,62 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {filteredRows.length > 0 && (
+          <div className="px-4 py-3 bg-[#fafbfc] border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748b] print:hidden">
+            <div className="flex items-center gap-2">
+              <span>
+                Showing <strong className="text-[#0f2942]">{Math.min(filteredRows.length, (currentPage - 1) * pageSize + 1)}</strong> to{' '}
+                <strong className="text-[#0f2942]">{Math.min(filteredRows.length, currentPage * pageSize)}</strong> of{' '}
+                <strong className="text-[#0f2942]">{filteredRows.length}</strong> records
+              </span>
+              <span className="text-[#cbd5e1]">|</span>
+              <div className="flex items-center gap-1">
+                <span>Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="bg-white border border-[#cbd5e1] rounded px-2 py-0.5 text-xs text-[#1e293b] font-semibold outline-none"
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={99999}>All ({filteredRows.length})</option>
+                </select>
+              </div>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="px-2.5 py-1 rounded border border-[#cbd5e1] bg-white text-[#1e293b] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 font-medium flex items-center gap-0.5"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Prev</span>
+                </button>
+                <span className="px-2 font-mono font-bold text-[#0f2942]">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="px-2.5 py-1 rounded border border-[#cbd5e1] bg-white text-[#1e293b] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 font-medium flex items-center gap-0.5"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Save Bar */}

@@ -1,0 +1,301 @@
+August 9-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 3552 51
+August 10-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 3216 160
+August 11-Aug-2026 LED 12W-AC/DC-YJ-LED Line-05 Mass Production 12480 323
+August 12-Aug-2026 LED 12W-AC/DC-YJ-LED Line-05 Mass Production 12300 191
+August 13-Aug-2026 LED 12W-AC/DC-YJ-LED Line-05 Mass Production 15120 9
+August 14-Aug-2026 LED 12W-AC/DC-YJ-LED Line-05 Mass Production 9705 9
+August 15-Aug-2026 LED 12w-Ac/Dc-YJ-LED Line-05 Mass Production 12705 13
+August 15-Aug-2026 LED 12w-Ac/Dc-YJ-LED Line-05 Mass Production 11415 21
+August 16-Aug-2026 LED 12w-Ac/Dc-YJ-LED Line-05 Mass Production 14085 15
+August 16-Aug-2026 LED 12w-Ac/Dc-YJ-LED Line-05 Mass Production 7710 11
+August 16-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 240 1
+August 17-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 5592 94
+August 17-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 8472 116
+August 18-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 11378 123
+August 18-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 8328 91
+August 19-Aug-2026 LED YBL-12W-LED Line-05 Mass Production 11016 83
+August 19-Aug-2026 LED YBL-9W LED Line-05 Mass Production 18060 125
+August 20-Aug-2026 LED YBL-9W LED Line-05 Mass Production 11790 102
+August 20-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 1008 3
+August 20-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 9176 4
+August 21-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 6400 4
+August 21-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 7248 4
+August 22-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 9920 23
+August 22-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 7360 76
+August 23-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 10240 60
+August 23-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 10088 26
+August 24-Aug-2026 Fridge Smart container-7 segment display Line-05 Mass Production 312 64
+August 24-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 5048 36
+August 24-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 9360 59
+August 25-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 11504 50
+August 25-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 10552 34
+August 27-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 11384 81
+August 27-Aug-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 9456 75
+July 10-Jul-2026 LED LED Driver 12W Line-05 Mass Production 848 10
+July 11-Jul-2026 LED LED Driver 12W Line-05 Mass Production 2864 38
+July 12-July-2026 LED LED Driver 12W Line-05 Mass Production 3088 17
+July 13-Jul-2026 LED LED Driver 12W Line-05 Mass Production 2984 19
+July 14-Jul-2026 LED LED Driver 12W Line-05 Mass Production 800 0
+July 14-Jul-2026 LED 10W DC Bulb LED Line-05 Mass Production 480 13
+July 14-Jul-2026 LED 10W Tospo Motion LED Line-05 Mass Production 500 0
+July 15-Jul-2026 LED 10W Tospo Motion LED Line-05 Mass Production 1240 14
+July 15-Jul-2026 LED 12W DC Bulb LED Line-05 Mass Production 3312 35
+July 16-Jul-2026 LED YBL-9W LED Line-05 Mass Production 6000 206
+July 17-Jul-2026 LED YBL-9W LED Line-05 Mass Production 2400 18
+July 18-Jul-2026 Fridge Frost Inside Display-V1.0 Line-05 Mass Production 504 5
+July 18-Jul-2026 Fridge FID-Power Board-V1.0 Line-05 Mass Production 1920 21
+July 19-Jul-2026 LED YBL-9W LED Line-05 Mass Production 9000 49
+July 19-Jul-2026 LED Spot Down 5W LED(Day) Line-05 Mass Production 3743 1
+July 20-Jul-2026 LED Spot Down 5W LED(Day) Line-05 Mass Production 5040 5
+July 20-Jul-2026 LED Spot Down 5W LED(Warm) Line-05 Mass Production 600 1
+July 21-Jul-2026 LED Spotdown 5W -Red Line-05 Mass Production 2064 0
+July 21-Jul-2026 Fan 56 inch BLDC Celling Fan Line-05 Mass Production 210 4
+September 1-Sep-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 10840 12
+September 1-Sep-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 8408 8
+September 2-Sep-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 3840 1
+September 2-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 400 9
+September 2-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 7456 35
+September 3-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 8120 73
+September 3-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 7584 29
+September 5-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 7416 39
+September 6-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 8112 61
+September 6-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 344 6
+September 7-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 6224 42
+September 7-Sep-2026 LED Ac/Dc 12W LED (Cozum) Line-05 Mass Production 24 0
+September 8-Sep-2026 LED 12W-LED-Driver Line-05 Mass Production 1472 8
+September 8-Sep-2026 LED 10W-AC/DC-Cozum Line-05 Mass Production 6056 25
+September 9-Sep-2026 LED 10W-AC/DC-Cozum Line-05 Mass Production 3600 16
+September 9-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 2624 11
+September 10-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 7040 78
+September 12-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 8880 14
+September 13-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 10056 18
+September 14-Sep-2026 LED 10W-AC/DC-Cozum Line-05 Mass Production 10136 8
+September 14-Sep-2026 LED 10W-AC/DC-Cozum Line-05 Mass Production 9504 4
+September 15-Sep-2026 LED 10W-AC/DC-Cozum Line-05 Mass Production 4168 5
+September 15-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 4952 25
+September 16-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 8960 12
+September 17-Sep-2026 LED 10W-LED-Driver Line-05 Mass Production 7048 25
+September 17-Sep-2026 LED 10W-AC/DC-Cozum Line-05 Mass Production 3008 3
+August 1-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 1488 97
+August 1-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 464 37
+August 1-Aug-2026 Fridge SMT-RPIL-619L-V02 Line-01 Mass Production 2006 0
+August 1-Aug-2026 Fridge SMT-SBS-SL-12V-DC Line-01 Mass Production 5472 1
+August 1-Aug-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 1724 12
+August 2-Aug-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 4994 21
+August 2-Aug-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 6996 59
+August 3-Aug-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 252 4
+August 3-Aug-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 405 77
+August 3-Aug-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 570 111
+August 4-Aug-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 120 8
+August 4-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 2844 39
+August 4-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 2394 44
+August 8-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 384 7
+August 8-Aug-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 14174 43
+August 8-Aug-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 19800 26
+August 9-Aug-2026 Fan 16 Inch Rechargeable Stand (Display Fan) Display Board Line-01 Mass Production 540 1
+August 9-Aug-2026 Fan 16 Inch Rechargeable Stand (Display Fan) - USB Line-01 Mass Production 2004 25
+August 9-Aug-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 2304 0
+August 9-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 1200 25
+August 10-Aug-2026 Fan 16 Inch Rechargeable Stand (Display Fan) Display Board Line-01 Mass Production 1464 13
+August 10-Aug-2026 Fridge SMT-Electronic Control - V217 Line-01 Mass Production 2004 11
+August 10-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 600 30
+August 10-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display (SMPS) Line-01 Mass Production 6 0
+August 11-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display Control (Bottom) Line-01 Mass Production 2016 5
+August 11-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display (SMPS) Line-01 Mass Production 2004 7
+August 12-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display Control (TOP) Line-01 Mass Production 108 91
+August 12-Aug-2026 TV WD-24R CS TV Line-01 Mass Production 70 0
+August 13-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display Control (TOP) Line-01 Mass Production 450 170
+August 13-Aug-2026 TV WD-24R CS TV Line-01 Mass Production 50 0
+August 13-Aug-2026 Fridge SMT-R-LED-PCCL-386-V0 Line-01 Mass Production 924 0
+August 13-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 252 0
+August 14-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display Control (TOP) Line-01 Mass Production 672 27
+August 14-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 4008 23
+August 15-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display Control (TOP) Line-01 Mass Production 240 38
+August 15-Aug-2026 TV WD-24R CS TV Line-01 Mass Production 105 0
+August 15-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 648 4
+August 15-Aug-2026 Fridge SMT-255L-Freezer-Display Line-01 Mass Production 3204 10
+August 16-Aug-2026 Fridge SMT-255L-Freezer-Display Line-01 Mass Production 1044 17
+August 16-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 4416 30
+August 17-Aug-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 2070 16
+August 17-Aug-2026 Fridge SMT-RL-SS80-V05-Bottom Line-01 Trial Production 2304 0
+August 17-Aug-2026 Fridge SMT-R-LED-PCCL-386-V0 Line-01 Mass Production 594 200
+August 17-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display Control (TOP) Line-01 Mass Production 138 0
+August 17-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 468 0
+August 18-Aug-2026 Fridge SMT-RL-SS80-V05-Bottom Line-01 Mass Production 5184 4
+August 18-Aug-2026 Fridge SMT-RL-SS80-V05-Top Line-01 Mass Production 7488 37
+August 18-Aug-2026 Fridge SMT-RL-RS35-V05-Bottom Line-01 Trial Production 408 2
+August 19-Aug-2026 Fridge SMT-RL-RS35-V05-Top Line-01 Trial Production 408 0
+August 19-Aug-2026 Fridge SMT-RL-RS35-V05-Bottom Line-01 Mass Production 2424 1
+August 19-Aug-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 365 0
+August 19-Aug-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 14280 1
+August 20-Aug-2026 Fridge SMT-RL-RS35-V05-Bottom Line-01 Mass Production 17184 53
+August 20-Aug-2026 Fridge SMT-RL-RS35-V05-Top Line-01 Mass Production 4920 17
+August 21-Aug-2026 Remote Remote Uniwalmar 09 Line-01 Mass Production 143 0
+August 21-Aug-2026 Fridge SMT-RL-RS35-V05-Top Line-01 Mass Production 15216 17
+August 21-Aug-2026 Fridge SMT-SBS-SL-12V-DC Line-01 Mass Production 5004 90
+August 22-Aug-2026 TV WD-24R CS TV Line-01 Mass Production 172 0
+August 22-Aug-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 3210 44
+August 22-Aug-2026 Fridge SMT-WR-343-CTW-V02 Line-01 Mass Production 1624 0
+August 23-Aug-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 3555 63
+August 23-Aug-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 2268 88
+August 24-Aug-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 558 0
+August 24-Aug-2026 Fan 6 inch Rechargeable Fan - Bottom Line-01 Mass Production 3480 5
+August 24-Aug-2026 Fan 16 Inch Rechargeable Stand Fan Display Control (TOP) Line-01 Mass Production 306 0
+August 25-Aug-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 96 0
+August 25-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 1056 58
+August 27-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 720 95
+August 28-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 624 98
+August 28-Aug-2026 Fan 6 inch Rechargeable Fan - Bottom Line-01 Mass Production 1092 11
+August 29-Aug-2026 Fan 6 inch Rechargeable Fan - Bottom Line-01 Mass Production 1128 8
+August 29-Aug-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 10200 0
+August 30-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 512 0
+August 30-Aug-2026 LED 6W-Round-Topso-Warm Line-01 Mass Production 840 105
+August 30-Aug-2026 LED 6W-Round-Topso-Warm Line-01 Mass Production 2484 5
+August 30-Aug-2026 Fan 6 inch Rechargeable Fan - Bottom Line-01 Mass Production 2172 8
+August 30-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 84 10
+August 31-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 1524 82
+August 31-Aug-2026 LED 6W-Round-Topso-Day Line-01 Mass Production 2004 22
+August 31-Aug-2026 LED PCBA-Surface-18w-Square-Day-DOB Bright Line-01 Mass Production 4 0
+August 31-Aug-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 2376 115
+July 1-Jul-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 156 0
+July 1-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 26 64
+July 1-Jul-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 2490 16
+July 1-Jul-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 7944 12
+July 2-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 52 135
+July 2-Jul-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 138 0
+July 2-Jul-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 981 38
+July 2-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 68 158
+July 4-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 68 97
+July 4-Jul-2026 LED YBL15 W-DAY Line-01 Mass Production 240 3
+July 4-Jul-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 1224 19
+July 4-Jul-2026 Fan 52 Inch BLDC Celling Fan Line-01 Rework 296 0
+July 5-Jul-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Rework 786 0
+July 5-Jul-2026 Fridge SMT-R-LED-PCCL-386-V0 Line-01 Mass Production 1309 20
+July 5-Jul-2026 Fan 52 Inch BLDC Celling Fan Line-01 Rework 120 0
+July 5-Jul-2026 Fan 52 Inch BLDC Celling Fan Line-01 Rework 17 0
+July 5-Jul-2026 Fan 16 inch Local Fan Smps Line-01 Rework 300 7
+July 5-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - bottom Line-01 Trial Production 72 48
+July 5-Jul-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 108 133
+July 5-Jul-2026 TV WD-24R CS TV Line-01 Rework 20 0
+July 5-Jul-2026 LED YBL 15 Watt-DAY Line-01 Rework 540 0
+July 6-Jul-2026 LED YBL 15 W-DAY Line-01 Mass Production 675 0
+July 6-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - Top Line-01 Trial Production 120 0
+July 6-Jul-2026 LED 12W-Square-LED-Warm Line-01 Mass Production 480 0
+July 6-Jul-2026 LED 12W-Square-LED-Warm Line-01 Mass Production 1616 27
+July 8-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - bottom Line-01 Mass Production 1296 0
+July 8-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - Top Line-01 Mass Production 1296 48
+July 9-Jul-2026 LED 12W-Square-LED-Day Line-01 Mass Production 752 4
+July 9-Jul-2026 Fridge SMT-WR-343-CTW-V02 Line-01 Mass Production 2002 42
+July 9-Jul-2026 Fridge Electronics Control-V217 Line-01 Mass Production 72 0
+July 9-Jul-2026 Fridge Electronics Control-V217 Line-01 Mass Production 852 7
+July 11-Jul-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 4170 8
+July 11-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 22 0
+July 12-July-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 6690 21
+July 13-Jul-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 1185 0
+July 13-Jul-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 3096 6
+July 14-Jul-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 96 0
+July 14-Jul-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 1674 9
+July 14-Jul-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 3600 11
+July 15-Jul-2026 Fan 52 Inch BLDC Celling Fan Line-01 Mass Production 72 1
+July 15-Jul-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 4710 22
+July 16-Jul-2026 Fridge SMT-255L-Freezer-Display Line-01 Mass Production 942 0
+July 16-Jul-2026 Fan 52 Inch BLDC Celling Fan Line-01 Mass Production 1206 22
+July 17-Jul-2026 Fridge SMT-255L-Freezer-Display Line-01 Mass Production 1134 5
+July 17-Jul-2026 Fan 52 Inch BLDC Celling Fan Line-01 Mass Production 1806 5
+July 18-Jul-2026 Fan 52 Inch BLDC Celling Fan Line-01 Mass Production 1646 9
+July 18-Jul-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 348 8
+July 19-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 112 0
+July 20-Jul-2026 Fridge SMT-TFT-LCD-Controller Display Line-01 Trial Production 52 16
+July 20-Jul-2026 Fridge SMT-SBS-RIL12V DC Line-01 Mass Production 432 0
+July 20-Jul-2026 Fridge Electronics Control-V217 Line-01 Mass Production 1608 5
+July 20-Jul-2026 Fridge SMT-R-LED-PCCL-386-V0 Line-01 Mass Production 2123 0
+July 20-Jul-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 210 0
+July 21-Jul-2026 LED SMT-Splendor Light - V1.0 Line-01 Mass Production 750 98
+July 21-Jul-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 1425 0
+July 21-Jul-2026 Remote Remote Uniwalmar 09 Line-01 Mass Production 444 68
+July 21-Jul-2026 LED 3 Inch Low Cost Rechargeable Fan - bottom Line-01 Mass Production 3672 5
+July 22-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - bottom Line-01 Mass Production 2632 0
+July 22-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - Top Line-01 Mass Production 3408 28
+July 22-Jul-2026 Fridge SMT-SBS-SL-12V-DC Line-01 Mass Production 4032 0
+July 23-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - bottom Line-01 Mass Production 2592 0
+July 23-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - Top Line-01 Mass Production 4799 50
+July 23-Jul-2026 Fridge SMT-Splendor Light - V1.0 Line-01 Mass Production 238 53
+July 24-Jul-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 2910 7
+July 24-Jul-2026 Fan 3 Inch Low Cost Rechargeable Fan - Top Line-01 Mass Production 264 5
+July 24-Jul-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 4380 23
+July 24-Jul-2026 Fridge SMT-WFR-IBL-V00 Line-01 Trial Production 750 0
+July 25-Jul-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 360 7
+July 25-Jul-2026 Fridge SMT-SBS-RIL12V DC Line-01 Mass Production 504 0
+July 25-Jul-2026 Fridge SMT-255L-Freezer Display Line-01 Mass Production 1085 0
+July 25-Jul-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 3 30
+July 25-Jul-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 312 65
+July 26-Jul-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 453 51
+July 26-Jul-2026 LED PCBA-Surface-24w Square Day DOB Bright Line-01 Mass Production 402 89
+July 27-Jul-2026 LED PCBA-Surface-24w Square Day DOB Bright Line-01 Mass Production 266 55
+July 27-Jul-2026 Fridge SMT-SC-DIS-PCBA-V2.0 Line-01 Trial Production 108 0
+July 27-Jul-2026 LED PCBA-Surface-24w Square Day DOB Bright Line-01 Mass Production 494 109
+July 28-Jul-2026 LED PCBA-Surface-24w Square Day DOB Bright Line-01 Mass Production 203 29
+July 28-Jul-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 165 0
+July 28-Jul-2026 LED PCBA-Surface-18w Square Day DOB Bright Line-01 Mass Production 52 9
+July 28-Jul-2026 LED PCBA-Surface-18w Square Day DOB Bright Line-01 Mass Production 588 202
+July 29-Jul-2026 AC IDU-Common-12K/18K/24K Line-01 Mass Production 546 32
+July 29-Jul-2026 LED PCBA-Surface-18w Square Day DOB Bright Line-01 Mass Production 310 22
+July 29-Jul-2026 LED PCBA-Surface-18w Square Day DOB Bright Line-01 Mass Production 412 92
+July 29-Jul-2026 Fan 6 inch Rechargeable Fan - Bottom Line-01 Mass Production 1320 11
+July 30-Jul-2026 Fan 6 inch Rechargeable Fan - Bottom Line-01 Mass Production 3516 23
+July 30-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 120 0
+July 30-Jul-2026 TV WD-24R CS TV Line-01 Mass Production 22 14
+July 30-Jul-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 660 72
+July 31-Jul-2026 Fan 6 inch Rechargeable Fan - Top Line-01 Mass Production 60 16
+July 31-Jul-2026 Fridge SMT-SBS-RFPL-619L-V02 Line-01 Mass Production 676 16
+July 31-Jul-2026 Fridge SMT-SBS-RPPL-619L-V02 Line-01 Mass Production 1495 2
+June 3-Jun-2026 Fan 52 Inch BLDC Celling Fan Line-01 Mass Production 348 34
+June 3-Jun-2026 Fan 52 Inch BLDC Celling Fan Line-01 Mass Production 948 15
+June 3-Jun-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 2640 0
+June 4-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 1056 55
+June 4-Jun-2026 Fridge Frost Controller Seven Segment Display V2.0 Line-01 Mass Production 72 8
+June 4-Jun-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 6288 0
+June 4-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 50 0
+June 4-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 3550 29
+June 5-Jun-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 4500 17
+June 5-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 300 0
+June 5-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 200 0
+June 6-Jun-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 3195 4
+June 6-Jun-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 3444 3
+June 6-Jun-2026 Fridge SMT-255L-Freezer Display Line-01 Mass Production 0 0
+June 6-Jun-2026 Fridge SMT-255L-Freezer Display Line-01 Mass Production 3240 12
+June 6-Jun-2026 Fridge SMT-Electronics Thermostat -V2 Line-01 Mass Production 528 1
+June 7-Jun-2026 Fridge SMT-Electronics Thermostat -V2 Line-01 Mass Production 1237 21
+June 7-Jun-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 3477 3
+June 7-Jun-2026 Remote Remote Uniwalmar 09 Line-01 Mass Production 736 32
+June 7-Jun-2026 Fridge SMT-Electronics Thermostat -V2 Line-01 Mass Production 5904 7
+June 8-Jun-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 5176 18
+June 8-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 828 33
+June 8-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 435 4
+June 8-Jun-2026 Fridge WR-343-CTW-LED-V02 Line-01 Mass Production 986 0
+June 8-Jun-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 0 0
+June 8-Jun-2026 Fridge SMT-RFPL-619L - V02 Line-01 Mass Production 962 3
+June 8-Jun-2026 Fridge SMT-RPPL-619l - V02 Line-01 Mass Production 1011 0
+June 8-Jun-2026 Fridge SMT-R-LED-PCCL-386-V0 Line-01 Mass Production 1573 33
+June 9-Jun-2026 Fridge SMT-R-LED-PCCL-386-V0 Line-01 Mass Production 407 0
+June 9-Jun-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 416 0
+June 9-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 14 50
+June 9-Jun-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 17976 2
+June 9-Jun-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 8004 94
+June 10-Jun-2026 Fridge SMT-WRL-US-V03 Line-01 Mass Production 2437 4
+June 10-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 4152 33
+June 10-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 396 24
+June 10-Jun-2026 Fridge SMT-SBS-SL-12V-DC Line-01 Mass Production 8136 6
+June 10-Jun-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 11640 6
+June 11-Jun-2026 Fridge SMT-R-LED-RS-V04 Line-01 Mass Production 8928 0
+June 11-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 46 2
+June 11-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 80 198
+June 12-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 106 61
+June 12-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 202 57
+June 13-Jun-2026 Fridge SMT-SC-PWR-PCBA-V3.1 Line-01 Mass Production 2895 7
+June 13-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 82 74
+June 13-Jun-2026 TV WD-24R CS TV Line-01 Mass Production 30 12
+June 13-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 3600 63
+June 14-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 5310 67
+June 14-Jun-2026 Fridge SMT-Electronic Control - V217 Line-01 Mass Production 312 2
+June 14-Jun-2026 Fridge SMT-SC-DIS-PCBA-V1.4 Line-01 Mass Production 204 3

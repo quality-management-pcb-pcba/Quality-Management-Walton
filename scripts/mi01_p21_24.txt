@@ -1,0 +1,332 @@
+AUGUST 16-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Solder Short 4 C-14709 Salman Rahman
+AUGUST 16-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 5 C-14709 Salman Rahman
+AUGUST 16-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 1 C-14709 Salman Rahman
+AUGUST 17-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 21 C-14709 Salman Rahman
+AUGUST 17-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 14 C-14709 Salman Rahman
+AUGUST 17-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 3 C-14709 Salman Rahman
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Wrong Component 13 Akter Jahan Shelly(17577)
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Missing 6 Akter Jahan Shelly(17577)
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Leg Open 75 Akter Jahan Shelly(17577)
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Dry Solder 4 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Over Lead 6 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Solder Short 13 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Leg Down 13 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Cutting Problem 23 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Ac F50WA-HS-L_ODU18k Polarity Change 2 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Ac F50WA-HS-L_ODU18k Dry Solder 5 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Ac F50WA-HS-L_ODU18k Solder Short 3 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Ac F50WA-HS-L_ODU18k Leg Down 1 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Ac F50WA-HS-L_ODU18k Polarity Change 22 Chandana rani das(1354)
+AUGUST 16-Aug-2026 Day Ac F50WA-HS-L_ODU18k Missing 24 Chandana rani das(1354)
+AUGUST 16-Aug-2026 Day Ac F50WA-HS-L_ODU18k Leg Open 12 Chandana rani das(1354)
+AUGUST 16-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 4 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day LED 12W LED Driver(EMB)_New Dry Solder 49 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day LED 12W LED Driver(EMB)_New Solder Short 2 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Down 2 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Leg Open 7 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Missing 1 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Dry Solder 7 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Over Lead 1 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Solder Short 3 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Leg Down 4 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Leg Open 1 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Broken 2 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Missing 4 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Dry Solder 6 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Solder Short 5 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Leg Down 1 Md. Masud Rana(15065)
+AUGUST 16-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Leg Open 4 Md. Masud Rana(15065)
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Polarity Change 33 C-14324 Habibur
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Missing 47 C-14324 Habibur
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Leg Open 4 C-14324 Habibur
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Polarity Change 1 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Dry Solder 4 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Solder Short 27 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Leg Down 2 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Leg Open 18 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day Ac F50WA-HS-L_ODU18k Polarity Change 7 Md. Masud Rana(15065)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Dry Solder 64 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Over Lead 2 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Solder Short 3 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Down 3 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Open 25 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Wrong Component 3 Akter Jahan Shelly(17577)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 6 Akter Jahan Shelly(17577)
+AUGUST 17-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Open 75 Akter Jahan Shelly(17577)
+AUGUST 17-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Missing 1 Md. Masud Rana(15065)
+AUGUST 17-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Dry Solder 3 Md. Masud Rana(15065)
+AUGUST 17-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Leg Down 1 Md. Masud Rana(15065)
+AUGUST 17-Aug-2026 Day Rice cooker Walton Rice Cooker LED PCBA Model: RCL01 Leg Open 3 Md. Masud Rana(15065)
+AUGUST 17-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Over Lead 1 Akter Jahan Shelly(17577)
+AUGUST 17-Aug-2026 Day Fridge MI-SC-PWR-Board V3.1 Solder Short 2 Md. Rony Khan(14873)
+AUGUST 17-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Wrong Component 2 Akter Jahan Shelly(17577)
+AUGUST 17-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Missing 2 Akter Jahan Shelly(17577)
+AUGUST 17-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Leg Open 5 Akter Jahan Shelly(17577)
+AUGUST 18-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 1 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED 12W LED Driver(EMB)_New Polarity Change 1 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED 12W LED Driver(EMB)_New Dry Solder 16 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED 12W LED Driver(EMB)_New Solder Short 2 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Open 2 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 17 C-14555 Mazharul
+AUGUST 19-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 2 C-14555 Mazharul
+AUGUST 19-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Button not work 1 C-14555 Mazharul
+AUGUST 19-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 20 C-14324 Habibur
+AUGUST 19-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 10 C-14324 Habibur
+AUGUST 19-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 15 C-14324 Habibur
+AUGUST 19-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 2 C-14324 Habibur
+AUGUST 19-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 42 C-14324 Habibur
+AUGUST 19-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Solder Short 7 C-14324 Habibur
+AUGUST 19-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 10 C-14709 Salman Rahman
+AUGUST 19-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 31 C-14709 Salman Rahman
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 97 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 39 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 60 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 35 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Down 20 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 7 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 11 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker Low sound 7 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 25 C-14555 Mazharul
+AUGUST 20-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) No Power 14 C-14555 Mazharul
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 94 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 10 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 65 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 5 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 25 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 20 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 14 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker Low sound 5 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 19 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Solder Short 3 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 7 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 4 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 83 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Wrong Position 70 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 22 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 50 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 42 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Down 2 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 41 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 14 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker Low sound 32 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) No Power 5 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 35 Md. Masud Rana(15065)
+AUGUST 23-Aug-2026 Day Toy Redmin Toy Controller Missing 3 Md. Biojeth Hossain(C-14611)
+AUGUST 23-Aug-2026 Day Toy Redmin Toy Controller Wrong Position 2 Md. Biojeth Hossain(C-14611)
+AUGUST 23-Aug-2026 Day Toy Redmin Toy Controller Dry Solder 5 Md. Biojeth Hossain(C-14611)
+AUGUST 23-Aug-2026 Day Toy Redmin Toy Controller Speaker not work 3 Md. Biojeth Hossain(C-14611)
+AUGUST 23-Aug-2026 Day Toy Redmin Toy Controller LED Not Work 6 Md. Biojeth Hossain(C-14611)
+AUGUST 23-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 25 C-14709 Salman Rahman
+AUGUST 23-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 13 C-14709 Salman Rahman
+AUGUST 23-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 7 C-14709 Salman Rahman
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 5 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker Low sound 15 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) No Power 5 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 33 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 20 C-14324 Habibur
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 4 C-14324 Habibur
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 3 C-14324 Habibur
+AUGUST 23-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 9 C-14324 Habibur
+AUGUST 23-Aug-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 5 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Akij Toy Controller V1.0 Speaker Low sound 2 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Akij Toy Controller V1.0 No Power 3 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 13 C-14555 Mazharul
+AUGUST 23-Aug-2026 Day Toy Akij Toy Controller V1.0 Missing 8 C-14324 Habibur
+AUGUST 23-Aug-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 8 C-14324 Habibur
+AUGUST 23-Aug-2026 Day Toy Akij Toy Controller V1.0 Leg Open 2 C-14324 Habibur
+AUGUST 24-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 6 Abdul Wahab(64410)
+AUGUST 24-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Solder Short 1 Abdul Wahab(64410)
+AUGUST 24-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 1 Abdul Wahab(64410)
+AUGUST 24-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 2 Abdul Wahab(64410)
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 17 C-14324 Habibur
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 50 C-14324 Habibur
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 No Power 12 C-14324 Habibur
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 Missing 24 C-14555 Mazharul
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 7 C-14555 Mazharul
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 4 C-14555 Mazharul
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 81 C-14555 Mazharul
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 Solder Short 17 C-14555 Mazharul
+AUGUST 24-Aug-2026 Day Toy Akij Toy Controller V1.0 Leg Open 18 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 19 C-14324 Habibur
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 5 C-14324 Habibur
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 No Power 1 C-14324 Habibur
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 Missing 10 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 5 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 10 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 25 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 Solder Short 8 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Akij Toy Controller V1.0 Leg Open 10 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 10 C-14324 Habibur
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 7 C-14324 Habibur
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 40 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Wrong Position 2 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 2 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 26 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 8 C-14555 Mazharul
+AUGUST 25-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 7 C-14555 Mazharul
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 8 C-14324 Habibur
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 17 C-14324 Habibur
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) No Power 1 C-14324 Habibur
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 50 C-14555 Mazharul
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Wrong Position 60 C-14555 Mazharul
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 2 C-14555 Mazharul
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 55 C-14555 Mazharul
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 32 C-14555 Mazharul
+AUGUST 26-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 1 C-14555 Mazharul
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Speaker not work 18 Md. Biojeth Hossain(C-14611)
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) LED Not Work 25 Md. Biojeth Hossain(C-14611)
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) No Power 10 Md. Biojeth Hossain(C-14611)
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Missing 36 C-14555 Mazharul
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Wrong Position 15 C-14555 Mazharul
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Polarity Change 7 C-14555 Mazharul
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Dry Solder 39 C-14555 Mazharul
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Solder Short 10 C-14555 Mazharul
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Leg Open 30 C-14555 Mazharul
+AUGUST 27-Aug-2026 Day Toy Common Toy Controller V1.0(Talukder) Wrong music 61 Md. Biojeth Hossain(C-14611)
+AUGUST 27-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 1 Md. Biojeth Hossain(C-14611)
+AUGUST 27-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 5 Md. Biojeth Hossain(C-14611)
+AUGUST 27-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Solder Short 2 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) Missing 20 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) Wrong Position 5 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) Polarity Change 5 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) Dry Solder 18 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) Solder Short 20 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) Leg Open 23 C-14324 Habibur
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) Speaker not work 7 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) LED Not Work 16 C-14555 Mazharul
+AUGUST 28-Aug-2026 Morning Toy Common Toy Controller V1.0(Talukder) No Power 2 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 39 C-14709 Salman Rahman
+AUGUST 29-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 18 C-14709 Salman Rahman
+AUGUST 29-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 25 C-14709 Salman Rahman
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Missing 102 C-14324 Habibur
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 40 C-14324 Habibur
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 17 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 80 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Solder Short 35 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Leg Open 33 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Wrong music 3 Majedul Islam(64218)
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 70 Majedul Islam(64218)
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 15 Nazmul Islam(64227)
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 No Power 15 Nazmul Islam(64227)
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Missing 71 C-14324 Habibur
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 7 C-14324 Habibur
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 40 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Solder Short 30 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Leg Open 32 C-14555 Mazharul
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 60 Majedul Islam(64218)
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 21 Nazmul Islam(64227)
+AUGUST 29-Aug-2026 Day Toy Akij Toy Controller V1.0 No Power 22 Nazmul Islam(64227)
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 Missing 115 C-14324 Habibur
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 Wrong Position 5 C-14324 Habibur
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 Polarity Change 5 C-14555 Mazharul
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 Dry Solder 80 C-14555 Mazharul
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 Solder Short 33 C-14555 Mazharul
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 Leg Open 20 C-14555 Mazharul
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 LED Not Work 63 Majedul Islam(64218)
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 Speaker not work 15 Nazmul Islam(64227)
+AUGUST 30-Aug-2026 Day Toy Akij Toy Controller V1.0 No Power 12 Nazmul Islam(64227)
+AUGUST 30-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Dry Solder 27 C-14709 Salman Rahman
+AUGUST 30-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) LED Not Work 19 C-14709 Salman Rahman
+AUGUST 30-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Talukder) Switch problem 18 C-14709 Salman Rahman
+AUGUST 30-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 2 C-14709 Salman Rahman
+AUGUST 30-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 3 C-14709 Salman Rahman
+AUGUST 31-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Dry Solder 71 C-14709 Salman Rahman
+AUGUST 31-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) LED Not Work 17 C-14709 Salman Rahman
+AUGUST 31-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Switch problem 4 Md. Biojeth Hossain(C-14611)
+AUGUST 31-Aug-2026 Day Toy Common Toy LED Driver_V1.0(Akij) Solder Short 5 Md. Biojeth Hossain(C-14611)
+AUGUST 18-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Missing 31 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Wrong Component 9 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Polarity Change 5 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Dry Solder 23 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Leg Down 1 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Cutting Problem 50 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Missing 7 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Polarity Change 1 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Dry Solder 38 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Solder Short 27 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Leg Down 4 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Leg Open 3 Md. Rony Khan(14873)
+AUGUST 18-Aug-2026 Day TV WD24RCS Dry Solder 26 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day TV WD24RCS Solder Short 5 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day TV WD24RCS Leg Down 10 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day TV WD24RCS Leg Open 5 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day Ac F50WA-HS-L_ODU18k Dry Solder 2 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day Ac F50WA-HS-L_ODU18k Solder Short 1 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day Ac F50WA-HS-L_ODU18k Leg Down 5 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day Fridge MI-SC-Dis-PCBA-V001 Missing 2 Md. Masud Rana(15065)
+AUGUST 18-Aug-2026 Day Fridge MI-SC-Dis-PCBA-V001 Dry Solder 1 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Missing 12 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Wrong Component 10 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Polarity Change 8 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Dry Solder 18 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Leg Down 2 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day LED Loaded Driver Circuit On Board LED Tube Light 240mA-20W (SFG) Leg Open 1 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Fridge MI-R-LED-RS-V04 Dry Solder 18 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Fridge MI-R-LED-RS-V04 Solder Short 6 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Fridge MI-R-LED-RS-V04 Leg Down 2 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Fridge MI-R-LED-RS-V04 Leg Open 1 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Missing 1 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Dry Solder 2 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Ac Walton AC 18K INV IDU PCBA Model: MIVR50WA-W Leg Open 1 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Ac Walton AC Display PCBA Model: MD50WA-E Dry Solder 3 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Ac Walton AC Display PCBA Model: MD50WA-E Solder Short 1 Md. Rony Khan(14873)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Missing 3 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Polarity Change 1 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Dry Solder 2 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Solder Short 6 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Leg Down 3 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day TV WD24RCS Dry Solder 7 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day TV WD24RCS Solder Short 1 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day TV WD24RCS Leg Down 6 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day TV WD24RCS Leg Open 4 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Fridge MI-SC-Dis-PCBA-V001 Missing 1 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Fridge MI-SC-Dis-PCBA-V001 Dry Solder 1 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Fridge MI-SC-Dis-PCBA-V001 Hole Block 1 Md. Masud Rana(15065)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Missing 23 Chandana rani das(1354)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Wrong Component 2 Chandana rani das(1354)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Polarity Change 8 Chandana rani das(1354)
+AUGUST 19-Aug-2026 Day Ac F50WA-HS-L_ODU18k Leg Open 12 Chandana rani das(1354)
+AUGUST 19-Aug-2026 Day Fridge MI-R-LED-RS-V04 Missing 32 Akter Jahan Shelly(17577)
+AUGUST 19-Aug-2026 Day Fridge MI-R-LED-RS-V04 Leg Open 35 Akter Jahan Shelly(17577)
+AUGUST 20-Aug-2026 Day Fridge MI-R-LED-RS-V04 Dry Solder 4 Md. Rony Khan(14873)
+AUGUST 20-Aug-2026 Day Fridge MI-R-LED-RS-V04 Solder Short 4 Md. Rony Khan(14873)
+AUGUST 20-Aug-2026 Day Fridge MI-R-LED-RS-V04 Leg Down 1 Md. Rony Khan(14873)
+AUGUST 20-Aug-2026 Day Fridge MI-R-LED-RS-V04 Leg Open 1 Md. Rony Khan(14873)
+AUGUST 20-Aug-2026 Day Ac F50WA-HS-L_ODU18k Missing 1 Md. Rony Khan(14873)
+AUGUST 20-Aug-2026 Day Ac F50WA-HS-L_ODU18k Dry Solder 89 Md. Rony Khan(14873)
+AUGUST 20-Aug-2026 Day Ac F50WA-HS-L_ODU18k Leg Down 5 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Dry Solder 10 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Solder Short 4 Md. Rony Khan(14873)
+AUGUST 16-Aug-2026 Day Adapter WFVADP12V2ASET200K_(CT-X018) Leg Down 2 Md. Rony Khan(14873)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 3 Md. Masud Rana(15065)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Dry Solder 42 Md. Masud Rana(15065)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Solder Short 2 Md. Masud Rana(15065)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Open 2 Md. Masud Rana(15065)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 71 Chandana rani das(1354)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Polarity Change 19 Chandana rani das(1354)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Open 12 Chandana rani das(1354)
+AUGUST 20-Aug-2026 Day LED 12W LED Driver(EMB)_New Broken 14 Chandana rani das(1354)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 12 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Wrong Component 3 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Polarity Change 1 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Dry Solder 298 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Over Lead 6 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Solder Short 3 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Down 3 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Open 8 Md. Masud Rana(15065)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 60 Chandana rani das(1354)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Wrong Component 80 Chandana rani das(1354)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Polarity Change 22 Chandana rani das(1354)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Open 3 Chandana rani das(1354)
+AUGUST 21-Aug-2026 Day LED 12W LED Driver(EMB)_New Broken 4 Chandana rani das(1354)
+AUGUST 22-Aug-2026 Day TV WD24RCS Dry Solder 7 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day TV WD24RCS Solder Short 3 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day TV WD24RCS Leg Down 2 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day TV WD24RCS Leg Open 2 Md. Masud Rana(15065)
+AUGUST 22-Aug-2026 Day LED 12W LED Driver(EMB)_New Missing 6 Md. Rony Khan(14873)
+AUGUST 22-Aug-2026 Day LED 12W LED Driver(EMB)_New Wrong Component 1 Md. Rony Khan(14873)
+AUGUST 22-Aug-2026 Day LED 12W LED Driver(EMB)_New Polarity Change 2 Md. Rony Khan(14873)
+AUGUST 22-Aug-2026 Day LED 12W LED Driver(EMB)_New Dry Solder 182 Md. Rony Khan(14873)
+AUGUST 22-Aug-2026 Day LED 12W LED Driver(EMB)_New Over Lead 1 Md. Rony Khan(14873)
+AUGUST 22-Aug-2026 Day LED 12W LED Driver(EMB)_New Solder Short 6 Md. Rony Khan(14873)
+AUGUST 22-Aug-2026 Day LED 12W LED Driver(EMB)_New Leg Down 3 Md. Rony Khan(14873)

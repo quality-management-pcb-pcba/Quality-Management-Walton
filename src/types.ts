@@ -43,6 +43,8 @@ export type PageId =
   | 'iqc-pcb'
   | 'iqc-pcba'
   | 'esd'
+  | 'esd-database'
+  | 'esd-entry'
   | 'rca'
   | 'pcba'
   | 'pcba-process'
@@ -57,10 +59,13 @@ export type PageId =
   | 'team'
   | 'team-database'
   | 'team-entry'
+  | 'manpower'
   | 'settings'
   | 'users';
 
 export type PageType = PageId;
+
+export type { ManpowerEmployee } from './data/manpowerRecords';
 
 /**
  * User Roles in Walton Quality Management System
