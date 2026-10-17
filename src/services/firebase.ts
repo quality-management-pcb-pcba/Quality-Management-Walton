@@ -190,6 +190,60 @@ if (typeof window !== "undefined") {
     });
 }
 
+/**
+ * Temporary test function to verify Firestore connection and document write.
+ * Writes a document to 'connection_test' and confirms it via getDocFromServer.
+ */
+export async function testFirestoreConnection(): Promise<{
+  success: boolean;
+  message: string;
+  docId?: string;
+  projectId: string;
+  databaseId?: string;
+  confirmedData?: any;
+}> {
+  console.log(
+    `[Firestore Connection Test] Testing write with Project ID: ${(firebaseConfig as any).projectId}, Database ID: ${(firebaseConfig as any).firestoreDatabaseId}...`
+  );
+  try {
+    const docRef = await addDoc(collection(db, "connection_test"), {
+      message: "Google AI Studio Firebase Connection Test",
+      testStatus: "success",
+      createdAt: serverTimestamp(),
+    });
+
+    // Confirm that Firestore completed the write operation by retrieving the document from server
+    const confirmedSnap = await getDocFromServer(docRef);
+    if (!confirmedSnap.exists()) {
+      throw new Error(`Write was dispatched to Firestore, but the document ${docRef.id} could not be confirmed.`);
+    }
+
+    const result = {
+      success: true,
+      message: `Firestore connection verified successfully. Document confirmed with ID: ${docRef.id}`,
+      docId: docRef.id,
+      projectId: (firebaseConfig as any).projectId,
+      databaseId: (firebaseConfig as any).firestoreDatabaseId,
+      confirmedData: confirmedSnap.data(),
+    };
+    console.log("[Firestore Connection Test] Result:", result);
+    return result;
+  } catch (error: any) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error("[Firestore Connection Test] Failed:", errorMsg);
+    return {
+      success: false,
+      message: `Firestore connection test failed: ${errorMsg}`,
+      projectId: (firebaseConfig as any).projectId,
+      databaseId: (firebaseConfig as any).firestoreDatabaseId,
+    };
+  }
+}
+
+if (typeof window !== "undefined") {
+  (window as any).__runFirestoreConnectionTest = testFirestoreConnection;
+}
+
 export {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,

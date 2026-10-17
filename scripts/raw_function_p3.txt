@@ -1,0 +1,71 @@
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night Headset 2
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night RFCalibration 3
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Night SimCard 1
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Day Dead 2
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 1
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimCard 2
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night Headset 4
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night RFCalibration 2
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night SimCard 1
+22-Jun-2026 Axion_A1100_i100 Null Mass Production Night TCard 3
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 5
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day RFCalibration 5
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimCard 1
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day Speaker 2
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Day TCard 1
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Night Headset 1
+23-Jun-2026 Axion_A1100_i100 Null Mass Production Night RFCalibration 1
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day Dead 1
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 4
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day Keypad 1
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimCard 3
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day Speaker 1
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Day TCard 2
+24-Jun-2026 Axion_A1100_i100 Null Mass Production Night Headset 1
+25-Jun-2026 Axion_A1100_i100 Null Mass Production Day Dead 3
+25-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 2
+25-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimCard 2
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night Charge 1
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night Dead 4
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night RFCalibration 4
+25-Jun-2026 ZENX Z3 4/64 GB Mass Production Night SimCard 4
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 3
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Day RFCalibration 2
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night LED 1
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night RFCalibration 2
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night SimCard 3
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night Speaker 1
+26-Jun-2026 Axion_A1100_i100 Null Mass Production Night TCard 1
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 1
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day RFCalibration 3
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimCard 1
+27-Jun-2026 Axion_A1100_i100 Null Mass Production Day TCard 2
+27-Jun-2026 ZENX Z3 4/64 GB Mass Production Night RFCalibration 6
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 1
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day LED 1
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day RFCalibration 2
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day Speaker 2
+28-Jun-2026 Axion_A1100_i100 Null Mass Production Day TCard 1
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Day Bluetooth 1
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Day Dead 1
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Day RFCalibration 4
+28-Jun-2026 Orbit_Y72 4/64 GB Rework Day MainCamera 1
+28-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Headset 1
+28-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Speaker 3
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Night LED 1
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Night RFCalibration 4
+28-Jun-2026 ZENX Z3 4/64 GB Mass Production Night Speaker 1
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day Dead 1
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 3
+29-Jun-2026 Axion_A1100_i100 Null Mass Production Day RFCalibration 10
+29-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Charge 1
+29-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Speaker 1
+29-Jun-2026 ZENX Z3 4/64 GB Mass Production Night Speaker 2
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day Charge 3
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 2
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day RFCalibration 7
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimCard 2
+30-Jun-2026 Axion_A1100_i100 Null Mass Production Day Speaker 1
+30-Jun-2026 NEXG_N28 8/128GB Rework Day FM 1
+30-Jun-2026 NEXG_N28 8/128GB Rework Day LCM 1
+30-Jun-2026 NEXG_N28 8/128GB Rework Day SimCard 1

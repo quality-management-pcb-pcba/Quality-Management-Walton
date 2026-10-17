@@ -32,7 +32,7 @@ import {
   INITIAL_SOPS,
 } from './data/initialData';
 import { auth, signOut, onAuthStateChanged } from './services/firebase';
-import { getUserProfile, bootstrapUserProfile, isDesignatedAdminEmail } from './services/userService';
+import { getUserProfile, bootstrapUserProfile, isDesignatedAdminEmail, isAdminProfile } from './services/userService';
 import {
   subscribeNonConformances,
   createNonConformance,
@@ -606,6 +606,13 @@ export default function App() {
       {isShowingHome ? (
         <LandingPage
           isLoggedIn={isLoggedIn}
+          isAdmin={Boolean(
+            isAdminProfile(currentUserProfile) ||
+            currentUserProfile?.role === 'admin' ||
+            currentUserProfile?.role === 'QM_ADMIN' ||
+            (currentUserEmail && isDesignatedAdminEmail(currentUserEmail))
+          )}
+          userProfile={currentUserProfile}
           onEnterDashboard={() => handleNavigate('dashboard')}
           onNavigateToPage={handleNavigate}
           onOpenLogin={() => setShowLoginModal(true)}

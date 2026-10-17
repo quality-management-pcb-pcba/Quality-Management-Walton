@@ -100,83 +100,19 @@ const DEFAULT_FORM_DATA = {
     'Shuvo Kumar Das (50282)',
   ],
   faults: [
-    'Aging fail(TV)',
-    'AV Jack',
-    'Broken',
-    'Burn Out-Aging',
-    'Burned',
-    'Button not work',
-    'Colour',
-    'Colour fault(TV)',
-    'Component Short',
-    'Component Shorts',
-    'Cutting Problem',
-    'Display no output(TV)',
-    'Dry Solder',
-    'Dust',
-    'Excess Solder',
-    'FCT fail(AC)',
-    'Functional jig test(AC)',
-    'Gap Problem',
-    'Glue',
-    'HDMI',
-    'HDMI signal abnormal(TV)',
-    'Hi-Pot-ATE',
-    'Hole Block',
-    'Hole Blocked',
-    'Housing Scratch & Spot',
-    'LAN',
-    'Lan line not connect(TV)',
-    'Layer cut',
-    'LED High Light',
-    'LED Low Light',
-    'LED no light',
-    'LED Not Work',
-    'Leg Down',
-    'Leg Open',
-    'Leg Up',
     'Lift Up',
-    'Load Current (CC)-ATE',
-    'Load Voltage (CV)-Aging',
-    'Load Voltage (CV)-ATE',
-    'Load Voltage (CV)-DC Load',
-    'LVDS',
-    'Missing',
-    'No audio output(TV)',
-    'No backlight(TV)',
-    'No Floating Voltage-Aging',
-    'No Floating Voltage-ATE',
-    'No Floating Voltage-DC Load',
-    'No Power',
-    'No Sound',
-    'Over Lead',
-    'Pad Lift Off',
-    'PCB Joining together',
-    'PCBA Bend',
-    'Plug Pin Up',
-    'Polarity Change',
-    'R.F fail(TV)',
-    'RF',
-    'Scratch',
     'Shifting',
+    'Missing',
     'Solder Bridge',
-    'Solder Short',
-    'Sound Fault',
-    'Speaker Low sound',
-    'Speaker not work',
-    'Swell Up',
-    'Switch keypad not work',
-    'Switch problem',
     'Upside Down',
-    'Usb not connect(TV)',
-    'Wi-Fi/Bluetooth failure(TV)',
-    'Wrong Component',
-    'Wrong LED',
-    'Wrong music',
-    'Wrong Part',
+    'Dry Solder',
+    'Swell Up',
+    'Hole Blocked',
+    'Broken',
     'Wrong Polarity',
-    'Wrong Position',
-    'Wrong position',
+    'PCB Joining together',
+    'Scratch',
+    'Layer',
   ],
   productModels: {
     AC: [
@@ -768,7 +704,7 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
           shifts: Array.from(new Set([...DEFAULT_FORM_DATA.shifts, ...(parsed.shifts || [])])),
           products: Array.from(new Set([...DEFAULT_FORM_DATA.products, ...(parsed.products || [])])),
           operators: Array.from(new Set([...DEFAULT_FORM_DATA.operators, ...(parsed.operators || [])])),
-          faults: Array.from(new Set([...DEFAULT_FORM_DATA.faults, ...(parsed.faults || [])])),
+          faults: DEFAULT_FORM_DATA.faults,
           productModels: {
             ...DEFAULT_FORM_DATA.productModels,
             ...(parsed.productModels || {}),
@@ -1407,34 +1343,6 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
               <h1 className="text-xl sm:text-2xl font-extrabold tracking-wide text-white">
                 {lineName} Defect Entry
               </h1>
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#16a34a]/25 text-[#86efac] border border-[#16a34a]/40">
-                Live Production Entry
-              </span>
-              {lineName === 'SMT Line-02' && (
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/25 text-cyan-200 border border-cyan-400/40">
-                  248 Records from AOI LINE-02.pdf
-                </span>
-              )}
-              {lineName === 'SMT Line-03' && (
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-violet-500/25 text-violet-200 border border-violet-400/40">
-                  138 Records from AOI LINE-03.pdf
-                </span>
-              )}
-              {lineName === 'SMT Line-05' && (
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/25 text-rose-200 border border-rose-400/40">
-                  237 Records from AOI LINE-05.pdf
-                </span>
-              )}
-              {lineName === 'MI Line-01' && (
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-400/40">
-                  2,610 Records from MI LINE-01.pdf
-                </span>
-              )}
-              {(lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') && (
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-400/40">
-                  128 Records from MI LINE-Charger.pdf
-                </span>
-              )}
             </div>
             <p id="aoi-header-subtitle" className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5">
               {lineName.startsWith('MI') ? 'PCBA MI (Manual Insertion) Defect Entry' : 'PCBA AOI (Automatic Optical Inspection)'}
@@ -1468,9 +1376,18 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
 
       {/* CARD 1: Common Information */}
       <section className="bg-white border border-[#e2e8f0] rounded-2xl shadow-xs overflow-hidden">
-        <div className="px-5 py-3.5 bg-[#fafbfc] border-b border-[#e2e8f0] flex items-center gap-2 font-bold text-sm text-[#1e293b]">
-          <span className="text-base">📋</span>
-          <span>Common Information</span>
+        <div className="px-5 py-3.5 bg-gradient-to-r from-[#0f2942] via-[#1e3a8a] to-[#2563eb] border-b border-[#1e3a8a] text-white flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2.5 font-bold text-sm text-white">
+            <div className="w-7 h-7 rounded-lg bg-white/15 text-white flex items-center justify-center backdrop-blur-xs shadow-xs border border-white/20">
+              <span className="text-base leading-none">📋</span>
+            </div>
+            <span className="text-white font-extrabold text-[15px] tracking-wide">
+              Common Information
+            </span>
+          </div>
+          <span className="text-[11px] font-semibold text-blue-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+            Production Setup
+          </span>
         </div>
         <div className="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Date */}
@@ -1581,14 +1498,22 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
       {/* CARD 2: AOI Faults */}
       <section className="bg-white border border-[#e2e8f0] rounded-2xl shadow-xs overflow-hidden">
         {/* Card Header with count pill */}
-        <div className="px-5 py-3.5 bg-[#fafbfc] border-b border-[#e2e8f0] flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-sm text-[#1e293b]">
-            <span className="text-base">🔍</span>
-            <span>AOI Faults</span>
+        <div className="px-5 py-3.5 bg-gradient-to-r from-[#581c87] via-[#7e22ce] to-[#9333ea] border-b border-[#581c87] text-white flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2.5 font-bold text-sm text-white">
+            <div className="w-7 h-7 rounded-lg bg-white/20 text-white flex items-center justify-center backdrop-blur-xs shadow-xs border border-white/20">
+              <span className="text-base leading-none">🔍</span>
+            </div>
+            <span className="text-white font-extrabold text-[15px] tracking-wide">
+              AOI Faults
+            </span>
           </div>
-          {selectedFaultCount > 0 && (
-            <span className="text-xs font-bold text-[#2563eb] bg-[#eff6ff] px-3 py-1 rounded-full border border-[#bfdbfe]">
+          {selectedFaultCount > 0 ? (
+            <span className="text-xs font-black text-[#581c87] bg-white px-3 py-1 rounded-full shadow-xs">
               {selectedFaultCount} fault{selectedFaultCount > 1 ? 's' : ''} selected ({totalDefectQty} pcs)
+            </span>
+          ) : (
+            <span className="text-[11px] font-semibold text-purple-200 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+              Optical Inspection
             </span>
           )}
         </div>
@@ -1626,7 +1551,19 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
         </div>
 
         {/* Faults Grid */}
-        <div className="p-5 sm:p-6 space-y-5">
+        <div className="p-5 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between text-xs font-bold text-[#64748b]">
+            <span className="flex items-center gap-1.5">
+              <span>Standard Fault Categories</span>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                {allFaults.length} Categories
+              </span>
+            </span>
+            <span className="text-[11px] font-semibold text-[#2563eb] bg-[#eff6ff] px-2.5 py-0.5 rounded-full border border-[#bfdbfe]">
+              Optical &amp; Soldering Inspection
+            </span>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {allFaults.map((faultName) => {
               const qty = faultQuantities[faultName] || 0;
@@ -1636,16 +1573,21 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
               return (
                 <div
                   key={faultName}
-                  className={`flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border-[1.5px] transition-all duration-150 ${
+                  className={`flex items-center justify-between gap-2.5 p-3 rounded-xl border-[1.5px] transition-all duration-150 ${
                     hasValue
-                      ? 'border-[#2563eb] bg-[#f5f8ff] shadow-xs'
-                      : 'border-[#e2e8f0] bg-white hover:border-[#cbd5e1]'
+                      ? 'border-[#2563eb] bg-gradient-to-r from-[#eff6ff] to-white shadow-xs ring-1 ring-[#2563eb]/20'
+                      : 'border-[#e2e8f0] bg-white hover:border-[#cbd5e1] hover:bg-[#fafbfc]'
                   }`}
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 flex items-center gap-2 truncate pr-2">
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 ${
+                        hasValue ? 'bg-[#2563eb]' : 'bg-gray-300'
+                      }`}
+                    />
                     <div
-                      className={`text-xs font-semibold truncate ${
-                        hasValue ? 'text-[#1d4ed8] font-bold' : 'text-[#334155]'
+                      className={`text-xs font-bold truncate ${
+                        hasValue ? 'text-[#1d4ed8]' : 'text-[#1e293b]'
                       }`}
                       title={faultName}
                     >
@@ -1666,10 +1608,10 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
                     value={qty > 0 ? qty : ''}
                     placeholder="0"
                     onChange={(e) => handleFaultQtyChange(faultName, e.target.value)}
-                    className={`w-16 py-1.5 px-2 text-center text-sm font-bold rounded-lg border outline-none transition-all ${
+                    className={`w-16 py-1 px-2 text-center text-sm font-black rounded-lg border outline-none transition-all ${
                       hasValue
-                        ? 'border-[#2563eb] bg-white text-[#1d4ed8] shadow-xs'
-                        : 'border-[#e2e8f0] bg-[#f8fafc] text-[#64748b] focus:border-[#2563eb] focus:bg-white'
+                        ? 'border-[#2563eb] bg-white text-[#1d4ed8] shadow-xs ring-1 ring-[#2563eb]'
+                        : 'border-[#cbd5e1] bg-white text-[#1e293b] focus:border-[#2563eb]'
                     }`}
                   />
                 </div>
@@ -1683,8 +1625,8 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
               type="text"
               value={newFaultName}
               onChange={(e) => setNewFaultName(e.target.value)}
-              placeholder="+ Add a fault not listed above"
-              className="flex-1 min-w-[200px] text-sm px-3.5 py-2 rounded-lg border-[1.5px] border-[#e2e8f0] focus:border-[#2563eb] outline-none font-medium text-[#1e293b]"
+              placeholder="+ Add a custom fault category..."
+              className="flex-1 min-w-[200px] text-xs px-3.5 py-2 rounded-xl border border-[#cbd5e1] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none font-medium text-[#1e293b]"
             />
             <input
               type="number"
@@ -1693,14 +1635,14 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
               value={newFaultQty}
               onChange={(e) => setNewFaultQty(e.target.value)}
               placeholder="Qty"
-              className="w-24 text-sm px-3.5 py-2 rounded-lg border-[1.5px] border-[#e2e8f0] focus:border-[#2563eb] outline-none text-center font-bold text-[#1e293b]"
+              className="w-20 text-xs px-3 py-2 border border-[#cbd5e1] rounded-xl text-center font-bold text-[#1e293b] focus:border-[#2563eb] outline-none"
             />
             <button
               type="button"
               onClick={handleAddCustomFault}
-              className="px-4 py-2 rounded-lg bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold cursor-pointer transition-colors shadow-xs"
+              className="px-4 py-2 rounded-xl bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-xs"
             >
-              Add
+              Add Fault
             </button>
           </div>
         </div>
@@ -1736,88 +1678,11 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
                   <h2 className="font-bold text-base text-white m-0">
                     Details Report — {lineName}
                   </h2>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40">
-                    {filteredRows.length} record{filteredRows.length === 1 ? '' : 's'}
-                  </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-400/30">
-                    {totalFilteredDefectQty} defect pcs
-                  </span>
-                  {lineName === 'SMT Line-02' && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/30 text-cyan-200 border border-cyan-400/40">
-                      248 records from AOI LINE-02.pdf
-                    </span>
-                  )}
-                  {lineName === 'SMT Line-03' && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-violet-500/30 text-violet-200 border border-violet-400/40">
-                      138 records from AOI LINE-03.pdf
-                    </span>
-                  )}
-                  {lineName === 'SMT Line-05' && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-500/30 text-rose-200 border border-rose-400/40">
-                      237 records from AOI LINE-05.pdf
-                    </span>
-                  )}
-                  {lineName === 'MI Line-01' && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40">
-                      2,610 records from MI LINE-01.pdf
-                    </span>
-                  )}
-                  {(lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40">
-                      128 records from MI LINE-Charger.pdf
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-[#94a3b8] mt-0.5">
-                  Complete QA Inspection Records from Walton PCBA {lineName}
-                  {lineName === 'SMT Line-02' && ' · 248 Total Records from AOI LINE-02 Inspection Sheet (May – Sep 2026)'}
-                  {lineName === 'SMT Line-03' && ' · 138 Total Records from AOI LINE-03 Inspection Sheet (May – Sep 2026)'}
-                  {lineName === 'SMT Line-05' && ' · 237 Total Records from AOI LINE-05 Inspection Sheet (May – Sep 2026)'}
-                  {lineName === 'MI Line-01' && ' · 2,610 Total Records from MI LINE-01 Inspection Sheet (Jun – Sep 2026)'}
-                  {(lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') && ' · 128 Total Records from MI LINE-Charger Inspection Sheet (May – Sep 2026)'}
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Reload / Reset to Original Attached Sheet */}
-              <button
-                type="button"
-                onClick={handleReloadAttachedSheet}
-                className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 text-xs font-bold rounded-md cursor-pointer transition-colors border border-cyan-400/30 flex items-center gap-1.5 shadow-xs"
-                title={`Reset to all original ${lineName} inspection records from attached sheet`}
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reload Attached Sheet ({lineName === 'SMT Line-02' ? '248' : lineName === 'SMT Line-03' ? '138' : lineName === 'SMT Line-04' ? '424' : lineName === 'SMT Line-05' ? '237' : lineName === 'MI Line-01' ? '2,610' : (lineName === 'MI Line - Charger' || lineName === 'MI Line-Charger') ? '128' : '578'})</span>
-              </button>
-
-              {/* Cloud Sync to Firestore */}
-              <button
-                type="button"
-                onClick={handleSyncToFirestore}
-                disabled={isSyncingToCloud}
-                className={`px-3.5 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
-                  isSyncingToCloud
-                    ? 'bg-blue-600/50 text-white/80 cursor-wait'
-                    : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white'
-                }`}
-                title="Save all records to Firestore pcba_reports collection"
-              >
-                {isSyncingToCloud ? (
-                  <>
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                    <span>
-                      Syncing… {syncProgress ? `(${syncProgress.current}/${syncProgress.total})` : ''}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <CloudCheck className="w-3.5 h-3.5" />
-                    <span>Sync to Cloud Database</span>
-                  </>
-                )}
-              </button>
-
               <button
                 type="button"
                 onClick={handleDownloadCsv}
@@ -1837,28 +1702,6 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
                 <span>PDF</span>
               </button>
             </div>
-          </div>
-
-          {/* Quick Month Presets */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
-            <span className="text-[#94a3b8] font-medium mr-1">Quick Range:</span>
-            {[
-              { id: 'all', label: `All (${records.length})` },
-              { id: 'may', label: 'May 2026' },
-              { id: 'jun', label: 'Jun 2026' },
-              { id: 'jul', label: 'Jul 2026' },
-              { id: 'aug', label: 'Aug 2026' },
-              { id: 'sep', label: 'Sep 2026' },
-            ].map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => handleQuickPreset(p.id as any)}
-                className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-[#cbd5e1] hover:text-white transition-colors cursor-pointer text-[11px] font-semibold"
-              >
-                {p.label}
-              </button>
-            ))}
           </div>
 
           {/* Search, Filter & Date Controls */}

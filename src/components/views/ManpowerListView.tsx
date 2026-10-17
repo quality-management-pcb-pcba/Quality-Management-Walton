@@ -5,8 +5,6 @@ import {
   Search,
   Plus,
   Download,
-  Printer,
-  RefreshCw,
   Edit3,
   Trash2,
   CheckCircle2,
@@ -23,13 +21,12 @@ import {
   ChevronRight,
   Filter,
 } from 'lucide-react';
-import { ManpowerEmployee, MANPOWER_LIST_RECORDS } from '../../data/manpowerRecords';
+import { ManpowerEmployee } from '../../data/manpowerRecords';
 import {
   getStoredManpower,
   subscribeManpower,
   saveManpowerEmployee,
   deleteManpowerEmployee,
-  resetManpowerToDefaults,
 } from '../../services/manpowerService';
 import { WaltonSealLogo } from '../WaltonSealLogo';
 
@@ -169,22 +166,6 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
     }
   };
 
-  const handleResetToOfficialList = async () => {
-    if (
-      window.confirm(
-        'Restore the official 31 manpower records from the official QM department roster?'
-      )
-    ) {
-      try {
-        const restored = await resetManpowerToDefaults();
-        setEmployees(restored);
-        showToast('Restored all 31 official manpower records successfully!', 'success');
-      } catch (err: any) {
-        showToast('Failed to reset records: ' + (err?.message || 'Error'), 'error');
-      }
-    }
-  };
-
   // CSV Export
   const handleExportCsv = () => {
     if (filteredEmployees.length === 0) {
@@ -212,11 +193,6 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     showToast('CSV exported successfully', 'success');
-  };
-
-  // Print
-  const handlePrint = () => {
-    window.print();
   };
 
   // Section Badge Style Helper
@@ -268,18 +244,10 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
                 <span className="text-[11px] font-mono tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-200 border border-blue-400/30">
                   WALTON HI-TECH INDUSTRIES PLC
                 </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Official QM Roster
-                </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
                 Quality Management — Manpower List
               </h1>
-              <p className="text-xs sm:text-sm text-[#b2c2e6] mt-0.5 max-w-2xl">
-                Inspector &amp; Quality Engineering Staff Directory · SMT, MI &amp; PCB Sections (Total{' '}
-                <strong className="text-white font-bold">{stats.total} personnel</strong>)
-              </p>
             </div>
           </div>
 
@@ -294,26 +262,11 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
               <span>Add Employee</span>
             </button>
             <button
-              onClick={handleResetToOfficialList}
-              title="Reset to the 31 official roster entries from the attached document"
-              className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Official List ({MANPOWER_LIST_RECORDS.length})</span>
-            </button>
-            <button
               onClick={handleExportCsv}
               className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV</span>
-            </button>
-            <button
-              onClick={handlePrint}
-              className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print</span>
             </button>
           </div>
         </div>
@@ -323,21 +276,17 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
         {/* Total QM Manpower */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e2e8f0] shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#64748b] text-center">
               Total QM Staff
             </span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-[#0f2942]">
+            <div className="flex items-center justify-center mt-1">
+              <span className="text-3xl sm:text-4xl font-black font-mono text-[#0f2942] text-center">
                 {stats.total}
               </span>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                100% Active
-              </span>
             </div>
-            <p className="text-[11px] text-[#94a3b8] mt-1">SMT + MI + PCB Inspection</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0 ml-3">
             <Users className="w-6 h-6" />
           </div>
         </div>
@@ -351,28 +300,24 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
               : 'border-[#e2e8f0] hover:border-blue-300'
           }`}
         >
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#64748b] text-center">
                 SMT Section
               </span>
               {selectedSection === 'SMT' && (
-                <span className="text-[10px] bg-blue-500 text-white font-bold px-1.5 py-0.2 rounded">
+                <span className="text-[10px] bg-blue-500 text-white font-bold px-1.5 py-0.5 rounded">
                   Filtered
                 </span>
               )}
             </div>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-blue-700">
+            <div className="flex items-center justify-center mt-1">
+              <span className="text-3xl sm:text-4xl font-black font-mono text-blue-700 text-center">
                 {stats.smtCount}
               </span>
-              <span className="text-xs font-medium text-[#64748b]">
-                ({((stats.smtCount / (stats.total || 1)) * 100).toFixed(0)}%)
-              </span>
             </div>
-            <p className="text-[11px] text-[#94a3b8] mt-1">Surface Mount Technology QA</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold shrink-0 ml-3">
             <Layers className="w-6 h-6" />
           </div>
         </div>
@@ -386,28 +331,24 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
               : 'border-[#e2e8f0] hover:border-amber-300'
           }`}
         >
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#64748b] text-center">
                 MI Section
               </span>
               {selectedSection === 'MI' && (
-                <span className="text-[10px] bg-amber-500 text-white font-bold px-1.5 py-0.2 rounded">
+                <span className="text-[10px] bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded">
                   Filtered
                 </span>
               )}
             </div>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-amber-700">
+            <div className="flex items-center justify-center mt-1">
+              <span className="text-3xl sm:text-4xl font-black font-mono text-amber-700 text-center">
                 {stats.miCount}
               </span>
-              <span className="text-xs font-medium text-[#64748b]">
-                ({((stats.miCount / (stats.total || 1)) * 100).toFixed(0)}%)
-              </span>
             </div>
-            <p className="text-[11px] text-[#94a3b8] mt-1">Manual Insertion QA Inspection</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center font-bold shrink-0 ml-3">
             <CircuitBoard className="w-6 h-6" />
           </div>
         </div>
@@ -421,28 +362,24 @@ export const ManpowerListView: React.FC<ManpowerListViewProps> = ({
               : 'border-[#e2e8f0] hover:border-emerald-300'
           }`}
         >
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#64748b] text-center">
                 PCB Section
               </span>
               {selectedSection === 'PCB' && (
-                <span className="text-[10px] bg-emerald-500 text-white font-bold px-1.5 py-0.2 rounded">
+                <span className="text-[10px] bg-emerald-500 text-white font-bold px-1.5 py-0.5 rounded">
                   Filtered
                 </span>
               )}
             </div>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-700">
+            <div className="flex items-center justify-center mt-1">
+              <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-700 text-center">
                 {stats.pcbCount}
               </span>
-              <span className="text-xs font-medium text-[#64748b]">
-                ({((stats.pcbCount / (stats.total || 1)) * 100).toFixed(0)}%)
-              </span>
             </div>
-            <p className="text-[11px] text-[#94a3b8] mt-1">Bare Board Fabrication QA</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center font-bold shrink-0 ml-3">
             <Cpu className="w-6 h-6" />
           </div>
         </div>

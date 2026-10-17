@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Smartphone,
-  Search,
   Filter,
   Download,
   Printer,
@@ -10,8 +9,9 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Database,
-  Calendar,
   Layers,
   CheckCircle2,
   AlertTriangle,
@@ -21,6 +21,9 @@ import {
   Cpu,
   Trash2,
   FileSpreadsheet,
+  FileText,
+  ListOrdered,
+  Settings,
 } from 'lucide-react';
 import {
   AESTHETIC_DEFECT_RECORDS,
@@ -32,12 +35,12 @@ interface MobileAestheticDefectPortalProps {
   onNavigateToDatabase?: () => void;
 }
 
-const STORAGE_KEY = 'mobile_aesthetic_defect_records_v1';
+const STORAGE_KEY = 'walton_mobile_aesthetic_defect_records_v2';
 
 export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalProps> = ({
   onNavigateToDatabase,
 }) => {
-  // Load records from local storage if modified, or fallback to the master 566 records
+  // Load records from local storage if modified, or fallback to the master 566 records from the attached inspection file
   const [records, setRecords] = useState<AestheticDefectRecord[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -62,22 +65,112 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
     }
   }, [records]);
 
-  // Search & Filter State
-  const [searchTerm, setSearchTerm] = useState('');
+  // Filter State
   const [selectedModel, setSelectedModel] = useState('ALL');
   const [selectedShift, setSelectedShift] = useState('ALL');
   const [selectedStage, setSelectedStage] = useState('ALL');
   const [selectedDefect, setSelectedDefect] = useState('ALL');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
 
-  // Pagination State
+  // Pagination State - Standard 15 rows per page as requested
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState<number>(15);
+  const [jumpPageInput, setJumpPageInput] = useState('');
 
   // Add Defect Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  // Default lists for Manage List functionality
+  const DEFAULT_MANAGED_LISTS = {
+    models: [
+      'Axion_A1100',
+      'NEXG N8',
+      'NEXG N9',
+      'NEXG N71',
+      'ORBIT Y21',
+      'PRIMO GH11',
+      'PRIMO HM7',
+      'PRIMO S8',
+      'RHINO R1',
+      'WALTON RX7',
+    ],
+    specs: ['4/128 GB', '6/128 GB', '8/128 GB', '4/64 GB', '3/32 GB', '2/32 GB'],
+    defects: [
+      'ComponentBroken',
+      'ScratchMark',
+      'DentOnPCB',
+      'ColorMismatch',
+      'SilkScreenBlur',
+      'DustInside',
+      'SolderBridge',
+      'ComponentMissing',
+      'ICBurn',
+      'ConnectorDamage',
+      'PadDamaged',
+      'ForeignObject',
+    ],
+    stages: ['Mass Production', 'Rework', 'Trial Production', 'Pilot Run'],
+  };
+
+  // Manage Lists Modal State with LocalStorage persistence
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [activeManageTab, setActiveManageTab] = useState<'models' | 'specs' | 'defects' | 'stages'>('models');
+  const [modalNewItem, setModalNewItem] = useState('');
+  const [managedLists, setManagedLists] = useState<{
+    models: string[];
+    specs: string[];
+    defects: string[];
+    stages: string[];
+  }>(() => {
+    try {
+      const saved = localStorage.getItem('walton_aesthetic_managed_lists_v1');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      // ignore
+    }
+    return DEFAULT_MANAGED_LISTS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('walton_aesthetic_managed_lists_v1', JSON.stringify(managedLists));
+    } catch (e) {
+      // ignore
+    }
+  }, [managedLists]);
+
+  const handleAddManagedItem = () => {
+    const val = modalNewItem.trim();
+    if (!val) return;
+    if (managedLists[activeManageTab].some((item) => item.toLowerCase() === val.toLowerCase())) {
+      showToast(`"${val}" already exists in ${activeManageTab}!`, 'info');
+      return;
+    }
+    setManagedLists((prev) => ({
+      ...prev,
+      [activeManageTab]: [...prev[activeManageTab], val],
+    }));
+    setModalNewItem('');
+    showToast(`Added "${val}" to ${activeManageTab}.`, 'success');
+  };
+
+  const handleDeleteManagedItem = (tab: 'models' | 'specs' | 'defects' | 'stages', item: string) => {
+    setManagedLists((prev) => ({
+      ...prev,
+      [tab]: prev[tab].filter((i) => i !== item),
+    }));
+    showToast(`Removed "${item}" from ${tab}.`, 'info');
+  };
+
+  const handleResetManagedLists = () => {
+    if (window.confirm('Reset lists back to standard defaults?')) {
+      setManagedLists(DEFAULT_MANAGED_LISTS);
+      localStorage.removeItem('walton_aesthetic_managed_lists_v1');
+      showToast('Lists reset to standard defaults.', 'success');
+    }
+  };
 
   // Form State for new entry
   const [newDate, setNewDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -93,12 +186,18 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Distinct Filter Options derived from current records
+  // Distinct Filter & Options derived from current records + managed lists
   const distinctModels = useMemo(() => {
-    const s = new Set<string>();
+    const s = new Set<string>(managedLists.models);
     records.forEach((r) => r.model && s.add(r.model));
     return Array.from(s).sort();
-  }, [records]);
+  }, [records, managedLists.models]);
+
+  const distinctSpecs = useMemo(() => {
+    const s = new Set<string>(managedLists.specs);
+    records.forEach((r) => r.spec && s.add(r.spec));
+    return Array.from(s).sort();
+  }, [records, managedLists.specs]);
 
   const distinctShifts = useMemo(() => {
     const s = new Set<string>();
@@ -107,16 +206,16 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
   }, [records]);
 
   const distinctStages = useMemo(() => {
-    const s = new Set<string>();
+    const s = new Set<string>(managedLists.stages);
     records.forEach((r) => r.stage && s.add(r.stage));
     return Array.from(s).sort();
-  }, [records]);
+  }, [records, managedLists.stages]);
 
   const distinctDefects = useMemo(() => {
-    const s = new Set<string>();
+    const s = new Set<string>(managedLists.defects);
     records.forEach((r) => r.defect && s.add(r.defect));
     return Array.from(s).sort();
-  }, [records]);
+  }, [records, managedLists.defects]);
 
   // Computed summary metrics
   const stats = useMemo(() => {
@@ -157,30 +256,14 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
       if (selectedShift !== 'ALL' && r.shift !== selectedShift) return false;
       if (selectedStage !== 'ALL' && r.stage !== selectedStage) return false;
       if (selectedDefect !== 'ALL' && r.defect !== selectedDefect) return false;
-      if (dateFrom && r.date < dateFrom) return false;
-      if (dateTo && r.date > dateTo) return false;
-
-      if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase();
-        const match =
-          r.model.toLowerCase().includes(query) ||
-          r.defect.toLowerCase().includes(query) ||
-          r.desc.toLowerCase().includes(query) ||
-          r.stage.toLowerCase().includes(query) ||
-          r.shift.toLowerCase().includes(query) ||
-          r.date.includes(query) ||
-          (r.spec && r.spec.toLowerCase().includes(query));
-        if (!match) return false;
-      }
-
       return true;
     });
-  }, [records, selectedModel, selectedShift, selectedStage, selectedDefect, dateFrom, dateTo, searchTerm]);
+  }, [records, selectedModel, selectedShift, selectedStage, selectedDefect]);
 
   // Reset pagination when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedModel, selectedShift, selectedStage, selectedDefect, dateFrom, dateTo, searchTerm]);
+  }, [selectedModel, selectedShift, selectedStage, selectedDefect]);
 
   // Paginated Rows
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
@@ -191,13 +274,10 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
 
   // Clear all filters
   const handleClearFilters = () => {
-    setSearchTerm('');
     setSelectedModel('ALL');
     setSelectedShift('ALL');
     setSelectedStage('ALL');
     setSelectedDefect('ALL');
-    setDateFrom('');
-    setDateTo('');
     setCurrentPage(1);
   };
 
@@ -335,250 +415,61 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
       )}
 
       {/* TOP HEADER & BREADCRUMB */}
-      <div className="bg-gradient-to-r from-[#17203a] via-[#1a2b58] to-[#121c3b] rounded-2xl p-6 text-white shadow-md border border-white/10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] flex items-center justify-center text-white shadow-lg shadow-purple-500/30 shrink-0">
-              <Smartphone className="w-7 h-7" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-500/25 text-purple-200 border border-purple-400/30">
-                  Mobile Defect
-                </span>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-400/30">
-                  Attached Sheet: 566 Records
-                </span>
-                <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/25 text-blue-200 border border-blue-400/30">
-                  Total Defects: 1,872 pcs
-                </span>
-              </div>
-              <h1 className="text-2xl sm:text-[26px] font-black tracking-tight leading-none text-white">
-                Aesthetic Defect Inspection Portal
+      <div className="bg-[#0e2439] rounded-2xl p-4 sm:p-5 text-white shadow-lg border border-[#1e3a5f]/40 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-[#132d4b] border border-[#204975] flex items-center justify-center text-[#38bdf8] shadow-inner shrink-0">
+            <Smartphone className="w-6 h-6 text-[#38bdf8]" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-black tracking-tight leading-none text-white m-0">
+                MI Line - Aesthetic Defect Entry
               </h1>
-              <p className="text-[13px] text-[#cbd5e1] mt-1.5 max-w-3xl leading-snug">
-                Walton mobile phone PCBA visual inspection dataset covering Axion, NEXG, ZENX, XANON, Orbit, and Olvio series across Mass Production, Rework, and Trial stages.
-              </p>
             </div>
+            <p className="text-xs text-[#94a3b8] font-medium mt-1">
+              PCBA Functional &amp; Cosmetic Fault Inspection — Mobile Line
+            </p>
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {onNavigateToDatabase && (
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-bold text-[13px] px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md shadow-purple-500/25 active:scale-95 cursor-pointer"
+              id="btn-go-to-database-aesthetic"
+              onClick={onNavigateToDatabase}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#17385c] hover:bg-[#1f4a7a] text-white transition-all flex items-center gap-1.5 cursor-pointer border border-[#275a92] shadow-xs active:scale-95"
             >
-              <Plus className="w-4 h-4" />
-              <span>Add Record</span>
+              <Database className="w-3.5 h-3.5 text-[#38bdf8]" />
+              <span>Go to Database</span>
             </button>
-
-            <button
-              type="button"
-              onClick={handleExportCSV}
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold text-[13px] px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition-colors border border-white/15 cursor-pointer"
-              title="Download CSV"
-            >
-              <Download className="w-4 h-4 text-emerald-300" />
-              <span>Export CSV</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSyncToFirestore}
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold text-[13px] px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition-colors border border-white/15 cursor-pointer"
-              title="Sync to Firestore pcba_reports"
-            >
-              <Database className="w-4 h-4 text-blue-300" />
-              <span>Sync Cloud</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleReloadOriginal}
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold text-[13px] px-3 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors border border-white/15 cursor-pointer"
-              title="Reload original attached sheet (566 records)"
-            >
-              <RotateCcw className="w-4 h-4 text-amber-300" />
-              <span className="text-xs">Reset Sheet</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* METRIC KPI CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Card 1: Total Records */}
-        <div className="bg-white border border-[#e4e8f1] rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 text-[#7c3aed] flex items-center justify-center shrink-0 border border-purple-100">
-            <Smartphone className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-[11.5px] font-bold text-[#64748b] uppercase tracking-wide">
-              Total Records
-            </div>
-            <div className="text-2xl font-black text-[#0f172a] leading-none mt-1">
-              {stats.totalRecords.toLocaleString()}
-            </div>
-            <div className="text-[11px] text-emerald-600 font-semibold mt-1">
-              100% complete from sheet
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Total Defect Qty */}
-        <div className="bg-white border border-[#e4e8f1] rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-[11.5px] font-bold text-[#64748b] uppercase tracking-wide">
-              Defect Qty
-            </div>
-            <div className="text-2xl font-black text-[#0f172a] leading-none mt-1">
-              {stats.totalQty.toLocaleString()} <span className="text-xs font-semibold text-gray-500">pcs</span>
-            </div>
-            <div className="text-[11px] text-rose-500 font-semibold mt-1">
-              Across all production
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Days Inspected */}
-        <div className="bg-white border border-[#e4e8f1] rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-            <Calendar className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-[11.5px] font-bold text-[#64748b] uppercase tracking-wide">
-              Inspection Days
-            </div>
-            <div className="text-2xl font-black text-[#0f172a] leading-none mt-1">
-              {stats.uniqueDates} <span className="text-xs font-semibold text-gray-500">Days</span>
-            </div>
-            <div className="text-[11px] text-blue-600 font-semibold mt-1">
-              Jun 2026 – Sep 2026
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Mobile Models */}
-        <div className="bg-white border border-[#e4e8f1] rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-            <Cpu className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-[11.5px] font-bold text-[#64748b] uppercase tracking-wide">
-              Mobile Models
-            </div>
-            <div className="text-2xl font-black text-[#0f172a] leading-none mt-1">
-              {stats.uniqueModels} <span className="text-xs font-semibold text-gray-500">Models</span>
-            </div>
-            <div className="text-[11px] text-amber-600 font-semibold mt-1">
-              Axion, NEXG, ZENX, Olvio
-            </div>
-          </div>
-        </div>
-
-        {/* Card 5: Top Defect Category */}
-        <div className="bg-white border border-[#e4e8f1] rounded-2xl p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
-            <TrendingUp className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-[11.5px] font-bold text-[#64748b] uppercase tracking-wide">
-              Top Defect
-            </div>
-            <div className="text-[14px] font-black text-[#0f172a] leading-tight mt-1 line-clamp-1">
-              {stats.topDefect}
-            </div>
-            <div className="text-[11px] text-indigo-600 font-semibold mt-1">
-              Component Broken
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* TOP DEFECTS SUMMARY BAR */}
-      <div className="bg-white border border-[#e4e8f1] rounded-2xl p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-[#7c3aed]" />
-            <h3 className="text-[14px] font-extrabold text-[#0f172a]">
-              Top 5 Aesthetic Defects Distribution
-            </h3>
-          </div>
-          <span className="text-[11.5px] font-semibold text-[#64748b]">
-            Ranked by Defect Quantity (pcs)
-          </span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          {stats.top5Defects.map(([name, count], idx) => {
-            const pct = Math.round((count / stats.totalQty) * 100);
-            return (
-              <div
-                key={name}
-                className="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl p-3 flex flex-col justify-between"
-              >
-                <div className="flex items-center justify-between gap-1 mb-1">
-                  <span className="text-xs font-bold text-[#334155] line-clamp-1">{name}</span>
-                  <span className="text-[11px] font-black text-[#7c3aed]">#{idx + 1}</span>
-                </div>
-                <div className="flex items-baseline justify-between mt-2">
-                  <span className="text-lg font-black text-[#0f172a]">{count} pcs</span>
-                  <span className="text-xs font-bold text-gray-500">{pct}%</span>
-                </div>
-                <div className="w-full bg-[#e2e8f0] h-1.5 rounded-full overflow-hidden mt-1.5">
-                  <div
-                    className="bg-[#8b5cf6] h-full rounded-full"
-                    style={{ width: `${Math.min(100, pct * 3)}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+          )}
+          <button
+            type="button"
+            id="btn-manage-list-aesthetic"
+            onClick={() => setIsManageModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#17385c]/80 hover:bg-[#1f4a7a] text-white transition-all flex items-center gap-1.5 cursor-pointer border border-[#275a92] shadow-xs active:scale-95"
+          >
+            <Settings className="w-3.5 h-3.5 text-[#c084fc]" />
+            <span>⚙ Manage List</span>
+          </button>
         </div>
       </div>
 
       {/* FILTER & SEARCH CARD */}
       <div className="bg-white border border-[#e4e8f1] rounded-2xl p-5 shadow-xs space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f1f5f9] pb-3">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[#7c3aed]" />
-            <span className="text-[14px] font-bold text-[#0f172a]">Filter & Search Records</span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-              Showing {filteredRecords.length} of {records.length}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:px-4.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/15 border border-indigo-400/30">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shadow-xs border border-white/25">
+              <Filter className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-[14.5px] font-extrabold text-white tracking-wide">
+              Aesthetic Report Entry
             </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="text-xs font-bold text-[#64748b] hover:text-[#0f172a] flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Filters</span>
-            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {/* Search Box */}
-          <div className="flex flex-col gap-1.5 lg:col-span-2">
-            <label className="text-[12px] font-bold text-[#475569]">Search Keywords</label>
-            <div className="relative">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Model, defect, stage, shift..."
-                className="w-full bg-[#f8fafc] focus:bg-white border border-[#cbd5e1] focus:border-[#7c3aed] rounded-xl pl-9 pr-3 py-2 text-[13px] text-[#0f172a] outline-none transition-colors"
-              />
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {/* Model Filter */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] font-bold text-[#475569]">Model</label>
@@ -648,36 +539,31 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
           </div>
         </div>
 
-        {/* Date Range Sub-filter */}
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#64748b]">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Date Range:</span>
-          </div>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2.5 py-1 text-xs text-[#0f172a]"
-          />
-          <span className="text-xs text-gray-400">to</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2.5 py-1 text-xs text-[#0f172a]"
-          />
-          {(dateFrom || dateTo) && (
+        {/* Action Buttons Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#f1f5f9]">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => {
-                setDateFrom('');
-                setDateTo('');
-              }}
-              className="text-xs text-rose-500 hover:underline font-semibold"
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl text-[13px] flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-md active:scale-95 transition-all border border-emerald-400/40"
             >
-              Clear Dates
+              <Plus className="w-4 h-4 text-white" />
+              <span>+Add Entry</span>
             </button>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="px-4 py-2 bg-[#f8fafc] hover:bg-gray-100 text-[#334155] hover:text-[#0f172a] font-bold rounded-xl text-[13px] flex items-center gap-2 cursor-pointer border border-[#cbd5e1] hover:border-[#94a3b8] active:scale-95 transition-all shadow-2xs"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
+              <span>Clear Fields</span>
+            </button>
+          </div>
+
+          {(selectedModel !== 'ALL' || selectedStage !== 'ALL' || selectedShift !== 'ALL' || selectedDefect !== 'ALL') && (
+            <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200/80 px-3 py-1 rounded-lg font-medium flex items-center gap-1.5">
+              <span>Filtering: Showing {filteredRecords.length} of {records.length} records</span>
+            </div>
           )}
         </div>
       </div>
@@ -685,42 +571,31 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
       {/* DATA TABLE CARD */}
       <div className="bg-white border border-[#e4e8f1] rounded-2xl shadow-xs overflow-hidden">
         {/* Table Toolbar */}
-        <div className="p-4 sm:px-6 sm:py-4 border-b border-[#e4e8f1] flex flex-wrap items-center justify-between gap-3 bg-[#fafbfd]">
-          <div className="flex items-center gap-3">
-            <h2 className="text-[16px] font-extrabold text-[#0f172a] flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#7c3aed]" />
+        <div className="p-4 sm:px-6 sm:py-4.5 border-b border-indigo-500/30 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-800 text-white shadow-md">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-400 to-pink-500 flex items-center justify-center text-white shadow-md shadow-pink-500/30 border border-white/30">
+              <Layers className="w-4 h-4 text-white" />
+            </div>
+            <h2 className="text-[16.5px] font-black text-white flex items-center gap-2.5 tracking-tight">
               <span>Aesthetic Defect Records</span>
             </h2>
-            <span className="bg-[#ede9fe] text-[#6d28d9] text-[11.5px] font-bold px-2.5 py-0.5 rounded-full border border-[#ddd6fe]">
-              {filteredRecords.length} records matching
-            </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => window.print()}
-              className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              onClick={handleExportCSV}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-500/25 active:scale-95 transition-all border border-emerald-400/40"
             >
-              <Printer className="w-3.5 h-3.5 text-gray-500" />
-              <span>Print</span>
+              <Download className="w-3.5 h-3.5 text-white" />
+              <span>Export CSV</span>
             </button>
-            {onNavigateToDatabase && (
-              <button
-                type="button"
-                onClick={onNavigateToDatabase}
-                className="px-3 py-1.5 bg-[#ede9fe] hover:bg-[#ddd6fe] text-[#6d28d9] rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-              >
-                <Database className="w-3.5 h-3.5" />
-                <span>Go to Database</span>
-              </button>
-            )}
           </div>
         </div>
 
         {/* Scrollable Table */}
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse min-w-[980px]">
+          <table className="w-full border-collapse min-w-[940px]">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-[#e2e8f0] text-[#475569] text-[11.5px] font-bold tracking-wider uppercase text-left">
                 <th className="py-3 px-4 w-14">SL</th>
@@ -731,14 +606,12 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                 <th className="py-3 px-4">Aesthetic Defect Description</th>
                 <th className="py-3 px-4 text-center">Defect Code</th>
                 <th className="py-3 px-4 text-center">Qty</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-center w-20">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f1f5f9] text-[13px]">
               {currentRows.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="text-center py-16 text-gray-400 font-medium">
+                  <td colSpan={8} className="text-center py-16 text-gray-400 font-medium">
                     No aesthetic defect records found matching current filters.
                   </td>
                 </tr>
@@ -770,17 +643,17 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                       className="hover:bg-[#faf5ff]/40 transition-colors group text-[#1e293b]"
                     >
                       {/* SL */}
-                      <td className="py-3 px-4 font-mono text-xs text-gray-400 font-bold">
+                      <td className="py-2.5 px-4 font-mono text-xs text-gray-400 font-bold">
                         {sl}
                       </td>
 
                       {/* Date */}
-                      <td className="py-3 px-4 font-semibold text-[#0f172a] whitespace-nowrap">
+                      <td className="py-2.5 px-4 font-semibold text-[#0f172a] whitespace-nowrap">
                         {r.date}
                       </td>
 
                       {/* Model & Spec */}
-                      <td className="py-3 px-4">
+                      <td className="py-2.5 px-4">
                         <div className="flex items-center gap-2">
                           <span className="font-extrabold text-[#0f172a]">{r.model}</span>
                           {r.spec && (
@@ -792,7 +665,7 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                       </td>
 
                       {/* Production Stage */}
-                      <td className="py-3 px-4">
+                      <td className="py-2.5 px-4">
                         <span
                           className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${stageColor}`}
                         >
@@ -801,7 +674,7 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                       </td>
 
                       {/* Shift */}
-                      <td className="py-3 px-4">
+                      <td className="py-2.5 px-4">
                         <span
                           className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${shiftColor}`}
                         >
@@ -810,7 +683,7 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                       </td>
 
                       {/* Defect Description */}
-                      <td className="py-3 px-4">
+                      <td className="py-2.5 px-4">
                         <span className="font-bold text-[#7c3aed] flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6]" />
                           <span>{r.desc}</span>
@@ -818,37 +691,17 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                       </td>
 
                       {/* Defect Raw Code */}
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-2.5 px-4 text-center">
                         <span className="font-mono text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
                           {r.defect}
                         </span>
                       </td>
 
                       {/* Qty */}
-                      <td className="py-3 px-4 text-center">
-                        <span className="font-extrabold text-sm px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
+                      <td className="py-2.5 px-4 text-center">
+                        <span className="font-extrabold text-xs px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
                           {r.qty}
                         </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3 px-4 text-center">
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>{r.status}</span>
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className="py-3 px-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(r.id)}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                          title="Delete Record"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </td>
                     </tr>
                   );
@@ -859,39 +712,143 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
         </div>
 
         {/* PAGINATION CONTROLS */}
-        <div className="p-4 border-t border-[#e4e8f1] flex flex-wrap items-center justify-between gap-3 bg-white">
-          <div className="text-xs font-semibold text-[#64748b]">
-            Showing{' '}
-            <span className="font-bold text-[#0f172a]">
-              {filteredRecords.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}
-            </span>{' '}
-            to{' '}
-            <span className="font-bold text-[#0f172a]">
-              {Math.min(currentPage * pageSize, filteredRecords.length)}
-            </span>{' '}
-            of <span className="font-bold text-[#0f172a]">{filteredRecords.length}</span> records
+        <div className="p-4 border-t border-[#e4e8f1] flex flex-wrap items-center justify-between gap-4 bg-white">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#64748b]">
+            <span>
+              Showing{' '}
+              <span className="font-bold text-[#0f172a]">
+                {filteredRecords.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}
+              </span>{' '}
+              to{' '}
+              <span className="font-bold text-[#0f172a]">
+                {Math.min(currentPage * pageSize, filteredRecords.length)}
+              </span>{' '}
+              of <span className="font-bold text-[#0f172a]">{filteredRecords.length}</span> records
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* First Page */}
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(1)}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="First Page"
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+
+            {/* Prev Page */}
             <button
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="Previous Page"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs font-bold text-gray-700 px-2">
-              Page {currentPage} of {totalPages}
-            </span>
+
+            {/* Page Buttons */}
+            <div className="flex items-center gap-1">
+              {(() => {
+                const pages: (number | string)[] = [];
+                if (totalPages <= 7) {
+                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                  if (currentPage <= 4) {
+                    pages.push(1, 2, 3, 4, 5, '...', totalPages);
+                  } else if (currentPage >= totalPages - 3) {
+                    pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+                  } else {
+                    pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+                  }
+                }
+                return pages.map((page, pIdx) => {
+                  if (page === '...') {
+                    return (
+                      <span key={`dots-${pIdx}`} className="px-1.5 text-xs text-gray-400 font-bold">
+                        ...
+                      </span>
+                    );
+                  }
+                  const isCurrent = page === currentPage;
+                  return (
+                    <button
+                      key={`page-${page}`}
+                      type="button"
+                      onClick={() => setCurrentPage(page as number)}
+                      className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                        isCurrent
+                          ? 'bg-[#7c3aed] text-white border-[#7c3aed] shadow-xs'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-purple-50 hover:text-purple-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Next Page */}
             <button
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="Next Page"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
+
+            {/* Last Page */}
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="Last Page"
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </button>
+
+            {/* Jump to page */}
+            <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-gray-200 text-xs text-gray-600">
+              <span className="font-semibold">Go to:</span>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={jumpPageInput}
+                onChange={(e) => setJumpPageInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const target = parseInt(jumpPageInput, 10);
+                    if (!isNaN(target) && target >= 1 && target <= totalPages) {
+                      setCurrentPage(target);
+                      setJumpPageInput('');
+                    }
+                  }
+                }}
+                placeholder={String(currentPage)}
+                className="w-12 px-2 py-1 text-center bg-gray-50 border border-gray-300 rounded-md text-xs font-bold text-gray-800 outline-none focus:border-purple-600"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const target = parseInt(jumpPageInput, 10);
+                  if (!isNaN(target) && target >= 1 && target <= totalPages) {
+                    setCurrentPage(target);
+                    setJumpPageInput('');
+                  }
+                }}
+                className="px-2 py-1 bg-gray-100 hover:bg-purple-600 hover:text-white rounded-md text-[11px] font-bold text-gray-700 transition-colors cursor-pointer"
+              >
+                Go
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -934,12 +891,18 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                 <label className="block text-xs font-bold text-gray-700 mb-1">Mobile Model</label>
                 <input
                   type="text"
+                  list="model-options"
                   value={newModel}
                   onChange={(e) => setNewModel(e.target.value)}
-                  placeholder="e.g. NEXG_N77 or Axion_A1100"
+                  placeholder="Select or enter mobile model"
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-purple-600"
                   required
                 />
+                <datalist id="model-options">
+                  {distinctModels.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
               </div>
 
               {/* Spec */}
@@ -947,11 +910,17 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                 <label className="block text-xs font-bold text-gray-700 mb-1">Spec / RAM-ROM</label>
                 <input
                   type="text"
+                  list="spec-options"
                   value={newSpec}
                   onChange={(e) => setNewSpec(e.target.value)}
-                  placeholder="e.g. 4/128 GB, 8/128 GB or leave empty"
+                  placeholder="Select or enter spec (e.g. 4/128 GB)"
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-purple-600"
                 />
+                <datalist id="spec-options">
+                  {distinctSpecs.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
               </div>
 
               {/* Stage & Shift */}
@@ -963,9 +932,11 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                     onChange={(e) => setNewStage(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-purple-600"
                   >
-                    <option value="Mass Production">Mass Production</option>
-                    <option value="Rework">Rework</option>
-                    <option value="Trial Production">Trial Production</option>
+                    {distinctStages.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -1029,6 +1000,125 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MANAGE LISTS MODAL */}
+      {isManageModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#0f2942]/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-[#e2e8f0] flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-[#0e2439] text-white flex items-center justify-between border-b border-white/10">
+              <div className="flex items-center gap-2.5 font-bold text-sm">
+                <div className="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-300">
+                  <Settings className="w-4 h-4" />
+                </div>
+                <span>Manage Lists — Aesthetic Defect Portal</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsManageModalOpen(false)}
+                className="text-white/70 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex border-b border-[#e2e8f0] bg-[#fafbfc]">
+              {(
+                [
+                  { key: 'models', label: 'Models' },
+                  { key: 'specs', label: 'Specs' },
+                  { key: 'defects', label: 'Defects' },
+                  { key: 'stages', label: 'Stages' },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => {
+                    setActiveManageTab(tab.key);
+                    setModalNewItem('');
+                  }}
+                  className={`flex-1 py-3 text-xs font-bold transition-colors border-b-2 cursor-pointer ${
+                    activeManageTab === tab.key
+                      ? 'text-[#2563eb] border-[#2563eb] bg-white'
+                      : 'text-[#64748b] border-transparent hover:text-[#1e293b]'
+                  }`}
+                >
+                  {tab.label} ({managedLists[tab.key].length})
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAddManagedItem();
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={modalNewItem}
+                  onChange={(e) => setModalNewItem(e.target.value)}
+                  placeholder={`New ${activeManageTab === 'models' ? 'model name' : activeManageTab === 'specs' ? 'RAM/ROM spec' : activeManageTab === 'defects' ? 'aesthetic defect type' : 'stage name'}`}
+                  className="flex-1 px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#0e2439] hover:bg-[#163b5e] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-xs active:scale-95"
+                >
+                  + Add
+                </button>
+              </form>
+
+              <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                {managedLists[activeManageTab].length === 0 ? (
+                  <div className="text-center py-8 text-xs text-gray-400">
+                    No items in {activeManageTab}. Add one above!
+                  </div>
+                ) : (
+                  managedLists[activeManageTab].map((item: string) => (
+                    <div
+                      key={item}
+                      className="flex items-center justify-between p-2.5 border border-[#e2e8f0] rounded-lg bg-[#fafbfc] text-xs font-semibold text-[#1e293b] hover:border-[#cbd5e1] transition-all"
+                    >
+                      <span className="truncate pr-2">{item}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteManagedItem(activeManageTab, item)}
+                        className="text-[#dc2626] hover:bg-rose-50 px-2 py-1 rounded text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-3.5 bg-[#f8fafc] border-t border-[#e2e8f0] flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={handleResetManagedLists}
+                className="text-[11.5px] font-semibold text-gray-500 hover:text-gray-800 underline transition-colors cursor-pointer"
+              >
+                Reset to Defaults
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsManageModalOpen(false)}
+                className="px-4 py-1.5 bg-[#0e2439] hover:bg-[#183959] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

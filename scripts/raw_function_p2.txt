@@ -1,0 +1,71 @@
+14-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night RFCalibration 5
+14-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night SimCard 1
+14-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night SubCamera 1
+14-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Touch 4
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Headset 1
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Mic 4
+14-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Speaker 5
+14-Jun-2026 Axion_A1100 Null Mass Production Night RFCalibration 9
+14-Jun-2026 Axion_A1100 Null Mass Production Night SimCard 1
+14-Jun-2026 Axion_A1100 Null Mass Production Night TCard 1
+15-Jun-2026 Axion_A1100 Null Mass Production Day RFCalibration 15
+15-Jun-2026 Axion_A1100 Null Mass Production Day TCard 2
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day LCM 2
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day LED 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day MainCamera 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Receiver 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day SimCard 8
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Sensor 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day TCard 6
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Touch 1
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Mic 3
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Speaker 11
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Dead 4
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night LCM 3
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night MainCamera 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Receiver 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night RFCalibration 3
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night SimCard 4
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Sensor 1
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night TCard 9
+15-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Touch 2
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Mic 3
+15-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Speaker 6
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Bluetooth 1
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Dead 1
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day GPS 1
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day LCM 2
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Receiver 1
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day SimCard 3
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day TCard 2
+16-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Headset 3
+16-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Day Mic 2
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Dead 4
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night RFCalibration 4
+16-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night SimCard 6
+16-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Mic 1
+16-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Speaker 1
+16-Jun-2026 Axion_A1100 Null Mass Production Night Dead 1
+16-Jun-2026 Axion_A1100 Null Mass Production Night Headset 3
+16-Jun-2026 Axion_A1100 Null Mass Production Night RFCalibration 4
+16-Jun-2026 Axion_A1100 Null Mass Production Night SimCard 1
+16-Jun-2026 Axion_A1100 Null Mass Production Night Speaker 1
+16-Jun-2026 Axion_A1100 Null Mass Production Night TCard 1
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Dead 2
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day SimCard 3
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Dead 2
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Receiver 1
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night SimCard 4
+17-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Sensor 2
+17-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Speaker 5
+18-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Day Sensor 1
+18-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Headset 3
+18-Jun-2026 NEXG_N28 Pro_Sub 8/128GB Mass Production Night Mic 3
+18-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Dead 1
+18-Jun-2026 NEXG_N28 Pro 8/128GB Mass Production Night Sensor 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 2
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Day SimCard 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night Headset 1
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night RFCalibration 3
+20-Jun-2026 Axion_A1100_i100 Null Mass Production Night SimCard 2
+21-Jun-2026 Axion_A1100_i100 Null Mass Production Day Headset 3

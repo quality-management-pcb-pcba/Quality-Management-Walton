@@ -1,0 +1,15 @@
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Sensor 2
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SubCamera 1
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SWVersion 1
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Night TCard 1
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day Dead 14
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day FM 1
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day LCM 1
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day LED 2
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day MainCamera 1
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day Sensor 2
+27-Sep-2026 NEXG_N76 4/128 GB Rework Day Vibrator 1
+28-Sep-2026 NEXG_N76 4/128 GB Rework Day Sensor 1
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day Headset 13
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day Mic 6
+28-Sep-2026 NEXG_N76_Sub 4/128 GB Rework Day Speaker 2

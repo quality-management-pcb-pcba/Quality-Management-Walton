@@ -1,0 +1,64 @@
+23-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Mic 3
+23-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Speaker 9
+23-Aug-2026 NEXG_N75 4/128 GB Mass Production Day Sensor 4
+23-Aug-2026 NEXG_N77 4/128 GB Mass Production Night RFCalibration 2
+23-Aug-2026 NEXG_N77 4/128 GB Mass Production Night SWVersion 5
+5-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Headset 1
+5-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Speaker 1
+6-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Headset 1
+6-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Speaker 1
+6-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SimCard 1
+8-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Sensor 1
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Day MainCamera 1
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Touch 1
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Bluetooth 1
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Night LCM 1
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Night RFCalibration 2
+13-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SimCard 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SWVersion 1
+14-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Dead 1
+15-Sep-2026 Olvio_MM26i Null Rework Day Charge 3
+15-Sep-2026 Olvio_MM26i Null Rework Day Dead 8
+15-Sep-2026 Olvio_MM26i Null Rework Day Headset 1
+15-Sep-2026 Olvio_MM26i Null Rework Day SimCard 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Bluetooth 2
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Night LED 1
+15-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Speaker 1
+16-Sep-2026 NEXG_N77 4/128 GB Mass Production Night LED 4
+16-Sep-2026 NEXG_N77 4/128 GB Mass Production Night MainCamera 1
+17-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Receiver 1
+17-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Touch 1
+17-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Vibrator 1
+19-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Bluetooth 1
+19-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Touch 1
+19-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Bluetooth 1
+19-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SWVersion 1
+19-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Touch 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Bluetooth 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Day LCM 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Day RFCalibration 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Sensor 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SWVersion 1
+20-Sep-2026 NEXG_N77 4/128 GB Mass Production Night LCM 1
+20-Sep-2026 Axion_A1100_i100 Null Rework Day Headset 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Bluetooth 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Dead 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day GPS 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day LCM 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day RFCalibration 2
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Day WiFi 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Night RFCalibration 2
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SimCard 2
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Sensor 1
+21-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SWVersion 3
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day MainCamera 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Receiver 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day RFCalibration 2
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Sensor 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Day SWVersion 6
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Night RFCalibration 1
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Night Sensor 2
+22-Sep-2026 NEXG_N77 4/128 GB Mass Production Night SWVersion 1
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Day LCM 1
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Day Receiver 1
+23-Sep-2026 NEXG_N77 4/128 GB Mass Production Day RFCalibration 1

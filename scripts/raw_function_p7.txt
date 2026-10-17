@@ -1,0 +1,64 @@
+12-Aug-2026 ZENX Z3 4/64 GB Mass Production Day Dead 1
+12-Aug-2026 ZENX Z3 4/64 GB Mass Production Day Receiver 1
+12-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Charge 3
+12-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Mic 14
+12-Aug-2026 ZENX Z3 4/64 GB Mass Production Night Receiver 1
+13-Aug-2026 ZENX Z3 4/64 GB Mass Production Day Dead 1
+13-Aug-2026 ZENX Z3 4/64 GB Mass Production Day GPS 1
+13-Aug-2026 ZENX Z3 4/64 GB Mass Production Day SimCard 2
+13-Aug-2026 ZENX Z3 4/64 GB Mass Production Day Charge 1
+13-Aug-2026 NEXG_N28 4/128 GB Trial Production Day GPS 1
+13-Aug-2026 NEXG_N28 4/128 GB Trial Production Day MainCamera 1
+13-Aug-2026 NEXG_N28_Sub 4/128 GB Trial Production Day Mic 1
+14-Aug-2026 ZENX Z3 4/64 GB Mass Production Day Sensor 2
+12-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Speaker 9
+13-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Charge 1
+13-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Mic 25
+13-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Speaker 10
+14-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Mic 1
+15-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Charge 3
+15-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Mic 28
+15-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Speaker 8
+15-Aug-2026 ZENX Z3 4/64 GB Mass Production Night MainCamera 1
+15-Aug-2026 ZENX Z3 4/64 GB Mass Production Night SimCard 1
+15-Aug-2026 ZENX Z3 4/64 GB Mass Production Night SubCamera 2
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day LCM 3
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day MainCamera 2
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day Sensor 1
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day SubCamera 2
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Day SWDownload 2
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Night Bluetooth 1
+16-Aug-2026 NEXG_N28 4/128 GB Mass Production Night LCDBacklight 2
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Day LCM 1
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Day Sensor 2
+17-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Headset 1
+17-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Mic 51
+17-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Speaker 1
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Night GPS 1
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Night LCM 1
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Night MainCamera 1
+17-Aug-2026 NEXG_N28 4/128 GB Mass Production Night Sensor 1
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Day LCM 3
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Day MainCamera 1
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Day SWDownload 1
+18-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Headset 1
+18-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Mic 80
+18-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Speaker 5
+18-Aug-2026 NEXG_N28 4/128 GB Mass Production Night LCM 2
+19-Aug-2026 NEXG_N28 4/128 GB Mass Production Day Headset 1
+19-Aug-2026 NEXG_N28 4/128 GB Mass Production Day LCM 2
+19-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Mic 33
+19-Aug-2026 NEXG_N28 4/128 GB Mass Production Night LCM 2
+20-Aug-2026 NEXG_N28 4/128 GB Mass Production Day Headset 1
+20-Aug-2026 NEXG_N28 4/128 GB Mass Production Day Keypad 1
+20-Aug-2026 NEXG_N28 4/128 GB Mass Production Day LCM 2
+20-Aug-2026 NEXG_N28 4/128 GB Mass Production Day MainCamera 1
+20-Aug-2026 NEXG_N28 4/128 GB Mass Production Day SimCard 2
+20-Aug-2026 NEXG_N28 4/128 GB Mass Production Day Touch 1
+20-Aug-2026 NEXG_N28_Sub 4/128 GB Mass Production Day Speaker 1
+21-Aug-2026 ZENX Z3 4/64 GB Mass Production Day MainCamera 1
+22-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Charge 6
+22-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Mic 3
+22-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Speaker 9
+22-Aug-2026 NEXG_N75 4/128 GB Mass Production Day Sensor 4
+23-Aug-2026 ZENX Z3_Sub 4/64 GB Mass Production Day Charge 6

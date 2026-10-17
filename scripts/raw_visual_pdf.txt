@@ -1,0 +1,545 @@
+July 07//01//26 UHK Trade SS Regulator 11800 11751 49 0.42% External Single Side
+July 07//01//26 Multi 6 Model 94 80 14 14.89% External S Add Layer Please......
+July 07//01//26 Solar (2912) 444 198 246 55.41% Fan Single Side
+July 07//01//26 Fiona M2 3432 3264 168 4.90% Switch Socket Single Side
+July 07//02//26 Fiona M2 16549 16545 4 0.02% Switch Socket Single Side
+July 07//02//26 Fiona WH138 V1.2.2 5400 5399 1 0.02% Switch Socket Double Side
+July 07//02//26 Smart Controller 2068 1900 168 8.12% Fridge Double Side
+July 07//02//26 Rice Cooker 4620 4620 0 0.00% Computer Single Side
+July 07//04//26 WRDC2S2 1152 1131 21 1.82% Fridge Double Side
+July 07//04//26 Fiona M2 26417 26400 17 0.06% Switch Socket Single Side
+July 07//04//26 Smart Controller 1728 1620 108 6.25% Fridge Double Side
+July 07//04//26 Square LED (RLSS) 3 Chip 7668 5004 2664 34.74% Fridge Double Side
+July 07//04//26 SC Power Board 2400 2228 172 7.17% Fridge Double Side
+July 07//05//26 2 Feet 20W 657 621 36 5.48% LED Light Single Side
+July 07//05//26 Fiona M2 8389 8387 2 0.02% Switch Socket Single Side
+July 07//05//26 Fiona WH138 V1.2.2 12150 12140 10 0.08% Switch Socket Double Side
+July 07//05//26 SMPS US V3 1716 1674 42 2.45% Fridge Single Side
+July 07//05//26 Rice Cooker 20286 20286 0 0.00% Computer Single Side
+July 07//05//26 Square LED (RLSS) 3 Chip 2628 2628 0 0.00% Fridge Double Side
+July 07//05//26 Smart Controller 300 288 12 4.00% Fridge Double Side
+July 07//06//26 Square LED (RLSS) 3 Chip 4752 4743 9 0.19% Fridge Double Side
+July 07//06//26 Rice Cooker 25270 25196 74 0.29% Computer Single Side
+July 07//06//26 SC Power Board 6028 5945 83 1.38% Fridge Double Side
+July 07//06//26 SMPS US V3 4512 4284 228 5.05% Fridge Single Side
+July 07//06//26 WRDC2S2 3462 3445 17 0.49% Fridge Double Side
+July 07//06//26 Solar (2912) 117 114 3 2.56% Fan Single Side
+July 07//08//26 Square LED (RLSS) 3 Chip 10044 9755 289 2.88% Fridge Double Side
+July 07//08//26 SMPS US V3 12048 11760 288 2.39% Fridge Single Side
+July 07//08//26 Smart Controller 5292 5046 246 4.65% Fridge Double Side
+July 07//09//26 Smart Controller 5820 5712 108 1.86% Fridge Double Side
+July 07//09//26 Fiona M2 19404 19326 78 0.40% Switch Socket Single Side
+July 07//09//26 Piano P1-V1.2 5190 5188 2 0.04% Switch Socket Double Side
+July 07//10//26 Smart Controller 3570 3330 240 6.72% Fridge Double Side
+July 07//10//26 SMPS US V3 10056 9666 390 3.88% Fridge Single Side
+July 07//10//26 WRDC2S2 2838 2760 78 2.75% Fridge Double Side
+July 07//11//26 WRDC2S2 3366 3320 46 1.37% Fridge Double Side
+July 07//11//26 Piano P1-V1.2 8000 8000 0 0.00% Switch Socket Double Side
+July 07//11//26 Fiona M2 12337 10426 1911 15.49% Switch Socket Single Side
+July 07//11//26 Electronic Thermostat V2 5088 5024 64 1.26% Fridge Double Side
+July 07//11//26 SC Power Board 3015 3000 15 0.50% Fridge Double Side
+July 07//12//26 SC Power Board 2612 2595 17 0.65% Fridge Double Side
+July 07//12//26 RL-RS35-V04 20021 19944 77 0.38% Fridge Double Side
+July 07//12//26 Piano P1-V1.2 15035 15011 24 0.16% Switch Socket Double Side
+July 07//13//26 SMPS US V3 3792 3456 336 8.86% Fridge Single Side
+July 07//13//26 Fiona M2 4344 4339 5 0.12% Switch Socket Single Side
+July 07//13//26 Samcon B007 4040 3871 169 4.18% External S Add Layer Please......
+July 07//13//26 RL-RS35-V04 11832 11784 48 0.41% Fridge Double Side
+July 07//13//26 Remote New 2340 2112 228 9.74% TV Single Side
+July 07//14//26 RL-RS35-V04 3432 3360 72 2.10% Fridge Double Side
+July 07//14//26 SMPS US V3 2880 2754 126 4.38% Fridge Single Side
+July 07//14//26 Fiona M2 32 32 0 0.00% Switch Socket Single Side
+July 07//14//26 Samcon 1021 885 136 13.32% External S Add Layer Please......
+July 07//15//26 Piano P1-V1.2 16636 15346 1290 7.75% Switch Socket Double Side
+July 07//15//26 Electronic Thermostat V2 1680 1680 0 0.00% Fridge Double Side
+July 07//15//26 Fiona WH138 V1.2.2 10740 10680 60 0.56% Switch Socket Double Side
+July 07//15//26 Smart Controller 4323 4101 222 5.14% Fridge Double Side
+July 07//15//26 Samcon B-008 1066 971 95 8.91% External S Add Layer Please......
+July 07//16//26 Piano P1-V1.2 1508 1508 0 0.00% Switch Socket Double Side
+July 07//16//26 Fiona M2 627 627 0 0.00% Switch Socket Single Side
+July 07//16//26 Fiona WH138 V1.2.2 4800 4800 0 0.00% Switch Socket Double Side
+July 07//16//26 Smart Controller 2646 2640 6 0.23% Fridge Double Side
+July 07//16//26 SC Power Board 1501 1471 30 2.00% Fridge Double Side
+July 07//16//26 Remote New 1440 1440 0 0.00% TV Single Side
+July 07//16//26 RL-RS35-V04 11880 11520 360 3.03% Fridge Double Side
+July 07//16//26 Square LED (RLSS) 3 Chip 5724 5400 324 5.66% Fridge Double Side
+July 07//18//26 Samcon B007 143 129 14 9.79% External S Add Layer Please......
+July 07//18//26 Samcon B008 176 144 32 18.18% External S Add Layer Please......
+July 07//18//26 RL-RS35-V04 21761 21329 432 1.99% Fridge Double Side
+July 07//18//26 Happy Walker V-NC-1 (RFL) 7200 7200 0 0.00% RFL Single Side
+July 07//18//26 Square LED (RLSS) 3 Chip 15228 15228 0 0.00% Fridge Double Side
+July 07//18//26 Glory + Luxur 11264 11264 0 0.00% Switch Socket Double Side
+July 07//18//26 Common Toy LED Driver (Akij) 1008 1008 0 0.00% Akij Single Side
+July 07//18//26 Fiona M2 314 314 0 0.00% Switch Socket Single Side
+July 07//19//26 Fiona M2 1857 1857 0 0.00% Switch Socket Single Side
+July 07//19//26 SC Power Board 12398 12105 293 2.36% Fridge Double Side
+July 07//19//26 Square LED (RLSS) 3 Chip 23436 22860 576 2.46% Fridge Double Side
+July 07//19//26 Smart Controller 1902 1128 774 40.69% Fridge Double Side
+July 07//19//26 Happy Walker V-NC-1 (RFL) 12940 12931 9 0.07% RFL Single Side
+July 07//19//26 Common Toy LED Driver (Akij) 8316 6741 1575 18.94% Akij Single Side
+July 07//19//26 Common Toy LED Driver (Talukder) 10839 10834 5 0.05% Talukder Single Side
+July 07//19//26 12VDC Square LED 12960 12132 828 6.39% Fridge Single Side
+July 07//20//26 Mobile Charger 500mA 6912 6864 48 0.69% Mobile Single Side
+July 07//20//26 SP 12W Round 1793 864 929 51.81% LED Light Single Side
+July 07//20//26 Common Toy LED Driver (Akij) 20844 15615 5229 25.09% Akij Single Side
+July 07//21//26 17" LPF SMD Fan 640 640 0 0.00% Fan Single Side
+July 07//21//26 Piano P1-V1.2 8618 8610 8 0.09% Switch Socket Double Side
+July 07//21//26 Frost Controller with Indicator 540 487 53 9.81% Fridge Double Side
+July 07//21//26 SP 12W Round 8688 7200 1488 17.13% LED Light Single Side
+July 07//21//26 SC Power Board 2595 2460 135 5.20% Fridge Double Side
+July 07//22//26 KHI 12/24 Sinewave 243 212 31 12.76% External S Add Layer Please......
+July 07//22//26 SP 12W Round 1848 1536 312 16.88% LED Light Single Side
+July 07//22//26 Piano P1-V1.2 23350 23204 146 0.63% Switch Socket Double Side
+July 07//22//26 Redmin Toy Controller 15149 15044 105 0.69% Redmin Single Side
+July 07//22//26 SC Power Board 1695 1695 0 0.00% Fridge Double Side
+July 07//23//26 KHI 12/24 Sinewave 259 248 11 4.25% External S Add Layer Please......
+July 07//23//26 Mobile Charger 500mA 17280 16894 386 2.23% Mobile Single Side
+July 07//23//26 TKG Button (Talukder) 10260 10249 11 0.11% Talukder Single Side
+July 07//23//26 Akij Button 15552 15547 5 0.03% Akij Single Side
+July 07//23//26 Common Toy LED Driver (Akij) 6300 6300 0 0.00% Akij Single Side
+July 07//23//26 SC Power Board 5878 5640 238 4.05% Fridge Double Side
+July 07//23//26 Electronic Thermostat V2 1572 1512 60 3.82% Fridge Double Side
+July 07//23//26 Smart Controller 2766 2682 84 3.04% Fridge Double Side
+July 07//25//26 SMPS US V3 4194 4038 156 3.72% Fridge Single Side
+July 07//25//26 Mobile Charger 500mA 18380 17996 384 2.09% Mobile Single Side
+July 07//25//26 CFL_V07 11844 11280 564 4.76% Fridge Single Side
+July 07//25//26 12VDC Square LED 1404 1404 0 0.00% Fridge Single Side
+July 07//25//26 RL-RS35-V04 683 635 48 7.03% Fridge Double Side
+July 07//25//26 Piano P1-V1.2 400 398 2 0.50% Switch Socket Double Side
+July 07//25//26 Smart Controller 96 90 6 6.25% Fridge Double Side
+July 07//25//26 Electronic Thermostat V2 1426 1414 12 0.84% Fridge Double Side
+July 07//25//26 Beverage Cooler L290-V3 290 290 0 0.00% Fridge Single Side
+July 07//25//26 2 Feet 20W 225 216 9 4.00% LED Light Single Side
+July 07//25//26 1 Feet DTDL 400 400 0 0.00% LED Light Single Side
+July 07//25//26 0.5 Feet Double Pad 840 840 0 0.00% LED Light Single Side
+July 07//26//26 SMPS US V3 1254 1134 120 9.57% Fridge Single Side
+July 07//26//26 Mobile Charger 500mA 9840 8688 1152 11.71% Mobile Single Side
+July 07//26//26 CFL_V07 3156 3072 84 2.66% Fridge Single Side
+July 07//26//26 12VDC Square LED 108 108 0 0.00% Fridge Single Side
+July 07//26//26 SS 22 22464 22455 9 0.04% External Single Side
+July 07//26//26 Piano P1-V1.2 960 954 6 0.63% Switch Socket Double Side
+July 07//26//26 Beverage Cooler L290-V3 20 20 0 0.00% Fridge Single Side
+July 07//26//26 Common Toy LED Controller (Talukder) 10250 10241 9 0.09% Talukder Single Side
+July 07//27//26 Arat Technology AR2 4998 4978 20 0.40% External S Add Layer Please......
+July 07//27//26 Fiona M2 8880 8873 7 0.08% Switch Socket Single Side
+July 07//27//26 Square LED (RLSS) 3 Chip 3024 3024 0 0.00% Fridge Double Side
+July 07//27//26 A8E4-138-R16 (XPC) 1534 1021 513 33.44% Switch Socket Single Side
+July 07//27//26 Fiona WH138 V1.2.2 75 73 2 2.67% Switch Socket Double Side
+July 07//27//26 Piano P1-V1.2 160 158 2 1.25% Switch Socket Double Side
+July 07//27//26 Smart Controller 1170 1098 72 6.15% Fridge Double Side
+July 07//27//26 1 Feet DTDL 2496 2200 296 11.86% LED Light Single Side
+July 07//28//26 1 Feet DTDL 5851 5603 248 4.24% LED Light Single Side
+July 07//28//26 Mobile Charger 500mA 1632 1560 72 4.41% Mobile Single Side
+July 07//28//26 Square LED (RLSS) 3 Chip 1080 360 720 66.67% Fridge Double Side
+July 07//28//26 Smart Controller 892 700 192 21.52% Fridge Double Side
+July 07//28//26 CFL_V07 564 564 0 0.00% Fridge Single Side
+July 07//28//26 SMPS US V3 222 138 84 37.84% Fridge Single Side
+July 07//28//26 SS 22 40976 40976 0 0.00% External Single Side
+July 07//29//26 Fiona M2 360 359 1 0.28% Switch Socket Single Side
+July 07//29//26 SC Power Board 3403 2878 525 15.43% Fridge Double Side
+July 07//29//26 Ionizer Blue 1500 1500 0 0.00% External S Add Layer Please......
+July 07//29//26 Mobile Charger 500mA 1728 1727 1 0.06% Mobile Single Side
+July 07//29//26 CFL_V07 695 659 36 5.18% Fridge Single Side
+July 07//29//26 SMPS US V3 990 954 36 3.64% Fridge Single Side
+July 07//29//26 SS 22 72275 72103 172 0.24% External Single Side
+July 07//29//26 Akij Toy Controller-V1.0 378 320 58 15.34% Akij Single Side
+July 07//29//26 Smps Us small 650 630 20 3.08% External S Add Layer Please......
+July 07//30//26 TV Socket 5176 5094 82 1.58% TV Single Side
+July 07//30//26 WRDC2S2 1326 1320 6 0.45% Fridge Double Side
+July 07//30//26 0.5 Feet Double Pad 20119 19888 231 1.15% LED Light Single Side
+July 07//30//26 1 Feet DTDL 18569 18393 176 0.95% LED Light Single Side
+July 07//30//26 A8E4-138-R16 (XPC) 4800 4768 32 0.67% Switch Socket Single Side
+July 07//30//26 Smart Controller 1814 1790 24 1.32% Fridge Double Side
+July 07//30//26 Mobile Charger 2A 430 420 10 2.33% Mobile Single Side
+July 07//30//26 SP 12W Round 96 95 1 1.04% LED Light Single Side
+August 08//01//26 A8E4-138-R16 (XPC) 7453 7441 12 0.16% Switch Socket Single Side
+August 08//01//26 1 Feet DTDL 136 120 16 11.76% LED Light Single Side
+August 08//01//26 0.5 Feet Double Pad 126 126 0 0.00% LED Light Single Side
+August 08//01//26 SP 12W Round 1811 1796 15 0.83% LED Light Single Side
+August 08//01//26 4 Feet (40W DTDL) 4335 4334 1 0.02% LED Light Single Side
+August 08//01//26 Akij Toy Controller-V1.0 6030 5760 270 4.48% Akij Single Side
+August 08//02//26 Akij Toy Controller-V1.0 9870 9239 631 6.39% Akij Single Side
+August 08//02//26 4 Feet (40W DTDL) 714 714 0 0.00% LED Light Single Side
+August 08//02//26 RL-RS35-V04 2280 2262 18 0.79% Fridge Double Side
+August 08//02//26 17" LPF SMD Fan 216 213 3 1.39% Fan Single Side
+August 08//02//26 A8E4-138-R16 (XPC) 428 428 0 0.00% Switch Socket Single Side
+August 08//03//26 A8E4-138-R16 (XPC) 384 374 10 2.60% Switch Socket Single Side
+August 08//03//26 Smart Controller 1180 994 186 15.76% Fridge Double Side
+August 08//03//26 Beverage Cooler (337) 88 77 11 12.50% Fridge Single Side
+August 08//03//26 1 Feet DTDL 480 479 1 0.21% LED Light Single Side
+August 08//03//26 Square LED (RLSS) 3 Chip 612 575 37 6.05% Fridge Double Side
+August 08//03//26 SMPS US V3 36 36 0 0.00% Fridge Single Side
+August 08//03//26 UHK Trade SS Regulator 12740 12660 80 0.63% External Single Side
+August 08//04//26 UHK Trade SS Regulator 13242 12960 282 2.13% External Single Side
+August 08//04//26 Piano P1-V1.2 7500 7500 0 0.00% Switch Socket Double Side
+August 08//08//26 EPS-Power IPS 204 203 1 0.49% External S Add Layer Please......
+August 08//08//26 WRDC2S2 138 122 16 11.59% Fridge Double Side
+August 08//08//26 UHK Trade SS Regulator 32922 32878 44 0.13% External Single Side
+August 08//08//26 Tip Top Elections 114 106 8 7.02% External S Add Layer Please......
+August 08//09//26 Piano P1-V1.2 17886 17386 500 2.80% Switch Socket Double Side
+August 08//09//26 UHK Trade SS Regulator 200 194 6 3.00% External Single Side
+August 08//09//26 Tip Top Electronics 348 343 5 1.44% External S Add Layer Please......
+August 08//09//26 Samcon Elections B-9766 756 744 12 1.59% External S Add Layer Please......
+August 08//10//26 Samcon Elections B-9766 1651 1604 47 2.85% External S Add Layer Please......
+August 08//10//26 Reed Sensor 34 34 0 0.00% External S Add Layer Please......
+August 08//10//26 Multi 3Model GAS DIP+SNM+Low 840 838 2 0.24% External S Add Layer Please......
+August 08//11//26 Samcon Elections B-9766 1484 1464 20 1.35% External S Add Layer Please......
+August 08//11//26 Fiona WH138 V1.2.2 12492 12420 72 0.58% Switch Socket Double Side
+August 08//12//26 Fiona WH138 V1.2.2 20707 17647 3060 14.78% Switch Socket Double Side
+August 08//12//26 Beverage Cooler (337) 4048 3960 88 2.17% Fridge Single Side
+August 08//12//26 Piano P1-V1.2 11370 8220 3150 27.70% Switch Socket Double Side
+August 08//12//26 Masudur Key Pad 312 307 5 1.60% External S Add Layer Please......
+August 08//12//26 Samcon Elections B-9766 444 441 3 0.68% External S Add Layer Please......
+August 08//12//26 Samcon Elections B-9762 1343 1238 105 7.82% External S Add Layer Please......
+August 08//13//26 Samcon Elections B-9762 1263 1221 42 3.33% External S Add Layer Please......
+August 08//13//26 Beverage Cooler (337) 7469 7333 136 1.82% Fridge Single Side
+August 08//13//26 SC Power Board 8579 8354 225 2.62% Fridge Double Side
+August 08//13//26 R-LED-PCCL 9097 8943 154 1.69% External S Add Layer Please......
+August 08//13//26 12V Dc + Deep 344 344 0 0.00% External S Add Layer Please......
+August 08//13//26 Multi Robin 2 Model 66 66 0 0.00% External S Add Layer Please......
+August 08//13//26 Multi Gardian Masadur+Shahinur+SW+Gerber N9721(sohag) 834 832 2 0.24% External S Add Layer Please......
+August 08//14//26 Fiona WH138 V1.2.2 3165 3135 30 0.95% Switch Socket Double Side
+August 08//14//26 Smart Controller 1476 1415 61 4.13% Fridge Double Side
+August 08//14//26 WR-343-CTW-LED-V2 2996 2940 56 1.87% Fridge Single Side
+August 08//14//26 SBS-RFPL 619L 936 936 0 0.00% External S Add Layer Please......
+August 08//14//26 SK-Alif Elections 807 797 10 1.24% External S Add Layer Please......
+August 08//14//26 SC Power Board 8415 5505 2910 34.58% Fridge Double Side
+August 08//14//26 Samcon Elections B-0966 2027 1607 420 20.72% External S Add Layer Please......
+August 08//15//26 Samcon Elections B-0966 3768 3666 102 2.71% External S Add Layer Please......
+August 08//15//26 WRDC2S2 3817 3749 68 1.78% Fridge Double Side
+August 08//15//26 Smart Controller 3006 2616 390 12.97% Fridge Double Side
+August 08//15//26 SMPS US V3 1740 1578 162 9.31% Fridge Single Side
+August 08//15//26 Piano P1-V1.2 7030 7030 0 0.00% Switch Socket Double Side
+August 08//15//26 Sk Alif Elections 484 481 3 0.62% External S Add Layer Please......
+August 08//15//26 Multi Arfa+ General IPS + TSK 120 60 60 50.00% External S Add Layer Please......
+August 08//16//26 Samcon B-9766 616 600 16 2.60% External S Add Layer Please......
+August 08//16//26 Samcon B-0966 4356 4211 145 3.33% External S Add Layer Please......
+August 08//16//26 Spot Down 7W round 1848 1560 288 15.58% LED Light Single Side
+August 08//16//26 SMPS US V3 3824 3728 96 2.51% Fridge Single Side
+August 08//16//26 SK Alif Elections 615 612 3 0.49% External S Add Layer Please......
+August 08//16//26 Piano P1-V1.2 4360 4359 1 0.02% Switch Socket Double Side
+August 08//16//26 R-LED-PCCL 1045 1035 10 0.96% Fridge Single Side
+August 08//16//26 Rotary Step Switch 1080 1080 0 0.00% Fridge Single Side
+August 08//16//26 PC Panel (RPPL-619L) 936 831 105 11.22% Fridge Single Side
+August 08//16//26 SC Power Board 8575 7131 1444 16.84% External S Add Layer Please......
+August 08//17//26 Samcon B-9766 58 58 0 0.00% External S Add Layer Please......
+August 08//17//26 Samcon B-9762 112 112 0 0.00% External S Add Layer Please......
+August 08//17//26 Samcon B-0966 598 593 5 0.84% External S Add Layer Please......
+August 08//17//26 SK Alif Elections 170 170 0 0.00% External S Add Layer Please......
+August 08//17//26 SMPS US V3 588 588 0 0.00% Fridge Single Side
+August 08//17//26 Piano P1-V1.2 29626 29356 270 0.91% Switch Socket Double Side
+August 08//17//26 Trust Regulator 2736 2736 0 0.00% Switch Socket Double Side
+August 08//17//26 Beverage Cooler L290-V3 7300 7170 130 1.78% Fridge Single Side
+August 08//17//26 Beverage Cooler (337) 2354 2275 79 3.36% Fridge Single Side
+August 08//18//26 SK Alif Sukam 300 291 9 3.00% External S Add Layer Please......
+August 08//18//26 General IPS HIP 4082 & F26LCD 4004 3937 67 1.67% External S Add Layer Please......
+August 08//18//26 Square LED (RLSS) 3 Chip 20592 20124 468 2.27% Fridge Double Side
+August 08//18//26 SMPS US V3 5988 5508 480 8.02% Fridge Single Side
+August 08//18//26 Trust Regulator 2280 2279 1 0.04% Switch Socket Double Side
+August 08//18//26 Beverage Cooler L290-V3 7356 7166 190 2.58% Fridge Single Side
+August 08//18//26 SC Power Board 810 795 15 1.85% Fridge Double Side
+August 08//19//26 RL-RS35-V04 25224 25176 48 0.19% Fridge Double Side
+August 08//19//26 SC Power Board 4135 3445 690 16.69% Fridge Double Side
+August 08//19//26 Fiona WH138 V1.2.2 14880 14798 82 0.55% Switch Socket Double Side
+August 08//19//26 Glory + Luxur 11264 11264 0 0.00% Switch Socket Double Side
+August 08//20//26 Piano P1-V1.2 6873 6869 4 0.06% Switch Socket Double Side
+August 08//20//26 Fiona WH138 V1.2.2 1634 1632 2 0.12% Switch Socket Double Side
+August 08//20//26 SC Power Board 9075 8910 165 1.82% Fridge Double Side
+August 08//20//26 Smart Controller 13805 13307 498 3.61% Fridge Double Side
+August 08//21//26 Fiona WH138 V1.2.2 4860 4830 30 0.62% Switch Socket Double Side
+August 08//21//26 Smart Controller 7068 6984 84 1.19% Fridge Double Side
+August 08//21//26 SC Power Board 3765 3690 75 1.99% Fridge Double Side
+August 08//21//26 RL-RS35-V04 25204 24892 312 1.24% Fridge Double Side
+August 08//22//26 Multi HN DSP_B+HN DSP 918 901 17 1.85% External S Add Layer Please......
+August 08//22//26 Fiona WH138 V1.2.2 7965 7921 44 0.55% Switch Socket Double Side
+August 08//22//26 SC Power Board 9886 9750 136 1.38% Fridge Double Side
+August 08//23//26 Multi 3 Model Compressor & Freeze 112 103 9 8.04% External S Add Layer Please......
+August 08//23//26 SC Power Board 8624 1349 7275 84.36% Fridge Double Side
+August 08//23//26 SMPS US V3 2696 2684 12 0.45% Fridge Single Side
+August 08//23//26 RL-RS35-V04 54936 54144 792 1.44% Fridge Double Side
+August 08//23//26 Spot Down 7W round 792 336 456 57.58% LED Light Single Side
+August 08//23//26 SP 12W Round 1715 1415 300 17.49% LED Light Single Side
+August 08//24//26 SP 12W Round 10932 8640 2292 20.97% LED Light Single Side
+August 08//24//26 4 Feet (2P50C) 2669 2577 92 3.45% LED Light Single Side
+August 08//24//26 4 Feet (40W DTDL) 68 68 0 0.00% LED Light Single Side
+August 08//24//26 SMPS US V3 846 840 6 0.71% Fridge Single Side
+August 08//24//26 WRDC2S2 4398 4332 66 1.50% Fridge Double Side
+August 08//24//26 Fiona WH138 V1.2.2 1350 1296 54 4.00% Switch Socket Double Side
+August 08//24//26 Multi RH-M1&RH-M2 286 242 44 15.38% External S Add Layer Please......
+August 08//25//26 Multi RH-M1&RH-M2 1095 1095 0 0.00% External S Add Layer Please......
+August 08//25//26 4 Feet (2P50C) 2346 2312 34 1.45% LED Light Single Side
+August 08//25//26 SP 12W Round 2544 2544 0 0.00% LED Light Single Side
+August 08//25//26 Smart Controller 4338 4320 18 0.41% Fridge Double Side
+August 08//25//26 Multi HN Dsp 10 10 0 0.00% External S Add Layer Please......
+August 08//25//26 HN Power Sukam 510 508 2 0.39% External S Add Layer Please......
+August 08//26//26 Smart Controller 3750 3750 0 0.00% Fridge Double Side
+August 08//26//26 Piano P1-V1.2 18007 18007 0 0.00% Switch Socket Double Side
+August 08//26//26 Safety Plus-1725 127 127 0 0.00% External S Add Layer Please......
+August 08//26//26 BJIT Safpro 240 240 0 0.00% External S Add Layer Please......
+August 08//27//26 Safety Plus 1725 868 856 12 1.38% External S Add Layer Please......
+August 08//27//26 Piano P1-V1.2 7520 7520 0 0.00% Switch Socket Double Side
+August 08//27//26 Fiona WH138 V1.2.2 6280 6280 0 0.00% Switch Socket Double Side
+August 08//27//26 Beverage Cooler L290-V3 3550 3448 102 2.87% Fridge Single Side
+August 08//27//26 Multi RH-M1&RH-M2 79 79 0 0.00% External S Add Layer Please......
+August 08//28//26 Piano P1-V1.2 22384 22327 57 0.25% Switch Socket Double Side
+August 08//28//26 Beverage Cooler (337) 2459 2140 319 12.97% Fridge Single Side
+August 08//28//26 Beverage Cooler L290-V3 2190 2140 50 2.28% Fridge Single Side
+August 08//29//26 Beverage Cooler (337) 4034 3957 77 1.91% Fridge Single Side
+August 08//29//26 Electronic Thermostat V2 3043 2934 109 3.58% Fridge Double Side
+August 08//29//26 WRDC2S2 966 966 0 0.00% Fridge Double Side
+August 08//29//26 Square LED (RLSS) 3 Chip 27216 26640 576 2.12% Fridge Double Side
+August 08//29//26 SC Power Board 14490 12375 2115 14.60% Fridge Double Side
+August 08//29//26 RL-RS35-V04 15313 13920 1393 9.10% Fridge Double Side
+August 08//29//26 17" LPF SMD Fan 576 560 16 2.78% Fan Single Side
+August 08//30//26 RL-RS35-V04 17575 17071 504 2.87% Fridge Double Side
+August 08//30//26 Smart Controller 2913 2323 590 20.25% Fridge Double Side
+August 08//30//26 Piano P1-V1.2 15350 15331 19 0.12% Switch Socket Double Side
+August 08//30//26 Beverage Cooler L290-V3 12587 12347 240 1.91% Fridge Single Side
+August 08//30//26 SMPS US V3 342 324 18 5.26% Fridge Single Side
+August 08//30//26 Electronic Thermostat V2 2023 1865 158 7.81% Fridge Double Side
+August 08//31//26 SMPS US V3 15116 14624 492 3.25% Fridge Single Side
+August 08//31//26 Smart Controller 1176 1170 6 0.51% Fridge Double Side
+August 08//31//26 Piano P1-V1.2 21320 21320 0 0.00% Switch Socket Double Side
+August 08//31//26 SC Power Board 8762 8535 227 2.59% Fridge Double Side
+September 09//01//26 Piano P1-V1.2 22590 22563 27 0.12% Switch Socket Double Side
+September 09//01//26 Beverage Cooler (337) 429 407 22 5.13% Fridge Single Side
+September 09//01//26 Beverage Cooler L290-V3 2400 2200 200 8.33% Fridge Single Side
+September 09//01//26 Samcon B-9889 2320 2261 59 2.54% External S Add Layer Please......
+September 09//01//26 Smart Controller 1098 1092 6 0.55% Fridge Double Side
+September 09//01//26 Spot Down 7W LED 132 132 0 0.00% External S Add Layer Please......
+September 09//01//26 SMPS US V3 1338 1266 72 5.38% Fridge Single Side
+September 09//02//26 Smile & Micky (RFL) 14112 13894 218 1.54% RFL Single Side
+September 09//02//26 SMPS US V3 3966 3696 270 6.81% Fridge Single Side
+September 09//02//26 Piano P1-V1.2 11140 11137 3 0.03% Switch Socket Double Side
+September 09//02//26 Fiona WH138 V1.2.2 4200 4200 0 0.00% Switch Socket Double Side
+September 09//02//26 Samcon B-9889 2007 1985 22 1.10% External S Add Layer Please......
+September 09//03//26 Samcon B-9889 5021 4949 0 0.00% External S Add Layer Please......
+September 09//03//26 Fiona WH138 V1.2.2 17350 17214 0 0.00% Switch Socket Double Side
+September 09//03//26 Piano P1-V1.2 14379 14377 0 0.00% Switch Socket Double Side
+September 09//04//26 Piano P1-V1.2 1970 1940 0 0.00% Switch Socket Double Side
+September 09//04//26 Fiona WH138 V1.2.2 13228 11848 0 0.00% Switch Socket Double Side
+September 09//04//26 SS 22 87401 86632 0 0.00% External Single Side
+September 09//04//26 Smile & Micky (RFL) 16188 15769 0 0.00% RFL Single Side
+September 09//05//26 IOT-SCDIS With Indicator 32 32 0 0.00% External S Add Layer Please......
+September 09//05//26 SS 22 62320 59836 2484 3.99% External Single Side
+September 09//05//26 Smile & Micky (RFL) 363 363 0 0.00% RFL Single Side
+September 09//05//26 Akij Toy Controller-V1.0 990 987 3 0.30% Akij Single Side
+September 09//05//26 Fiona WH138 V1.2.2 759 752 7 0.92% Switch Socket Double Side
+September 09//05//26 Piano P1-V1.2 37840 37833 7 0.02% Switch Socket Double Side
+September 09//05//26 Samcon Elections B-9889 851 851 0 0.00% External S Add Layer Please......
+September 09//06//26 UHK Trade SS Regulator 41783 41740 43 0.10% External Single Side
+September 09//06//26 Piano P1-V1.2 13600 13595 5 0.04% Switch Socket Double Side
+September 09//06//26 Gerber N9721 Sohag 2894 2864 30 1.04% External S Add Layer Please......
+September 09//06//26 IOT SCDIS With Indicator 76 73 3 3.95% External S Add Layer Please......
+September 09//06//26 Fiona WH138 V1.2.2 5865 5865 0 0.00% Switch Socket Double Side
+September 09//06//26 Beverage Cooler (337) 660 649 11 1.67% Fridge Single Side
+September 09//06//26 Electronic Thermostat V2 3624 3514 110 3.04% Fridge Double Side
+September 09//06//26 SMPS US V3 864 834 30 3.47% Fridge Single Side
+September 09//07//26 SMPS US V3 3102 3072 30 0.97% Fridge Single Side
+September 09//07//26 WRDC2S2 5685 5577 108 1.90% Fridge Double Side
+September 09//07//26 Common Toy LED Driver (Akij) 41756 41428 328 0.79% Akij Single Side
+September 09//07//26 Garber N 9721 2736 2720 16 0.58% External S Add Layer Please......
+September 09//07//26 Piano P1-V1.2 30355 28640 1715 5.65% Switch Socket Double Side
+September 09//08//26 4 Feet (2P50C) 2939 2888 51 1.74% LED Light Single Side
+September 09//08//26 Keya Home IPS 510 500 10 1.96% External S Add Layer Please......
+September 09//08//26 Piano P1-V1.2 25995 24440 1555 5.98% Switch Socket Double Side
+September 09//09//26 Piano P1-V1.2 15149 15112 37 0.24% Switch Socket Double Side
+September 09//09//26 RL-RS35-V04 11400 11304 96 0.84% Fridge Double Side
+September 09//09//26 Smart Controller 9570 9294 276 2.88% Fridge Double Side
+September 09//09//26 4 Feet (2P50C) 2040 1902 138 6.76% LED Light Single Side
+September 09//09//26 Moon Light PCB-0.5w 14256 12284 1972 13.83% LED Light Single Side
+September 09//10//26 Fiona WH138 V1.2.2 11430 6600 4830 42.26% Switch Socket Double Side
+September 09//10//26 Piano P1-V1.2 24961 14368 10593 42.44% Switch Socket Double Side
+September 09//10//26 Square LED (RLSS) 3 Chip 6760 6616 144 2.13% Fridge Double Side
+September 09//10//26 Electronic Thermostat V2 324 324 0 0.00% Fridge Double Side
+September 09//10//26 SMPS US V3 7494 7332 162 2.16% Fridge Single Side
+September 09//10//26 Smart Controller 732 710 22 3.01% Fridge Double Side
+September 09//10//26 Beverage Cooler L290-V3 130 130 0 0.00% Fridge Single Side
+September 09//10//26 Beverage Cooler (337) 22 22 0 0.00% Fridge Single Side
+September 09//10//26 UHK Trade SS Regulator 10160 10155 5 0.05% External Single Side
+September 09//10//26 SS 22 3117 3116 1 0.03% External Single Side
+September 09//12//26 Piano P1-V1.2 20746 20737 9 0.04% Switch Socket Double Side
+September 09//12//26 Fiona WH138 V1.2.2 9994 9859 135 1.35% Switch Socket Double Side
+September 09//12//26 SC Power Board 1545 1530 15 0.97% Fridge Double Side
+September 09//12//26 WR-343-CTW-LED-V2 3052 2828 224 7.34% Fridge Single Side
+September 09//12//26 R-LED-PCCL 2255 2200 55 2.44% Fridge Single Side
+September 09//12//26 FC Panel (RFPL-619L) 1222 1079 143 11.70% Fridge Single Side
+September 09//12//26 4 Feet (2P50C) 3060 2975 85 2.78% LED Light Single Side
+September 09//13//26 4 Feet (2P50C) 1921 1834 87 4.53% LED Light Single Side
+September 09//13//26 Akij Toy Controller-V1.0 14100 13832 268 1.90% Akij Single Side
+September 09//13//26 Rotary Step Switch 2592 2555 37 1.43% Fridge Single Side
+September 09//13//26 R-LED-PCCL 6533 6170 363 5.56% Fridge Single Side
+September 09//13//26 FC Panel (RFPL-619L) 2002 1846 156 7.79% Fridge Single Side
+September 09//13//26 WR-343-CTW-LED-V2 182 126 56 30.77% Fridge Single Side
+September 09//13//26 PC Panel (RPPL-619L) 3133 2886 247 7.88% Fridge Single Side
+September 09//14//26 A8E4-138-R16 (XPC) 2272 2268 4 0.18% Switch Socket Single Side
+September 09//14//26 Piano P1-V1.2 3200 3200 0 0.00% Switch Socket Double Side
+September 09//14//26 TV Socket 15300 15292 8 0.05% TV Single Side
+September 09//14//26 SMPS US V3 2124 2082 42 1.98% Fridge Single Side
+September 09//14//26 Moon Light PCB-0.5w 14304 12768 1536 10.74% LED Light Single Side
+September 09//14//26 Fiona WH138 V1.2.2 3030 3014 16 0.53% Switch Socket Double Side
+September 09//14//26 Common Toy LED Controller (Talukder) 9700 9660 40 0.41% Talukder Single Side
+September 09//14//26 R-LED-PCCL 1320 1140 180 13.64% Fridge Single Side
+September 09//15//26 Moon Light PCB-0.5w 50114 46312 3802 7.59% LED Light Single Side
+September 09//15//26 Common Toy LED Controller (Talukder) 270 260 10 3.70% Talukder Single Side
+September 09//15//26 Ionizer LED (SBS 656 ) 1020 990 30 2.94% Fridge Single Side
+September 09//15//26 Ionizer LED (RPIL 619L) 2040 1462 578 28.33% Fridge Single Side
+September 09//15//26 4 Feet (2P50C) 2397 2363 34 1.42% LED Light Single Side
+September 09//15//26 A8E4-138-R16 (XPC) 8000 8000 0 0.00% Switch Socket Single Side
+September 09//15//26 Fiona WH138 V1.2.2 7125 7110 15 0.21% Switch Socket Double Side
+September 09//15//26 Piano P1-V1.2 8076 8066 10 0.12% Switch Socket Double Side
+September 09//16//26 Piano P1-V1.2 13919 13770 149 1.07% Switch Socket Double Side
+September 09//16//26 A8E4-138-R16 (XPC) 4659 4655 4 0.09% Switch Socket Single Side
+September 09//16//26 Electronic Thermostat V2 336 59 277 82.44% Fridge Double Side
+September 09//16//26 SBS 656 (RPDHL+RFDHL) 432 432 0 0.00% Fridge Single Side
+September 09//16//26 Mobile Charger 500mA 9576 8880 696 7.27% Mobile Single Side
+September 09//16//26 Glory + Luxur 8448 8445 3 0.04% Switch Socket Double Side
+September 09//16//26 Trust Regulator 2736 2736 0 0.00% Switch Socket Double Side
+September 09//16//26 Ionizer LED (RPIL 619L) 578 578 0 0.00% Fridge Single Side
+September 09//16//26 Ionizer LED (SBS 656 ) 12 12 0 0.00% Fridge Single Side
+September 09//16//26 4 Feet (2P50C) 3586 3586 0 0.00% LED Light Single Side
+September 09//17//26 Piano P1-V1.2 17822 17780 42 0.24% Switch Socket Double Side
+September 09//17//26 Battery Changeable 12600 12593 7 0.06% External S Add Layer Please......
+September 09//17//26 Akij Button 14976 14976 0 0.00% Akij Single Side
+September 09//17//26 TKG Button (Talukder) 10260 10259 1 0.01% Talukder Single Side
+September 09//17//26 Glory + Luxur 34408 34406 2 0.01% Switch Socket Double Side
+September 09//18//26 4 Feet (40W DTDL) 6749 6560 189 2.80% LED Light Single Side
+September 09//18//26 Glory + Luxur 4336 4333 3 0.07% Switch Socket Double Side
+September 09//18//26 WRDC2S2 5262 5232 30 0.57% Fridge Double Side
+September 09//18//26 Piano P1-V1.2 4112 4111 1 0.02% Switch Socket Double Side
+September 09//18//26 SMPS US V3 713 629 84 11.78% Fridge Single Side
+September 09//18//26 Fiona WH138 V1.2.2 3063 3000 63 2.06% Switch Socket Double Side
+September 09//19//26 Fiona WH138 V1.2.2 3435 3240 195 5.68% Switch Socket Double Side
+September 09//19//26 Piano P1-V1.2 11355 11355 0 0.00% Switch Socket Double Side
+September 09//19//26 Smart Controller 8118 7446 672 8.28% Fridge Double Side
+September 09//19//26 1 Feet DTDL 8814 8750 64 0.73% LED Light Single Side
+September 09//19//26 Redmin Toy Controller 5346 5344 2 0.04% External S Add Layer Please......
+September 09//20//26 Redmin Toy Controller 9801 9794 7 0.07% External S Add Layer Please......
+September 09//20//26 Mobile Charger 500mA 22128 21432 696 3.15% Mobile Single Side
+September 09//20//26 Beverage Cooler L290-V3 4310 4248 62 1.44% Fridge Single Side
+September 09//20//26 Sun Power Model-2 PCB 168 160 8 4.76% External S Add Layer Please......
+September 09//20//26 4 Feet (40W DTDL) 2533 2465 68 2.68% LED Light Single Side
+September 09//20//26 0.5 Feet Double Pad 8218 8203 15 0.18% LED Light Single Side
+September 09//20//26 Fiona WH138 V1.2.2 7294 7287 7 0.10% Switch Socket Double Side
+September 09//21//26 Mobile Charger 500mA 11001 10521 480 4.36% Mobile Single Side
+September 09//21//26 4 Feet (40W DTDL) 10047 9874 173 1.72% LED Light Single Side
+September 09//21//26 R-LED-PCCL 4158 3988 170 4.09% Fridge Single Side
+September 09//21//26 Beverage Cooler L290-V3 5497 5337 160 2.91% Fridge Single Side
+September 09//21//26 Battery Changeable 17707 17338 369 2.08% External S Add Layer Please......
+September 09//21//26 Multi Sun Power Model-1 & GILDAN_HMI 32 20 12 37.50% External S Add Layer Please......
+September 09//21//26 SMPS US V3 2141 2124 17 0.79% Fridge Single Side
+September 09//22//26 SMPS US V3 2141 2099 42 1.96% Fridge Single Side
+September 09//22//26 Piano P1-V1.2 26820 25750 1070 3.99% Switch Socket Double Side
+September 09//22//26 Samcon B-9889 2752 2671 81 2.94% External S Add Layer Please......
+September 09//22//26 Rotary Step Switch 2988 2879 109 3.65% Fridge Single Side
+September 09//22//26 Smart Controller 3306 2742 564 17.06% Fridge Double Side
+September 09//22//26 Common Toy LED Driver (Talukder) 10017 9944 73 0.73% Talukder Single Side
+September 09//22//26 4 Feet (40W DTDL) 255 255 0 0.00% LED Light Single Side
+September 09//22//26 WRDC2S2 1788 1782 6 0.34% Fridge Double Side
+September 09//22//26 WR-343-CTW-LED-V2 2086 1960 126 6.04% Fridge Single Side
+September 09//22//26 Fiona WH138 V1.2.2 1620 1575 45 2.78% Switch Socket Double Side
+September 09//23//26 Samcon B-9889 1910 1872 38 1.99% External S Add Layer Please......
+September 09//23//26 WRDC2S2 612 534 78 12.75% Fridge Double Side
+September 09//23//26 Piano P1-V1.2 10360 9590 770 7.43% Switch Socket Double Side
+September 09//23//26 SC Power Board 2100 2100 0 0.00% Fridge Double Side
+September 09//23//26 Smart Controller 4020 3720 300 7.46% Fridge Double Side
+September 09//24//26 4 Feet (40W DTDL) 3400 3394 6 0.18% LED Light Single Side
+September 09//24//26 WRDC2S2 9876 9822 54 0.55% Fridge Double Side
+September 09//24//26 Advance Trading 10005 9916 89 0.89% External S Add Layer Please......
+September 09//24//26 Fiona WH138 V1.2.2 2820 2775 45 1.60% Switch Socket Double Side
+September 09//24//26 SMPS US V3 618 616 2 0.32% Fridge Single Side
+September 09//24//26 SC Power Board 1245 1220 25 2.01% Fridge Double Side
+September 09//24//26 Wybli-WDC 26098 1014 1014 0 0.00% External S Add Layer Please......
+September 09//24//26 Golden Wheel Toy Controller 15165 14875 290 1.91% External S Add Layer Please......
+September 09//24//26 Keya Homes IPS 504 485 19 3.77% External S Add Layer Please......
+September 09//25//26 Square LED (RLSS) 3 Chip 7596 7416 180 2.37% Fridge Double Side
+September 09//25//26 SC Power Board 9052 8902 150 1.66% Fridge Double Side
+September 09//25//26 Smart Controller 3012 2736 276 9.16% Fridge Double Side
+September 09//26//26 Smart Controller 2166 1916 250 11.54% Fridge Double Side
+September 09//26//26 Cherger Controller 30 29 1 3.33% External S Add Layer Please......
+September 09//26//26 4 Feet (2P50C) 1462 1394 68 4.65% LED Light Single Side
+September 09//26//26 4 Feet (40W DTDL) 4948 4692 256 5.17% LED Light Single Side
+September 09//26//26 WRDC2S2 1106 986 120 10.85% Fridge Double Side
+September 09//26//26 Square LED (RLSS) 3 Chip 2337 2265 72 3.08% Fridge Double Side
+September 09//26//26 RL-RS35-V04 2278 2254 24 1.05% Fridge Double Side
+September 09//26//26 Samcon B-9889 47 47 0 0.00% External S Add Layer Please......
+September 09//27//26 4 Feet (2P50C) 17 17 0 0.00% LED Light Single Side
+September 09//27//26 4 Feet (40W DTDL) 187 187 0 0.00% LED Light Single Side
+September 09//27//26 WRDC2S2 527 503 24 4.55% Fridge Double Side
+September 09//27//26 Smart Controller 2244 2220 24 1.07% Fridge Double Side
+September 09//27//26 CFL_V07 11496 10872 624 5.43% Fridge Single Side
+September 09//27//26 Piano P1-V1.2 1340 1336 4 0.30% Switch Socket Double Side
+September 09//27//26 RL-RS35-V04 432 345 87 20.14% Fridge Double Side
+September 09//27//26 R-LED-PCCL 176 176 0 0.00% Fridge Single Side
+September 09//27//26 WR-343-CTW-LED-V2 126 98 28 22.22% Fridge Single Side
+September 09//27//26 Beverage Cooler L290-V3 150 140 10 6.67% Fridge Single Side
+September 09//27//26 Modern Power Ips 350 240 110 31.43% External S Add Layer Please......
+September 09//27//26 Dutch IPS 504 482 22 4.37% External S Add Layer Please......
+September 09//28//26 CFL_V07 600 600 0 0.00% Fridge Single Side
+September 09//28//26 Ligal Power Ips 204 198 6 2.94% External S Add Layer Please......
+September 09//28//26 T.S Power Ips 504 490 14 2.78% External S Add Layer Please......
+September 09//28//26 Beverage Cooler (337) 160 160 0 0.00% Fridge Single Side
+September 09//28//26 SMPS US V3 3744 3480 264 7.05% Fridge Single Side
+September 09//28//26 Modern Power Ips 57 57 0 0.00% External S Add Layer Please......
+September 09//28//26 UHK Trade SS Regulator 3600 3595 5 0.14% External Single Side
+September 09//28//26 Smart Controller 209 179 30 14.35% Fridge Double Side
+September 09//28//26 WR-343-CTW-LED-V2 812 798 14 1.72% Fridge Single Side
+September 09//28//26 Beverage Cooler L290-V3 160 140 20 12.50% Fridge Single Side
+September 09//28//26 Piano P1-V1.2 650 610 40 6.15% Switch Socket Double Side
+September 09//28//26 WRDC2S2 1658 1589 69 4.16% Fridge Double Side
+September 09//28//26 Square LED (RLSS) 3 Chip 1680 1644 36 2.14% Fridge Double Side
+September 09//28//26 Samcon B-9889 240 240 0 0.00% External S Add Layer Please......
+September 09//28//26 SC Power Board 265 205 60 22.64% Fridge Double Side
+September 09//28//26 RL-RS35-V04 1560 1404 156 10.00% Fridge Double Side
+September 09//29//26 SMPS US V3 3996 3906 90 2.25% Fridge Single Side
+September 09//29//26 Mobile Charger 500mA 1656 1632 24 1.45% Mobile Single Side
+September 09//29//26 Moon Light PCB-0.5w 192 192 0 0.00% LED Light Single Side
+September 09//29//26 SP 12W Round 72 60 12 16.67% LED Light Single Side
+September 09//29//26 Dutch Ips 10 10 0 0.00% External S Add Layer Please......
+September 09//29//26 Ligal Ips 1 1 0 0.00% External S Add Layer Please......
+September 09//30//26 Akij Button 20640 20613 27 0.13% Akij Single Side
+September 09//30//26 SMPS US V3 5910 5760 150 2.54% Fridge Single Side
+September 09//30//26 Piano P1-V1.2 1110 1050 60 5.41% Switch Socket Double Side
+October 10//01//26 Piano P1-V1.2 2729 2729 0 0.00% Switch Socket Double Side
+October 10//01//26 Fiona WH138 V1.2.2 1500 1500 0 0.00% Switch Socket Double Side
+October 10//01//26 7w LED 216 168 48 22.22% External S Add Layer Please......
+October 10//01//26 SC Power Board 3420 3300 120 3.51% Fridge Double Side
+October 10//01//26 Modern Power IPS 132 125 7 5.30% External S Add Layer Please......
+October 10//01//26 SMPS US V3 1674 1644 30 1.79% Fridge Single Side
+October 10//01//26 Keya Home Ips 6 6 0 0.00% External S Add Layer Please......
+October 10//01//26 KHI 12/24 Sinewave 5 5 0 0.00% External S Add Layer Please......
+October 10//03//26 Fiona WH138 V1.2.2 10733 10478 255 2.38% Switch Socket Double Side
+October 10//03//26 SC Power Board 1890 1845 45 2.38% Fridge Double Side
+October 10//03//26 General Ips 8 Mos 444 360 84 18.92% External S Add Layer Please......
+October 10//04//26 General Ips 08 Mos 71 46 25 35.21% External S Add Layer Please......
+October 10//04//26 Akij Toy Controller-V1.0 4320 4319 1 0.02% Akij Single Side
+October 10//04//26 Akij Toy Led Driver 18144 18076 68 0.37% External S Add Layer Please......
+October 10//04//26 Piano P1-V1.2 10831 10831 0 0.00% Switch Socket Double Side
+October 10//04//26 SC Power Board 2805 2730 75 2.67% Fridge Double Side
+October 10//04//26 Multi 3Model 12+16+20 Mos 477 459 18 3.77% External S Add Layer Please......
+October 10//04//26 Modern Power IPS 81 78 3 3.70% External S Add Layer Please......
+October 10//05//26 4 Feet (2P50C) 1887 1664 223 11.82% LED Light Single Side
+October 10//05//26 Fiona WH138 V1.2.2 8404 8194 210 2.50% Switch Socket Double Side
+October 10//05//26 SMPS US V3 1344 1296 48 3.57% Fridge Single Side
+October 10//05//26 Golden Wheel Button 14114 14112 2 0.01% Golden Wheel Single Side
+October 10//05//26 CFL_V07 685 648 37 5.40% Fridge Single Side
+October 10//06//26 RL-RS35-V04 13008 11520 1488 11.44% Fridge Double Side
+October 10//06//26 CFL_V07 1440 1440 0 0.00% Fridge Single Side
+October 10//06//26 Multi Modern Power 252 245 7 2.78% External S Add Layer Please......
+October 10//06//26 Multi 3Model 12+16+20 Mos 704 683 21 2.98% External S Add Layer Please......
+October 10//07//26 Multi 3Model 12+16+20 Mos 365 347 18 4.93% External S Add Layer Please......
+October 10//07//26 Golden Wheel Button 6624 6622 2 0.03% Golden Wheel Single Side
+October 10//07//26 T.S M2(A-24) 1008 1007 1 0.10% External S Add Layer Please......
+October 10//07//26 4 Feet (2P50C) 2805 2380 425 15.15% LED Light Single Side
+October 10//07//26 Piano P1-V1.2 8380 7390 990 11.81% Switch Socket Double Side
+October 10//07//26 RL-RS35-V04 5232 5231 1 0.02% Fridge Double Side
+October 10//07//26 SMPS US V3 948 810 138 14.56% Fridge Single Side
+October 10//08//26 Piano P1-V1.2 8571 8555 16 0.19% Switch Socket Double Side
+October 10//08//26 4 Feet (2P50C) 2482 2312 170 6.85% LED Light Single Side
+October 10//08//26 General Ips 08Mos 119 115 4 3.36% External S Add Layer Please......
+October 10//08//26 Multi 3 model MA Electronics 576 560 16 2.78% External S Add Layer Please......
+October 10//08//26 Multi 3Model(12+16+20Mos) 21 21 0 0.00% External S Add Layer Please......
+October 10//10//26 Piano P1-V1.2 21974 21968 6 0.03% Switch Socket Double Side
+October 10//10//26 Multi 3 model MA Electronics 1040 1021 19 1.83% External S Add Layer Please......
+October 10//10//26 Energy World Ips-Ms100 504 492 12 2.38% External S Add Layer Please......
+October 10//10//26 SMPS US V3 378 378 0 0.00% Fridge Single Side

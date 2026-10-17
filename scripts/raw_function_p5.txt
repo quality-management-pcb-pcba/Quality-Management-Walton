@@ -1,0 +1,64 @@
+9-Jul-2026 Olvio_MM30 Null Rework Day Headset 1
+9-Jul-2026 Olvio_MM30 Null Rework Day Mic 4
+9-Jul-2026 Olvio_MM30 Null Rework Day RFCalibration 60
+9-Jul-2026 Olvio_MM30 Null Rework Day SimCard 4
+9-Jul-2026 Olvio_MM30 Null Rework Day Speaker 1
+9-Jul-2026 Olvio_MM30 Null Rework Day SWVersion 5
+9-Jul-2026 Olvio_MM30 Null Rework Day TCard 7
+9-Jul-2026 NEXG_N76 4/128 GB Mass Production Night Dead 2
+9-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night Headset 4
+10-Jul-2026 NEXG_N76 4/128 GB Mass Production Morning Dead 1
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Morning Headset 1
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Morning Mic 5
+10-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Morning Speaker 2
+10-Jul-2026 NEXG_N76 4/128 GB Mass Production Evening Speaker 1
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Day Dead 1
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Day Sensor 1
+11-Jul-2026 NEXG_N76 4/128 GB Mass Production Night RFCalibration 4
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night Headset 5
+11-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night Speaker 3
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Day Dead 3
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Day Bluetooth 1
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Night Dead 1
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Night GPS 1
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Night LCM 4
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Night LED 1
+12-Jul-2026 NEXG_N76 4/128 GB Mass Production Night RFCalibration 1
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night Headset 1
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night Mic 5
+12-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Night Speaker 1
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day Headset 8
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day Mic 2
+13-Jul-2026 NEXG_N76_Sub 4/128 GB Mass Production Day Speaker 2
+13-Jul-2026 NEXG_N76 4/128 GB Mass Production Night Dead 3
+13-Jul-2026 NEXG_N76 4/128 GB Mass Production Night MainCamera 1
+13-Jul-2026 NEXG_N76 4/128 GB Mass Production Night RFCalibration 1
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Day Dead 1
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Day SimCard 1
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Day WiFi 1
+14-Jul-2026 NEXG_N28 Pro 8/128 GB Rework Day LCM 2
+14-Jul-2026 NEXG_N28 Pro 8/128 GB Rework Day Receiver 1
+14-Jul-2026 NEXG_N28 Pro 8/128 GB Rework Day SimCard 3
+14-Jul-2026 NEXG_N28 Pro 8/128 GB Rework Day Touch 1
+14-Jul-2026 NEXG_N28 Pro 8/128 GB Rework Day Vibrator 1
+14-Jul-2026 NEXG_N28 Pro 8/128 GB Rework Day WiFi 1
+14-Jul-2026 Axion_A1100_i100 Null Rework Day Dead 2
+14-Jul-2026 Axion_A1100_i100 Null Rework Day RFCalibration 2
+14-Jul-2026 Axion_A1100_i100 Null Rework Day TCard 1
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Night Receiver 6
+14-Jul-2026 NEXG_N76 4/128 GB Mass Production Night RFCalibration 2
+15-Jul-2026 NEXG_N76 4/128 GB Mass Production Day Dead 1
+15-Jul-2026 NEXG_N76 4/128 GB Mass Production Day Receiver 1
+15-Jul-2026 NEXG_N76 4/128 GB Mass Production Day SubCamera 1
+15-Jul-2026 Olvio_MM30 Null Rework Day Dead 4
+15-Jul-2026 Olvio_MM30 Null Rework Day Headset 1
+20-Jul-2026 NEXG_N77 4/128 GB Trial Production Night SimCard 3
+20-Jul-2026 NEXG_N77 4/128 GB Trial Production Night Sensor 1
+20-Jul-2026 NEXG_N77 4/128 GB Trial Production Night TCard 2
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night FM 1
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night MainCamera 1
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night Sensor 2
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night TCard 2
+25-Jul-2026 NEXG_N76 4/128 GB Rework Night WiFi 1
+25-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Night MainCamera 1
+25-Jul-2026 NEXG_N28 Pro 8/128 GB Mass Production Night SWDownload 1

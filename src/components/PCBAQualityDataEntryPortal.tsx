@@ -18,6 +18,7 @@ import {
   FileText,
   Layers,
   Smartphone,
+  Radio,
   CheckSquare,
   ArrowLeft,
   AlertCircle,
@@ -33,6 +34,7 @@ import { MILineChargerDefectEntry } from './MILineChargerDefectEntry';
 import { DailyQMReportSMT } from './DailyQMReportSMT';
 import { DailyQMReportMI } from './DailyQMReportMI';
 import { MobileAestheticDefectPortal } from './MobileAestheticDefectPortal';
+import { MobileFunctionDefectPortal } from './MobileFunctionDefectPortal';
 import {
   savePcbaReport,
   updatePcbaReport,
@@ -49,6 +51,7 @@ import { MI_LINE_01_DEFECT_RECORDS } from '../data/miLine01Records';
 import { MI_LINE_CHARGER_DEFECT_RECORDS } from '../data/miLineChargerRecords';
 import { SMT_SUMMARY_RECORDS } from '../data/smtSummaryRecords';
 import { AESTHETIC_DEFECT_RECORDS } from '../data/aestheticDefectRecords';
+import { FUNCTION_DEFECT_RECORDS } from '../data/functionDefectRecords';
 
 export interface PCBAQualityDataEntryPortalProps {
   onClose: () => void;
@@ -149,6 +152,22 @@ const AESTHETIC_REPORT_RECORDS: ReportRecord[] = AESTHETIC_DEFECT_RECORDS.map((r
   createdBy: 'QC Aesthetic Inspector',
 }));
 
+// 548 Official Functional Defect Records from attached inspection sheet
+const FUNCTION_REPORT_RECORDS: ReportRecord[] = FUNCTION_DEFECT_RECORDS.map((r) => ({
+  id: r.id,
+  date: r.date,
+  line: r.line,
+  model: r.spec ? `${r.model} (${r.spec})` : r.model,
+  type: 'Function' as const,
+  desc: r.desc,
+  qty: r.qty,
+  status: r.status,
+  shift: r.shift,
+  product: r.product,
+  remarks: `${r.stage} - ${r.shift} Shift`,
+  createdBy: 'QC Functional Tester',
+}));
+
 // Generate realistic seed records matching user template
 function generateSeedData(): ReportRecord[] {
   const out: ReportRecord[] = [];
@@ -202,6 +221,9 @@ function generateSeedData(): ReportRecord[] {
 
   // Include all 566 real records from the Walton Mobile PCBA Aesthetic Inspection Sheet
   out.push(...AESTHETIC_REPORT_RECORDS);
+
+  // Include all 548 real records from the Walton Mobile PCBA Functional Inspection Sheet
+  out.push(...FUNCTION_REPORT_RECORDS);
 
   out.sort((a, b) => (a.date < b.date ? 1 : -1));
   return out;
@@ -341,7 +363,8 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
       MI_LINE_01_DEFECT_RECORDS.length + MI_LINE_CHARGER_DEFECT_RECORDS.length
     );
     const aestheticCount = AESTHETIC_DEFECT_RECORDS.length;
-    const totalRecords = Math.max(data.length, smtCount + miCount + aestheticCount);
+    const functionCount = FUNCTION_DEFECT_RECORDS.length;
+    const totalRecords = Math.max(data.length, smtCount + miCount + aestheticCount + functionCount);
     const todayRecords = data.filter((r) => r.date === today).length;
     return {
       totalRecords,
@@ -351,6 +374,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
       smtCount,
       miCount,
       aestheticCount,
+      functionCount,
     };
   }, [data]);
 
@@ -473,8 +497,15 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
 
   // Filtered dataset
   const filteredData = useMemo(() => {
+    let sourceData = data;
     const hasAestheticInDb = data.some((r) => r.id && r.id.startsWith('aesthetic-rec-'));
-    const sourceData = hasAestheticInDb ? data : [...data, ...AESTHETIC_REPORT_RECORDS];
+    if (!hasAestheticInDb) {
+      sourceData = [...sourceData, ...AESTHETIC_REPORT_RECORDS];
+    }
+    const hasFunctionInDb = data.some((r) => r.id && r.id.startsWith('function-rec-'));
+    if (!hasFunctionInDb) {
+      sourceData = [...sourceData, ...FUNCTION_REPORT_RECORDS];
+    }
     return sourceData.filter((r) => {
       if (appliedFilters.dateFrom && r.date < appliedFilters.dateFrom) return false;
       if (appliedFilters.dateTo && r.date > appliedFilters.dateTo) return false;
@@ -699,89 +730,29 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                       }
                       onClick={() => handleSelectNav('line', l)}
                       className={`text-left pl-11 pr-4 py-2.5 text-[13px] transition-all cursor-pointer flex items-center justify-between border-l-2 ${
-                        isActive
+                        isActive && isMILine01
+                          ? 'text-white bg-gradient-to-r from-emerald-500/30 via-emerald-500/15 to-transparent font-bold border-emerald-400 shadow-xs'
+                          : isActive
                           ? 'text-white bg-gradient-to-r from-white/15 to-white/5 font-bold border-[#5b8bff] shadow-xs'
                           : isMICharger
                           ? 'text-[#e6fbf2] hover:text-white hover:bg-emerald-500/10 border-transparent'
                           : isMILine01
-                          ? 'text-[#ecfdf5] hover:text-white hover:bg-emerald-500/10 border-transparent'
+                          ? 'text-[#ecfdf5] hover:text-white hover:bg-emerald-500/15 border-transparent'
+                          : isSMTLine01
+                          ? 'text-[#dbeafe] hover:text-white hover:bg-blue-500/15 border-transparent font-bold'
+                          : isSMTLine04
+                          ? 'text-[#e0e7ff] hover:text-white hover:bg-indigo-500/15 border-transparent font-bold'
                           : isSMTLine02
-                          ? 'text-[#e0f2fe] hover:text-white hover:bg-white/10 border-transparent'
+                          ? 'text-[#e0f2fe] hover:text-white hover:bg-white/10 border-transparent font-bold'
                           : isSMTLine03
-                          ? 'text-[#ede9fe] hover:text-white hover:bg-white/10 border-transparent'
+                          ? 'text-[#ede9fe] hover:text-white hover:bg-white/10 border-transparent font-bold'
                           : isSMTLine05
-                          ? 'text-[#ffe4e6] hover:text-white hover:bg-white/10 border-transparent'
-                          : 'text-[#a7aecb] hover:text-white hover:bg-white/5 border-transparent'
+                          ? 'text-[#ffe4e6] hover:text-white hover:bg-white/10 border-transparent font-bold'
+                          : 'text-[#c7cee6] hover:text-white hover:bg-white/5 border-transparent font-bold'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                            isActive
-                              ? 'bg-[#5b8bff]'
-                              : isMICharger
-                              ? 'bg-emerald-400'
-                              : isMILine01
-                              ? 'bg-emerald-400'
-                              : isSMTLine02
-                              ? 'bg-cyan-400'
-                              : isSMTLine03
-                              ? 'bg-violet-400'
-                              : isSMTLine05
-                              ? 'bg-rose-400'
-                              : 'bg-[#7f88ac]/40'
-                          }`}
-                        />
-                        <span
-                          className={
-                            (isMILine01 || isMICharger || isSMTLine02 || isSMTLine03 || isSMTLine05) && !isActive
-                              ? 'font-medium text-white/90'
-                              : undefined
-                          }
-                        >
-                          {l}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold transition-all ${
-                          isActive
-                            ? 'bg-[#5b8bff] text-white shadow-xs'
-                            : isSMTLine01
-                            ? 'bg-blue-500/25 text-blue-200 border border-blue-400/40'
-                            : isSMTLine02
-                            ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400/40'
-                            : isSMTLine03
-                            ? 'bg-violet-500/25 text-violet-200 border border-violet-400/40'
-                            : isSMTLine04
-                            ? 'bg-indigo-500/25 text-indigo-200 border border-indigo-400/40'
-                            : isSMTLine05
-                            ? 'bg-rose-500/25 text-rose-200 border border-rose-400/40'
-                            : isMICharger
-                            ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40'
-                            : isMILine01
-                            ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40'
-                            : isSMT
-                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                            : 'bg-white/5 text-[#8b93b4]'
-                        }`}
-                      >
-                        {isSMTLine01
-                          ? '578 Records'
-                          : isSMTLine02
-                          ? '248 Records'
-                          : isSMTLine03
-                          ? '138 Records'
-                          : isSMTLine04
-                          ? '424 Records'
-                          : isSMTLine05
-                          ? '237 Records'
-                          : isMILine01
-                          ? '2,610 Records'
-                          : isMICharger
-                          ? '128 Records'
-                          : isSMT
-                          ? 'AOI Entry'
-                          : 'Entry'}
+                      <span className="font-bold tracking-wide text-white/95">
+                        {l}
                       </span>
                     </button>
                   );
@@ -816,18 +787,15 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                       key={t}
                       id={t === 'Aesthetic' ? 'btn-nav-mobile-aesthetic' : 'btn-nav-mobile-function'}
                       onClick={() => handleSelectNav('defectType', t)}
-                      className={`text-left pl-11 pr-5 py-2 text-[13px] transition-colors cursor-pointer flex items-center justify-between border-l-2 ${
+                      className={`text-left pl-11 pr-5 py-2.5 text-[13px] font-bold transition-colors cursor-pointer flex items-center justify-between border-l-2 ${
                         isActive
                           ? 'text-white bg-white/10 font-bold border-[#5b8bff]'
-                          : 'text-[#a7aecb] hover:text-white hover:bg-white/5 border-transparent'
+                          : t === 'Aesthetic'
+                          ? 'text-[#f3e8ff] hover:text-white hover:bg-purple-500/15 border-transparent font-bold'
+                          : 'text-[#ccfbf1] hover:text-white hover:bg-teal-500/15 border-transparent font-bold'
                       }`}
                     >
-                      <span>{t}</span>
-                      {t === 'Aesthetic' && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
-                          566 Records
-                        </span>
-                      )}
+                      <span className="font-bold tracking-wide text-white/95">{t}</span>
                     </button>
                   );
                 })}
@@ -869,51 +837,17 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                           : undefined
                       }
                       onClick={() => handleSelectNav('check', chk)}
-                      className={`text-left pl-11 pr-4 py-2.5 text-[13px] transition-all cursor-pointer flex items-center justify-between border-l-2 ${
+                      className={`text-left pl-11 pr-4 py-2.5 text-[13px] font-bold transition-all cursor-pointer flex items-center justify-between border-l-2 ${
                         isActive
                           ? 'text-white bg-white/10 font-bold border-[#5b8bff]'
                           : isMISummary
-                          ? 'text-[#fef3c7] hover:text-white hover:bg-amber-500/10 border-transparent font-medium'
+                          ? 'text-[#fef3c7] hover:text-white hover:bg-amber-500/15 border-transparent font-bold'
                           : isSMTSummary
-                          ? 'text-[#eef2ff] hover:text-white hover:bg-blue-500/10 border-transparent font-medium'
-                          : 'text-[#a7aecb] hover:text-white hover:bg-white/5 border-transparent'
+                          ? 'text-[#eef2ff] hover:text-white hover:bg-blue-500/15 border-transparent font-bold'
+                          : 'text-[#e0e7ff] hover:text-white hover:bg-indigo-500/15 border-transparent font-bold'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                            isActive
-                              ? 'bg-[#5b8bff]'
-                              : isMISummary
-                              ? 'bg-amber-400'
-                              : isSMTSummary
-                              ? 'bg-blue-400'
-                              : 'bg-[#7f88ac]/40'
-                          }`}
-                        />
-                        <span>{chk}</span>
-                      </div>
-                      {isMISummary ? (
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold transition-all ${
-                            isActive
-                              ? 'bg-[#5b8bff] text-white shadow-xs'
-                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                          }`}
-                        >
-                          QM Report
-                        </span>
-                      ) : isSMTSummary ? (
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold transition-all ${
-                            isActive
-                              ? 'bg-[#5b8bff] text-white shadow-xs'
-                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                          }`}
-                        >
-                          {SMT_SUMMARY_RECORDS.length} Logs
-                        </span>
-                      ) : null}
+                      <span className="font-bold tracking-wide text-white/95">{chk}</span>
                     </button>
                   );
                 })}
@@ -1028,13 +962,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                       <h1 className="text-xl sm:text-2xl font-extrabold tracking-wide text-white m-0">
                         Daily PCBA Report
                       </h1>
-                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#16a34a]/25 text-[#86efac] border border-[#16a34a]/40">
-                        Live Production Entry
-                      </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5 m-0">
-                      PCBA — SMT High-Speed Assembly · Manual Insertion (MI) · AOI Defect Data Entry
-                    </p>
                   </div>
                 </div>
 
@@ -1093,7 +1021,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                     <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb] animate-pulse" />
                     <span>Quick Entry Portals</span>
                     <span className="text-[11px] font-semibold text-[#64748b] bg-[#f1f5f9] px-2 py-0.5 rounded-full border border-[#e2e8f0]">
-                      5 Process Stages
+                      6 Quality Portals
                     </span>
                   </div>
                   <span className="text-xs text-[#64748b] font-medium hidden sm:inline">
@@ -1344,7 +1272,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                     {/* Mobile Defect: Aesthetic Inspection - Purple & Violet */}
                     <div
                       onClick={() => handleSelectNav('defectType', 'Aesthetic')}
-                      className="group relative bg-gradient-to-br from-[#faf5ff] via-white to-[#f3e8ff]/50 border-2 border-[#e9d5ff] hover:border-[#8b5cf6] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(139,92,246,0.25)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden sm:col-span-2"
+                      className="group relative bg-gradient-to-br from-[#faf5ff] via-white to-[#f3e8ff]/50 border-2 border-[#e9d5ff] hover:border-[#8b5cf6] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(139,92,246,0.25)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
                     >
                       <div className="absolute top-0 right-0 w-28 h-28 bg-[#8b5cf6]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
                       <div>
@@ -1357,7 +1285,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                           </span>
                         </div>
                         <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#8b5cf6] transition-colors m-0 flex items-center gap-1.5">
-                          Aesthetic Defect Inspection
+                          Aesthetic Inspection
                         </h4>
                         <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
                           Visual &amp; cosmetic inspection for Walton mobile PCBAs (Axion, NEXG, ZENX, Olvio)
@@ -1369,7 +1297,7 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#6b21a8]">
                             <span className="w-2 h-2 rounded-full bg-[#8b5cf6]" />
                             <span className="font-mono font-bold">{homeStats.aestheticCount || 566}</span>
-                            <span className="text-[#64748b] font-normal">records saved from sheet</span>
+                            <span className="text-[#64748b] font-normal">records saved</span>
                           </div>
                           <div className="flex items-center gap-1 text-xs font-bold text-[#8b5cf6] group-hover:translate-x-1 transition-transform">
                             <span>Open Portal</span>
@@ -1382,13 +1310,60 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
                             566 Records
                           </span>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7c3aed] border border-purple-200 font-mono">
-                            1,872 Total Defects
+                            1,872 Defects
                           </span>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7c3aed] border border-purple-200 font-mono">
-                            83 Days
+                            38 Types
                           </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-[#7c3aed] border border-purple-200 font-mono">
-                            38 Defect Types
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile Defect: Functional Inspection - Teal & Cyan */}
+                    <div
+                      onClick={() => handleSelectNav('defectType', 'Function')}
+                      className="group relative bg-gradient-to-br from-[#f0fdfa] via-white to-[#ccfbf1]/50 border-2 border-[#99f6e4] hover:border-[#0d9488] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(13,148,136,0.25)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-28 h-28 bg-[#0d9488]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#0d9488] to-[#0f766e] text-white shadow-md shadow-teal-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <Radio className="w-5 h-5" />
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ccfbf1] text-[#0f766e] border border-[#99f6e4]">
+                            Mobile Defect
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#0d9488] transition-colors m-0 flex items-center gap-1.5">
+                          Functional Inspection
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Electrical, RF calibration, audio, camera &amp; sensor testing for Walton mobile PCBAs
+                        </p>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#99f6e4]/60">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0f766e]">
+                            <span className="w-2 h-2 rounded-full bg-[#0d9488]" />
+                            <span className="font-mono font-bold">{homeStats.functionCount || 548}</span>
+                            <span className="text-[#64748b] font-normal">records saved</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs font-bold text-[#0d9488] group-hover:translate-x-1 transition-transform">
+                            <span>Open Portal</span>
+                            <span className="text-sm">→</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-[#99f6e4]/60 flex-wrap">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-[#0f766e] border border-teal-200 font-mono">
+                            548 Records
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-[#0d9488] border border-teal-200 font-mono">
+                            1,873 Defects
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-[#0d9488] border border-teal-200 font-mono">
+                            25 Types
                           </span>
                         </div>
                       </div>
@@ -1427,6 +1402,10 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
             />
           ) : activeNav.type === 'defectType' && activeNav.value === 'Aesthetic' ? (
             <MobileAestheticDefectPortal
+              onNavigateToDatabase={() => handleSelectNav('database', 'Database')}
+            />
+          ) : activeNav.type === 'defectType' && activeNav.value === 'Function' ? (
+            <MobileFunctionDefectPortal
               onNavigateToDatabase={() => handleSelectNav('database', 'Database')}
             />
           ) : (

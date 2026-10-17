@@ -23,8 +23,14 @@ import {
   Wrench,
   FileText,
   Filter,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Sparkles,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { saveMultiplePcbaReports } from '../services/pcbaReportService';
+import { MI_LINE_01_DEFECT_RECORDS } from '../data/miLine01Records';
 
 export interface MIDefectRecord {
   id: string;
@@ -46,6 +52,50 @@ export interface MILineDefectEntryProps {
   onNavigateToDatabase?: () => void;
 }
 
+// Default aesthetic fault categories specifically for MI Line-01 section as requested by user
+export const MI_LINE_01_AESTHETIC_FAULTS = [
+  'Missing',
+  'Wrong Component',
+  'Polarity Change',
+  'Dry Solder',
+  'Over Lead',
+  'Solder Short',
+  'Leg Down',
+  'Leg Open',
+  'Hole Block',
+  'Pad Lift Off',
+  'PCBA Scratch',
+  'Broken',
+  'Cutting Problem',
+  'Wrong Position',
+];
+
+export const MI_LINE_01_FUNCTIONAL_FAULTS = [
+  'No Power',
+  'Hang',
+  'PCB overheating',
+  'Button not work',
+  'Output voltage unstable(Fan)',
+  'Transformer noise(Fan)',
+  'Fuse failure(Fan)',
+  'Speed control failure(Fan)',
+  'Remote control malfunction(Fan)',
+  'Timer function abnormal(Fan)',
+  'LED display failure(Fan)',
+  'Abnormal motor operation(Fan)',
+  'FCT fail(AC)',
+  'Functional jig test(AC)',
+  'LED Not Work',
+  'Speaker not work',
+  'Speaker Low sound',
+  'Switch problem',
+  'Switch keypad not work',
+  'Wrong music',
+];
+
+const DEFAULT_AESTHETIC_FAULTS = MI_LINE_01_AESTHETIC_FAULTS;
+const DEFAULT_FUNCTIONAL_FAULTS = MI_LINE_01_FUNCTIONAL_FAULTS;
+
 // Master data from MI_LINE-01 standard specifications
 const DEFAULT_FORM_DATA = {
   shifts: ['Day', 'Night', 'Morning', 'Evening', 'General'],
@@ -60,39 +110,8 @@ const DEFAULT_FORM_DATA = {
     'Chandana rani das(1354)',
     'Mukta Akter(21578)',
   ],
-  aesthetics: [
-    'Missing',
-    'Wrong Component',
-    'Polarity Change',
-    'Dry Solder',
-    'Over Lead',
-    'Solder Short',
-    'Leg Down',
-    'Leg Open',
-    'Leg Up',
-    'Broken',
-    'Cutting Problem',
-    'PCBA Bend',
-    'PCBA Scratch',
-    'Pad Lift Off',
-    'Hole Block',
-    'LED no light',
-  ],
-  functionals: [
-    'RF',
-    'HDMI',
-    'Colour',
-    'No Power',
-    'Speaker not work',
-    'Speaker Low sound',
-    'LED Not Work',
-    'No Sound',
-    'LAN',
-    'USB',
-    'AV Jack',
-    'No audio output(TV)',
-    'Wrong music',
-  ],
+  aesthetics: MI_LINE_01_AESTHETIC_FAULTS,
+  functionals: MI_LINE_01_FUNCTIONAL_FAULTS,
   productModels: {
     Adapter: ['WFVADP12V2ASET200K_(CT-X017)', 'WFVADP12V2ASET200K_(CT-X018)'],
     TV: ['WD24RCS', 'WD32R TV'],
@@ -123,17 +142,49 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
 }) => {
   const lineStorageKey = `mi_defect_records_${lineName.replace(/\s+/g, '_').toLowerCase()}`;
   const masterDataKey = `mi_master_data_${lineName.replace(/\s+/g, '_').toLowerCase()}`;
+  const isMILine01 = lineName === 'MI Line-01';
 
   // Master Data state with local persistence
   const [formData, setFormData] = useState(() => {
     try {
       const saved = localStorage.getItem(masterDataKey);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          aesthetics: isMILine01 ? MI_LINE_01_AESTHETIC_FAULTS : (parsed.aesthetics || DEFAULT_AESTHETIC_FAULTS),
+          functionals: isMILine01 ? MI_LINE_01_FUNCTIONAL_FAULTS : (parsed.functionals || DEFAULT_FUNCTIONAL_FAULTS),
+        };
+      }
     } catch {
       // ignore
     }
-    return DEFAULT_FORM_DATA;
+    return {
+      ...DEFAULT_FORM_DATA,
+      aesthetics: isMILine01 ? MI_LINE_01_AESTHETIC_FAULTS : DEFAULT_AESTHETIC_FAULTS,
+      functionals: isMILine01 ? MI_LINE_01_FUNCTIONAL_FAULTS : DEFAULT_FUNCTIONAL_FAULTS,
+    };
   });
+
+  // Ensure MI Line-01 always stays synchronized with user-specified Aesthetic & Functional categories
+  useEffect(() => {
+    if (isMILine01) {
+      setFormData((prev) => {
+        const isAesSame =
+          prev.aesthetics.length === MI_LINE_01_AESTHETIC_FAULTS.length &&
+          prev.aesthetics.every((val, idx) => val === MI_LINE_01_AESTHETIC_FAULTS[idx]);
+        const isFuncSame =
+          prev.functionals.length === MI_LINE_01_FUNCTIONAL_FAULTS.length &&
+          prev.functionals.every((val, idx) => val === MI_LINE_01_FUNCTIONAL_FAULTS[idx]);
+        if (isAesSame && isFuncSame) return prev;
+        return {
+          ...prev,
+          aesthetics: MI_LINE_01_AESTHETIC_FAULTS,
+          functionals: MI_LINE_01_FUNCTIONAL_FAULTS,
+        };
+      });
+    }
+  }, [isMILine01]);
 
   // Save master data
   useEffect(() => {
@@ -196,9 +247,35 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
   const [records, setRecords] = useState<MIDefectRecord[]>(() => {
     try {
       const saved = localStorage.getItem(lineStorageKey);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 10) return parsed;
+      }
     } catch {
       // ignore
+    }
+    // If MI Line-01, seed with official 2,610 sheet records
+    if (lineName === 'MI Line-01' && Array.isArray(MI_LINE_01_DEFECT_RECORDS) && MI_LINE_01_DEFECT_RECORDS.length > 0) {
+      return MI_LINE_01_DEFECT_RECORDS.map((r, i) => {
+        const isFunc = [
+          'No Power', 'Display Fail', 'Audio Fail', 'Low Voltage',
+          'Frequency Fail', 'LED Off', 'Sensor Fail', 'Charge Fail', 'Signal Fail'
+        ].includes(r.fault);
+        return {
+          id: r.id || `mi01-rec-${i + 1}`,
+          line: r.line || lineName,
+          date: r.date,
+          shift: r.shift,
+          product: r.product,
+          model: r.model,
+          aesthetic: isFunc ? '' : r.fault,
+          func: isFunc ? r.fault : '',
+          qty: Number(r.qty) || 1,
+          operator: r.operator || 'Md. Rony Khan(14873)',
+          remarks: r.remarks || '',
+          createdAt: r.createdAt || (Date.now() - (2610 - i) * 60000),
+        };
+      });
     }
     // Seed sample records if empty
     const today = new Date().toISOString().split('T')[0];
@@ -253,32 +330,181 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
     localStorage.setItem(lineStorageKey, JSON.stringify(records));
   }, [records, lineStorageKey]);
 
-  // Report Date Filters
+  // Report Date Filters & Multi-dimensional Search
+  const [reportSearch, setReportSearch] = useState('');
+  const [reportShiftFilter, setReportShiftFilter] = useState('ALL');
+  const [reportProductFilter, setReportProductFilter] = useState('ALL');
+  const [reportModelFilter, setReportModelFilter] = useState('ALL');
+  const [reportTypeFilter, setReportTypeFilter] = useState<'ALL' | 'Aesthetic' | 'Function'>('ALL');
   const [filterFrom, setFilterFrom] = useState('');
   const [filterTo, setFilterTo] = useState('');
   const [appliedFrom, setAppliedFrom] = useState('');
   const [appliedTo, setAppliedTo] = useState('');
+
+  // Pagination for Details Report
+  const [reportPage, setReportPage] = useState(1);
+  const [reportPageSize, setReportPageSize] = useState(25);
 
   const handleApplyFilter = () => {
     setAppliedFrom(filterFrom);
     setAppliedTo(filterTo);
   };
 
-  const handleClearFilter = () => {
+  const handleClearAllReportFilters = () => {
     setFilterFrom('');
     setFilterTo('');
     setAppliedFrom('');
     setAppliedTo('');
+    setReportSearch('');
+    setReportShiftFilter('ALL');
+    setReportProductFilter('ALL');
+    setReportModelFilter('ALL');
+    setReportTypeFilter('ALL');
+    setReportPage(1);
+    showToast('Filters cleared.', 'success');
   };
+  const handleClearFilter = handleClearAllReportFilters;
+
+  const distinctReportProducts = useMemo(() => {
+    const s = new Set<string>();
+    records.forEach((r) => r.product && s.add(r.product));
+    return Array.from(s).sort();
+  }, [records]);
+
+  const distinctReportModels = useMemo(() => {
+    const s = new Set<string>();
+    records.forEach((r) => {
+      if (reportProductFilter === 'ALL' || r.product === reportProductFilter) {
+        if (r.model) s.add(r.model);
+      }
+    });
+    return Array.from(s).sort();
+  }, [records, reportProductFilter]);
+
+  const distinctReportShifts = useMemo(() => {
+    const s = new Set<string>();
+    records.forEach((r) => r.shift && s.add(r.shift));
+    return Array.from(s).sort();
+  }, [records]);
 
   // Filtered records for table
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
       if (appliedFrom && r.date < appliedFrom) return false;
       if (appliedTo && r.date > appliedTo) return false;
+      if (reportShiftFilter !== 'ALL' && r.shift !== reportShiftFilter) return false;
+      if (reportProductFilter !== 'ALL' && r.product !== reportProductFilter) return false;
+      if (reportModelFilter !== 'ALL' && r.model !== reportModelFilter) return false;
+      if (reportTypeFilter === 'Aesthetic' && !r.aesthetic) return false;
+      if (reportTypeFilter === 'Function' && !r.func) return false;
+
+      if (reportSearch.trim()) {
+        const q = reportSearch.toLowerCase();
+        const match =
+          r.model.toLowerCase().includes(q) ||
+          r.product.toLowerCase().includes(q) ||
+          (r.aesthetic && r.aesthetic.toLowerCase().includes(q)) ||
+          (r.func && r.func.toLowerCase().includes(q)) ||
+          (r.operator && r.operator.toLowerCase().includes(q)) ||
+          (r.remarks && r.remarks.toLowerCase().includes(q)) ||
+          r.date.includes(q) ||
+          r.shift.toLowerCase().includes(q);
+        if (!match) return false;
+      }
+
       return true;
     });
-  }, [records, appliedFrom, appliedTo]);
+  }, [
+    records,
+    appliedFrom,
+    appliedTo,
+    reportShiftFilter,
+    reportProductFilter,
+    reportModelFilter,
+    reportTypeFilter,
+    reportSearch,
+  ]);
+
+  // Stats computed from filtered records
+  const reportStats = useMemo(() => {
+    const totalQty = filteredRecords.reduce((sum, r) => sum + (Number(r.qty) || 0), 0);
+    const aestheticQty = filteredRecords.reduce(
+      (sum, r) => (r.aesthetic ? sum + (Number(r.qty) || 0) : sum),
+      0
+    );
+    const functionalQty = filteredRecords.reduce(
+      (sum, r) => (r.func ? sum + (Number(r.qty) || 0) : sum),
+      0
+    );
+    const uniqueDates = new Set(filteredRecords.map((r) => r.date)).size;
+    const uniqueModels = new Set(filteredRecords.map((r) => r.model)).size;
+    return {
+      totalQty,
+      aestheticQty,
+      functionalQty,
+      uniqueDates,
+      uniqueModels,
+    };
+  }, [filteredRecords]);
+
+  // Reset pagination on filter change
+  useEffect(() => {
+    setReportPage(1);
+  }, [
+    appliedFrom,
+    appliedTo,
+    reportShiftFilter,
+    reportProductFilter,
+    reportModelFilter,
+    reportTypeFilter,
+    reportSearch,
+    reportPageSize,
+  ]);
+
+  const totalReportPages = Math.max(1, Math.ceil(filteredRecords.length / reportPageSize));
+  const paginatedReportRows = useMemo(() => {
+    const start = (reportPage - 1) * reportPageSize;
+    return filteredRecords.slice(start, start + reportPageSize);
+  }, [filteredRecords, reportPage, reportPageSize]);
+
+  const handleResetLineMasterData = () => {
+    if (lineName === 'MI Line-01' && Array.isArray(MI_LINE_01_DEFECT_RECORDS)) {
+      if (window.confirm('Reset all records to the official MI Line-01 inspection dataset (2,610 records)?')) {
+        const fresh = MI_LINE_01_DEFECT_RECORDS.map((r, i) => {
+          const isFunc = [
+            'No Power', 'Display Fail', 'Audio Fail', 'Low Voltage',
+            'Frequency Fail', 'LED Off', 'Sensor Fail', 'Charge Fail', 'Signal Fail'
+          ].includes(r.fault);
+          return {
+            id: r.id || `mi01-rec-${i + 1}`,
+            line: r.line || lineName,
+            date: r.date,
+            shift: r.shift,
+            product: r.product,
+            model: r.model,
+            aesthetic: isFunc ? '' : r.fault,
+            func: isFunc ? r.fault : '',
+            qty: Number(r.qty) || 1,
+            operator: r.operator || 'Md. Rony Khan(14873)',
+            remarks: r.remarks || '',
+            createdAt: r.createdAt || (Date.now() - (2610 - i) * 60000),
+          };
+        });
+        setRecords(fresh);
+        localStorage.removeItem(lineStorageKey);
+        showToast('Reset to official 2,610 MI Line-01 records.', 'success');
+      }
+    } else {
+      showToast('Master dataset reset available for MI Line-01.', 'error');
+    }
+  };
+
+  const handleDeleteRecord = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this defect record?')) {
+      setRecords((prev) => prev.filter((r) => r.id !== id));
+      showToast('Record deleted.', 'success');
+    }
+  };
 
   // Sync model selection when product changes
   const handleProductChange = (prod: string) => {
@@ -317,15 +543,27 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
     }
   }, [formData.products, selectedProduct, formData.productModels]);
 
-  // Aesthetics list
+  // Aesthetics list - strictly enforce user-specified categories for MI Line-01
   const allAesthetics = useMemo(() => {
+    if (isMILine01) {
+      return [
+        ...MI_LINE_01_AESTHETIC_FAULTS,
+        ...extraAesthetics.filter((e) => !MI_LINE_01_AESTHETIC_FAULTS.includes(e)),
+      ];
+    }
     return [...formData.aesthetics, ...extraAesthetics];
-  }, [formData.aesthetics, extraAesthetics]);
+  }, [isMILine01, formData.aesthetics, extraAesthetics]);
 
-  // Functionals list
+  // Functionals list - strictly enforce user-specified categories for MI Line-01
   const allFunctionals = useMemo(() => {
+    if (isMILine01) {
+      return [
+        ...MI_LINE_01_FUNCTIONAL_FAULTS,
+        ...extraFunctionals.filter((e) => !MI_LINE_01_FUNCTIONAL_FAULTS.includes(e)),
+      ];
+    }
     return [...formData.functionals, ...extraFunctionals];
-  }, [formData.functionals, extraFunctionals]);
+  }, [isMILine01, formData.functionals, extraFunctionals]);
 
   // Handle quantity changes
   const handleAestheticQtyChange = (name: string, val: string) => {
@@ -517,24 +755,38 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
   // CSV Download
   const handleDownloadCsv = () => {
     if (filteredRecords.length === 0) {
-      showToast('No rows to download for this date range.', 'error');
+      showToast('No rows to download for current filters.', 'error');
       return;
     }
 
-    const headers = ['Date', 'Shift', 'Product', 'Model', 'Aesthetic', 'Function', 'Qty', 'Operator', 'Remarks'];
+    const headers = [
+      'SL',
+      'Date',
+      'Line',
+      'Shift',
+      'Product',
+      'Model',
+      'Aesthetic Defect',
+      'Functional Defect',
+      'Quantity (pcs)',
+      'Operator',
+      'Remarks',
+    ];
     const csvRows = [headers.join(',')];
 
-    filteredRecords.forEach((r) => {
+    filteredRecords.forEach((r, idx) => {
       const values = [
+        idx + 1,
         r.date,
+        r.line,
         r.shift,
         r.product,
         r.model,
-        r.aesthetic,
-        r.func,
+        r.aesthetic || '',
+        r.func || '',
         r.qty,
         r.operator,
-        r.remarks,
+        r.remarks || '',
       ].map((val) => {
         const str = String(val ?? '');
         if (str.includes(',') || str.includes('"') || str.includes('\n')) {
@@ -549,13 +801,13 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${lineName.replace(/\s+/g, '_').toLowerCase()}_defects_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `${lineName.replace(/\s+/g, '_').toLowerCase()}_details_report_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToast('CSV report exported.', 'success');
+    showToast(`Exported ${filteredRecords.length.toLocaleString()} records to CSV.`, 'success');
   };
 
   // Print/PDF View
@@ -697,9 +949,6 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-xl font-black tracking-tight">{lineName} Defect Entry</h1>
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#16a34a]/20 text-[#bbf7d0] border border-[#16a34a]/40">
-                  Ready (Active)
-                </span>
               </div>
               <p className="text-xs text-[#b9c9dc] mt-0.5">
                 PCB / PCBA Aesthetic &amp; Functional Inspection Data Entry
@@ -733,9 +982,18 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
 
       {/* CARD 1: Common Information */}
       <section className="bg-white border border-[#e2e8f0] rounded-xl shadow-xs overflow-hidden print:hidden">
-        <div className="px-5 py-3.5 bg-[#fafbfc] border-b border-[#e2e8f0] flex items-center gap-2 font-bold text-[#1e293b] text-sm">
-          <FileText className="w-4 h-4 text-[#2563eb]" />
-          <span>Common Information</span>
+        <div className="px-5 py-3.5 bg-gradient-to-r from-[#0f2942] via-[#1e3a8a] to-[#2563eb] border-b border-[#1e3a8a] text-white flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2.5 font-bold text-sm text-white">
+            <div className="w-7 h-7 rounded-lg bg-white/15 text-white flex items-center justify-center backdrop-blur-xs shadow-xs border border-white/20">
+              <FileText className="w-4 h-4 text-blue-100" />
+            </div>
+            <span className="text-white font-extrabold text-[15px] tracking-wide">
+              Common Information
+            </span>
+          </div>
+          <span className="text-[11px] font-semibold text-blue-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+            Production Setup
+          </span>
         </div>
         <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="flex flex-col gap-1.5">
@@ -810,14 +1068,23 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
 
       {/* CARD 2: Aesthetic Defects */}
       <section className="bg-white border border-[#e2e8f0] rounded-xl shadow-xs overflow-hidden print:hidden">
-        <div className="px-5 py-3.5 bg-[#fafbfc] border-b border-[#e2e8f0] flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-[#1e293b] text-sm">
-            <Palette className="w-4 h-4 text-[#2563eb]" />
-            <span>Aesthetic Defects</span>
+        {/* Card Header with vibrant Purple gradient */}
+        <div className="px-5 py-3.5 bg-gradient-to-r from-[#6b21a8] via-[#7e22ce] to-[#9333ea] border-b border-[#581c87] text-white flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2.5 font-bold text-sm">
+            <div className="w-7 h-7 rounded-lg bg-white/20 text-white flex items-center justify-center backdrop-blur-xs shadow-xs border border-white/20">
+              <Palette className="w-4 h-4 text-purple-100" />
+            </div>
+            <span className="text-white font-extrabold text-[15px] tracking-wide">
+              Aesthetic Defects
+            </span>
           </div>
-          {aestheticCount > 0 && (
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#eff6ff] text-[#2563eb]">
+          {aestheticCount > 0 ? (
+            <span className="text-xs font-black px-3 py-1 rounded-full bg-white text-[#7e22ce] shadow-xs">
               {aestheticCount} selected
+            </span>
+          ) : (
+            <span className="text-[11px] font-semibold text-purple-200 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+              Visual Inspection
             </span>
           )}
         </div>
@@ -854,76 +1121,96 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
         </div>
 
         {/* Grid of Aesthetic Defects */}
-        <div className="p-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+        <div className="p-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {allAesthetics.map((defect) => {
               const qty = aestheticQuantities[defect] || '';
               const hasVal = Boolean(qty);
               return (
                 <div
                   key={defect}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border transition-all ${
+                  className={`group flex items-center justify-between p-3 rounded-xl border transition-all duration-150 ${
                     hasVal
-                      ? 'border-[#2563eb] bg-[#f5f8ff] shadow-xs'
-                      : 'border-[#e2e8f0] bg-white hover:border-[#cbd5e1]'
+                      ? 'border-[#2563eb] bg-gradient-to-r from-[#eff6ff] to-white shadow-xs ring-1 ring-[#2563eb]/20'
+                      : 'border-[#e2e8f0] bg-white hover:border-[#93c5fd] hover:bg-[#fafbfc]'
                   }`}
                 >
-                  <span className="text-xs font-semibold text-[#1e293b] truncate pr-2">
-                    {defect}
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputMode="numeric"
-                    value={qty}
-                    onChange={(e) => handleAestheticQtyChange(defect, e.target.value)}
-                    placeholder="0"
-                    className="w-16 py-1 px-2 text-center text-sm font-bold border border-[#cbd5e1] rounded bg-white text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none"
-                  />
+                  <div className="flex items-center truncate pr-2">
+                    <span
+                      className={`text-xs font-bold truncate transition-colors ${
+                        hasVal ? 'text-[#1e40af]' : 'text-[#1e293b] group-hover:text-[#2563eb]'
+                      }`}
+                      title={defect}
+                    >
+                      {defect}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {hasVal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = parseInt(String(qty), 10) || 0;
+                          handleAestheticQtyChange(defect, current > 1 ? String(current - 1) : '');
+                        }}
+                        className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 cursor-pointer transition-colors"
+                        title="Decrease"
+                      >
+                        -
+                      </button>
+                    )}
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputMode="numeric"
+                      value={qty}
+                      onChange={(e) => handleAestheticQtyChange(defect, e.target.value)}
+                      placeholder="0"
+                      className={`w-14 py-1 px-1.5 text-center text-sm font-black border rounded-lg outline-none transition-all ${
+                        hasVal
+                          ? 'border-[#2563eb] bg-white text-[#1e40af] ring-1 ring-[#2563eb]'
+                          : 'border-[#cbd5e1] bg-white text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/20'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(String(qty), 10) || 0;
+                        handleAestheticQtyChange(defect, String(current + 1));
+                      }}
+                      className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-gray-500 hover:text-[#2563eb] hover:bg-blue-50 border border-gray-200 cursor-pointer transition-colors"
+                      title="Increase (+1)"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               );
             })}
-          </div>
-
-          {/* Add custom aesthetic defect */}
-          <div className="flex flex-wrap items-center gap-2.5 mt-4 pt-4 border-t border-dashed border-[#e2e8f0]">
-            <input
-              type="text"
-              value={aestheticOtherName}
-              onChange={(e) => setAestheticOtherName(e.target.value)}
-              placeholder="+ Add a defect not listed above"
-              className="flex-1 min-w-[200px] px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
-            />
-            <input
-              type="number"
-              min="1"
-              value={aestheticOtherQty}
-              onChange={(e) => setAestheticOtherQty(e.target.value)}
-              placeholder="Qty"
-              className="w-20 px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-center font-bold text-[#1e293b] focus:border-[#2563eb] outline-none"
-            />
-            <button
-              type="button"
-              onClick={handleAddAestheticOther}
-              className="px-4 py-1.5 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
-            >
-              Add
-            </button>
           </div>
         </div>
       </section>
 
       {/* CARD 3: Functional Defects */}
       <section className="bg-white border border-[#e2e8f0] rounded-xl shadow-xs overflow-hidden print:hidden">
-        <div className="px-5 py-3.5 bg-[#fafbfc] border-b border-[#e2e8f0] flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-[#1e293b] text-sm">
-            <Wrench className="w-4 h-4 text-[#2563eb]" />
-            <span>Functional Defects</span>
+        {/* Card Header with vibrant Teal/Cyan gradient */}
+        <div className="px-5 py-3.5 bg-gradient-to-r from-[#0f766e] via-[#0d9488] to-[#06b6d4] border-b border-[#115e59] text-white flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2.5 font-bold text-sm">
+            <div className="w-7 h-7 rounded-lg bg-white/20 text-white flex items-center justify-center backdrop-blur-xs shadow-xs border border-white/20">
+              <Wrench className="w-4 h-4 text-teal-100" />
+            </div>
+            <span className="text-white font-extrabold text-[15px] tracking-wide">
+              Functional Defects
+            </span>
           </div>
-          {functionalCount > 0 && (
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#eff6ff] text-[#2563eb]">
+          {functionalCount > 0 ? (
+            <span className="text-xs font-black px-3 py-1 rounded-full bg-white text-[#0f766e] shadow-xs">
               {functionalCount} selected
+            </span>
+          ) : (
+            <span className="text-[11px] font-semibold text-teal-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+              Functional Test
             </span>
           )}
         </div>
@@ -960,46 +1247,83 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
         </div>
 
         {/* Grid of Functional Defects */}
-        <div className="p-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+        <div className="p-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {allFunctionals.map((defect) => {
               const qty = functionalQuantities[defect] || '';
               const hasVal = Boolean(qty);
               return (
                 <div
                   key={defect}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border transition-all ${
+                  className={`group flex items-center justify-between p-3 rounded-xl border transition-all duration-150 ${
                     hasVal
-                      ? 'border-[#2563eb] bg-[#f5f8ff] shadow-xs'
-                      : 'border-[#e2e8f0] bg-white hover:border-[#cbd5e1]'
+                      ? 'border-[#2563eb] bg-gradient-to-r from-[#eff6ff] to-white shadow-xs ring-1 ring-[#2563eb]/20'
+                      : 'border-[#e2e8f0] bg-white hover:border-[#93c5fd] hover:bg-[#fafbfc]'
                   }`}
                 >
-                  <span className="text-xs font-semibold text-[#1e293b] truncate pr-2">
-                    {defect}
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    inputMode="numeric"
-                    value={qty}
-                    onChange={(e) => handleFunctionalQtyChange(defect, e.target.value)}
-                    placeholder="0"
-                    className="w-16 py-1 px-2 text-center text-sm font-bold border border-[#cbd5e1] rounded bg-white text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none"
-                  />
+                  <div className="flex items-center truncate pr-2">
+                    <span
+                      className={`text-xs font-bold truncate transition-colors ${
+                        hasVal ? 'text-[#1e40af]' : 'text-[#1e293b] group-hover:text-[#2563eb]'
+                      }`}
+                      title={defect}
+                    >
+                      {defect}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {hasVal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = parseInt(String(qty), 10) || 0;
+                          handleFunctionalQtyChange(defect, current > 1 ? String(current - 1) : '');
+                        }}
+                        className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 cursor-pointer transition-colors"
+                        title="Decrease"
+                      >
+                        -
+                      </button>
+                    )}
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputMode="numeric"
+                      value={qty}
+                      onChange={(e) => handleFunctionalQtyChange(defect, e.target.value)}
+                      placeholder="0"
+                      className={`w-14 py-1 px-1.5 text-center text-sm font-black border rounded-lg outline-none transition-all ${
+                        hasVal
+                          ? 'border-[#2563eb] bg-white text-[#1e40af] ring-1 ring-[#2563eb]'
+                          : 'border-[#cbd5e1] bg-white text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]/20'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseInt(String(qty), 10) || 0;
+                        handleFunctionalQtyChange(defect, String(current + 1));
+                      }}
+                      className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-gray-500 hover:text-[#2563eb] hover:bg-blue-50 border border-gray-200 cursor-pointer transition-colors"
+                      title="Increase (+1)"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               );
             })}
           </div>
 
           {/* Add custom functional defect */}
-          <div className="flex flex-wrap items-center gap-2.5 mt-4 pt-4 border-t border-dashed border-[#e2e8f0]">
+          <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-dashed border-[#e2e8f0]">
             <input
               type="text"
               value={functionalOtherName}
               onChange={(e) => setFunctionalOtherName(e.target.value)}
-              placeholder="+ Add a defect not listed above"
-              className="flex-1 min-w-[200px] px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] focus:border-[#2563eb] outline-none"
+              placeholder="+ Add a custom functional defect..."
+              className="flex-1 min-w-[200px] px-3.5 py-2 border border-[#cbd5e1] rounded-xl text-xs text-[#1e293b] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] outline-none"
             />
             <input
               type="number"
@@ -1007,14 +1331,14 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
               value={functionalOtherQty}
               onChange={(e) => setFunctionalOtherQty(e.target.value)}
               placeholder="Qty"
-              className="w-20 px-3 py-1.5 border border-[#cbd5e1] rounded-lg text-sm text-center font-bold text-[#1e293b] focus:border-[#2563eb] outline-none"
+              className="w-20 px-3 py-2 border border-[#cbd5e1] rounded-xl text-xs text-center font-bold text-[#1e293b] focus:border-[#2563eb] outline-none"
             />
             <button
               type="button"
               onClick={handleAddFunctionalOther}
-              className="px-4 py-1.5 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+              className="px-4 py-2 bg-[#0f2942] hover:bg-[#16395c] text-white text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
             >
-              Add
+              Add Defect
             </button>
           </div>
         </div>
@@ -1038,36 +1362,140 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
       </section>
 
       {/* CARD 5: Details Report Table */}
-      <section className="bg-white border border-[#e2e8f0] rounded-xl shadow-xs overflow-hidden print:m-0 print:border-none">
-        <div className="p-4 sm:p-5 bg-[#0f2942] text-white flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <span className="text-lg">📄</span>
-            <div>
-              <h2 className="text-sm sm:text-base font-bold">Details Report — {lineName}</h2>
-              <span className="text-xs text-[#9fb0d6]">
-                {filteredRecords.length} row{filteredRecords.length === 1 ? '' : 's'} recorded
-              </span>
+      <section className="bg-white border border-[#e2e8f0] rounded-2xl shadow-xs overflow-hidden print:m-0 print:border-none">
+        {/* Banner */}
+        <div className="p-4 sm:p-5 bg-gradient-to-r from-[#0f2942] via-[#14375a] to-[#0f2942] text-white">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-lg shadow-xs shrink-0">
+                📄
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white m-0">
+                Details Report — {lineName}
+              </h2>
+            </div>
+
+            {/* Quick Actions (Export, Print, Reset) */}
+            <div className="flex flex-wrap items-center gap-2 text-xs print:hidden">
+              <button
+                type="button"
+                onClick={handleDownloadCsv}
+                className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                title="Download Filtered CSV"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-300" />
+                <span>Export CSV</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePrintPdf}
+                className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                title="Print Report"
+              >
+                <Printer className="w-3.5 h-3.5 text-cyan-300" />
+                <span>Print</span>
+              </button>
+
+              {lineName === 'MI Line-01' && (
+                <button
+                  type="button"
+                  onClick={handleResetLineMasterData}
+                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                  title="Reset to 2,610 records from MI Line-01 Sheet"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">Reset Sheet</span>
+                </button>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Date Filter & Export Controls */}
-          <div className="flex flex-wrap items-center gap-2 text-xs print:hidden">
-            <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-lg">
-              <span className="text-[#cbd5e1] font-semibold">From</span>
+        {/* Filter Controls Bar */}
+        <div className="p-3.5 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
+          <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[180px] max-w-[280px]">
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" />
+              <input
+                type="text"
+                value={reportSearch}
+                onChange={(e) => setReportSearch(e.target.value)}
+                placeholder="Search model, defect, operator..."
+                className="w-full bg-white border border-[#cbd5e1] focus:border-[#2563eb] rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-[#1e293b] outline-none"
+              />
+            </div>
+
+            {/* Shift Filter */}
+            <select
+              value={reportShiftFilter}
+              onChange={(e) => setReportShiftFilter(e.target.value)}
+              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
+            >
+              <option value="ALL">All Shifts</option>
+              {distinctReportShifts.map((s) => (
+                <option key={s} value={s}>{s} Shift</option>
+              ))}
+            </select>
+
+            {/* Product Filter */}
+            <select
+              value={reportProductFilter}
+              onChange={(e) => {
+                setReportProductFilter(e.target.value);
+                setReportModelFilter('ALL');
+              }}
+              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
+            >
+              <option value="ALL">All Products</option>
+              {distinctReportProducts.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+
+            {/* Model Filter */}
+            <select
+              value={reportModelFilter}
+              onChange={(e) => setReportModelFilter(e.target.value)}
+              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer max-w-[170px] truncate"
+            >
+              <option value="ALL">All Models</option>
+              {distinctReportModels.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+
+            {/* Defect Type Filter */}
+            <select
+              value={reportTypeFilter}
+              onChange={(e) => setReportTypeFilter(e.target.value as any)}
+              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
+            >
+              <option value="ALL">All Defect Types</option>
+              <option value="Aesthetic">Aesthetic Only</option>
+              <option value="Function">Function Only</option>
+            </select>
+          </div>
+
+          {/* Date Filter & Clear */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-white border border-[#cbd5e1] px-2 py-1 rounded-lg">
+              <span className="text-gray-400 text-[11px]">From</span>
               <input
                 type="date"
                 value={filterFrom}
                 onChange={(e) => setFilterFrom(e.target.value)}
-                className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none"
+                className="text-xs text-[#1e293b] outline-none"
               />
             </div>
-            <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-lg">
-              <span className="text-[#cbd5e1] font-semibold">To</span>
+            <div className="flex items-center gap-1.5 bg-white border border-[#cbd5e1] px-2 py-1 rounded-lg">
+              <span className="text-gray-400 text-[11px]">To</span>
               <input
                 type="date"
                 value={filterTo}
                 onChange={(e) => setFilterTo(e.target.value)}
-                className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none"
+                className="text-xs text-[#1e293b] outline-none"
               />
             </div>
             <button
@@ -1079,95 +1507,188 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
             </button>
             <button
               type="button"
-              onClick={handleClearFilter}
-              className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer"
+              onClick={handleClearAllReportFilters}
+              className="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+              title="Reset all filters"
             >
-              Clear
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDownloadCsv}
-              className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>CSV</span>
-            </button>
-            <button
-              type="button"
-              onClick={handlePrintPdf}
-              className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>PDF</span>
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset</span>
             </button>
           </div>
         </div>
 
-        {/* Print Metadata */}
-        <div className="hidden print:block p-4 border-b border-gray-300">
-          <h1 className="text-xl font-bold">{lineName} Defect Entry — Details Report</h1>
-          <p className="text-xs text-gray-600">
-            Exported {new Date().toLocaleDateString()} • Filter:{' '}
-            {appliedFrom || appliedTo ? `${appliedFrom || 'any'} to ${appliedTo || 'any'}` : 'All dates'} •{' '}
-            {filteredRecords.length} records
-          </p>
-        </div>
-
         {/* Scrollable Table */}
-        <div className="overflow-x-auto max-h-[360px] overflow-y-auto">
+        <div className="overflow-x-auto min-h-[220px]">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-[#f1f5f9] text-[#475569] font-bold sticky top-0 z-10 border-b border-[#e2e8f0]">
+            <thead className="bg-[#f1f5f9] text-[#475569] font-bold border-b border-[#e2e8f0]">
               <tr>
+                <th className="py-2.5 px-3 whitespace-nowrap w-12 text-center">SL</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Date</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Shift</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Product</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Model</th>
-                <th className="py-2.5 px-3 whitespace-nowrap">Aesthetic</th>
-                <th className="py-2.5 px-3 whitespace-nowrap">Function</th>
-                <th className="py-2.5 px-3 whitespace-nowrap text-right">Qty</th>
+                <th className="py-2.5 px-3 whitespace-nowrap">Aesthetic Defect</th>
+                <th className="py-2.5 px-3 whitespace-nowrap">Functional Defect</th>
+                <th className="py-2.5 px-3 whitespace-nowrap text-center">Qty</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Operator</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Remarks</th>
+                <th className="py-2.5 px-3 whitespace-nowrap text-center w-14 print:hidden">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f1f5f9] text-[#1e293b]">
-              {filteredRecords.length === 0 ? (
+              {paginatedReportRows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-sm text-[#94a3b8]">
-                    No rows yet — fill in the form above and click Save to see defect records appear here.
+                  <td colSpan={11} className="py-12 text-center text-sm text-[#94a3b8]">
+                    No defect records match the selected filters.
                   </td>
                 </tr>
               ) : (
-                filteredRecords.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-[#f8fafc] transition-colors">
-                    <td className="py-2 px-3 whitespace-nowrap font-medium">{rec.date}</td>
-                    <td className="py-2 px-3 whitespace-nowrap">{rec.shift}</td>
-                    <td className="py-2 px-3 whitespace-nowrap font-semibold">{rec.product}</td>
-                    <td className="py-2 px-3 whitespace-nowrap">{rec.model}</td>
-                    <td className="py-2 px-3 whitespace-nowrap">
-                      {rec.aesthetic ? (
-                        <span className="font-semibold text-[#dc2626]">{rec.aesthetic}</span>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                    <td className="py-2 px-3 whitespace-nowrap">
-                      {rec.func ? (
-                        <span className="font-semibold text-[#2563eb]">{rec.func}</span>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                    <td className="py-2 px-3 whitespace-nowrap text-right font-mono font-bold text-sm text-[#0f2942]">
-                      {rec.qty}
-                    </td>
-                    <td className="py-2 px-3 whitespace-nowrap">{rec.operator}</td>
-                    <td className="py-2 px-3 whitespace-nowrap text-[#64748b]">{rec.remarks || '-'}</td>
-                  </tr>
-                ))
+                paginatedReportRows.map((rec, idx) => {
+                  const sl = (reportPage - 1) * reportPageSize + idx + 1;
+                  return (
+                    <tr key={rec.id} className="hover:bg-[#f8fafc] transition-colors">
+                      <td className="py-2 px-3 text-center font-mono text-[11px] text-gray-400 font-bold">
+                        {sl}
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap font-medium text-[#0f172a]">
+                        {rec.date}
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap">
+                        <span
+                          className={`text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${
+                            rec.shift === 'Day'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          }`}
+                        >
+                          {rec.shift}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap">
+                        <span className="font-semibold text-gray-700 px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-[11px]">
+                          {rec.product}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 font-semibold text-[#0f2942]">
+                        {rec.model}
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap">
+                        {rec.aesthetic ? (
+                          <span className="font-bold text-[#dc2626] bg-rose-50 px-2 py-0.5 rounded border border-rose-200 text-[11.5px] inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            {rec.aesthetic}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">-</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap">
+                        {rec.func ? (
+                          <span className="font-bold text-[#2563eb] bg-blue-50 px-2 py-0.5 rounded border border-blue-200 text-[11.5px] inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                            {rec.func}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">-</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap text-center font-mono font-bold text-sm">
+                        <span className="px-2.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                          {rec.qty}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 whitespace-nowrap text-gray-600">
+                        {rec.operator}
+                      </td>
+                      <td className="py-2 px-3 text-[#64748b] max-w-[180px] truncate" title={rec.remarks}>
+                        {rec.remarks || '-'}
+                      </td>
+                      <td className="py-2 px-3 text-center print:hidden">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteRecord(rec.id)}
+                          className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                          title="Delete Record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="p-3 bg-white border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
+          <div className="flex items-center gap-3 text-gray-500">
+            <span>
+              Showing{' '}
+              <strong className="text-gray-800">
+                {filteredRecords.length === 0 ? 0 : (reportPage - 1) * reportPageSize + 1}
+              </strong>{' '}
+              to{' '}
+              <strong className="text-gray-800">
+                {Math.min(reportPage * reportPageSize, filteredRecords.length)}
+              </strong>{' '}
+              of <strong className="text-gray-800">{filteredRecords.length.toLocaleString()}</strong> rows
+            </span>
+
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-1.5">
+              <span>Per page:</span>
+              <select
+                value={reportPageSize}
+                onChange={(e) => setReportPageSize(Number(e.target.value))}
+                className="bg-gray-50 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-gray-700 outline-none cursor-pointer"
+              >
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={reportPage === 1}
+              onClick={() => setReportPage(1)}
+              className="px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
+            >
+              First
+            </button>
+            <button
+              type="button"
+              disabled={reportPage === 1}
+              onClick={() => setReportPage((p) => Math.max(1, p - 1))}
+              className="p-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="px-2 text-xs font-bold text-gray-700">
+              Page {reportPage} of {totalReportPages}
+            </span>
+            <button
+              type="button"
+              disabled={reportPage === totalReportPages}
+              onClick={() => setReportPage((p) => Math.min(totalReportPages, p + 1))}
+              className="p-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              disabled={reportPage === totalReportPages}
+              onClick={() => setReportPage(totalReportPages)}
+              className="px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
+            >
+              Last
+            </button>
+          </div>
         </div>
       </section>
 

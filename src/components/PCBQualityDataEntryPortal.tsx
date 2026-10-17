@@ -1,11 +1,29 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Settings, Database, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Settings,
+  Database,
+  X,
+  Edit2,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Loader2,
+  Save,
+} from 'lucide-react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 import {
-  savePcbSheetRowsToFirestore,
-  loadPcbSheetRowsFromFirestore,
+  PcbQualityRecord,
   createPcbRecord,
+  updatePcbRecord,
+  deletePcbRecord,
+  subscribePcbRecords,
+  seedBaselinePcbRecordsIfEmpty,
 } from '../services/pcbRecords';
+import { INITIAL_PCB_VISUAL_RECORDS } from '../data/pcbVisualRecords';
+import { INITIAL_PCB_AOI_RECORDS } from '../data/pcbAoiRecords';
+import { INITIAL_PCB_RECEIVE_RECORDS } from '../data/pcbReceiveRecords';
+import { INITIAL_PCB_DELIVERY_RECORDS } from '../data/pcbDeliveryRecords';
 
 export interface PCBQualityDataEntryPortalProps {
   onClose: () => void;
@@ -263,6 +281,8 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
   const defaultPage = useMemo<PageKey>(() => {
     if (initialNav === 'defect-entry') {
       if (initialGate === 'AOI') return 'aoi';
+      if (initialGate === 'RECEIVE' || (initialGate as string) === 'Receive' || (initialGate as string) === 'receive') return 'receive';
+      if (initialGate === 'DELIVERY' || (initialGate as string) === 'Delivery' || (initialGate as string) === 'delivery' || (initialGate as string) === 'OQC' || (initialGate as string) === 'ETEST') return 'delivery';
       return 'visual';
     }
     return 'home';
@@ -272,45 +292,121 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
   const [groupCollapsed, setGroupCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Store for all 4 sheets persisted in localStorage under exact keys from attached file
-  const [store, setStore] = useState<Record<SheetKey, Record<string, string>[]>>(() => {
-    const init: Record<SheetKey, Record<string, string>[]> = {
+  // Cloud Firestore collection 'pcb_records' (True Single Source of Truth)
+  const [records, setRecords] = useState<PcbQualityRecord[]>([]);
+  const [loadingRecords, setLoadingRecords] = useState<boolean>(true);
+  const [recordsError, setRecordsError] = useState<string | null>(null);
+  const [editingRecord, setEditingRecord] = useState<PcbQualityRecord | null>(null);
+  const [editFormValues, setEditFormValues] = useState<Record<string, string>>({});
+  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+
+  // Subscribe to real-time pcb_records in Firestore
+  useEffect(() => {
+    seedBaselinePcbRecordsIfEmpty().catch(() => {});
+    const unsub = subscribePcbRecords((list) => {
+      setRecords(list);
+      setLoadingRecords(false);
+      setRecordsError(null);
+    });
+    return () => unsub();
+  }, []);
+
+  // Map individual Firestore records dynamically to each inspection sheet
+  const store = useMemo<Record<SheetKey, PcbQualityRecord[]>>(() => {
+    const init: Record<SheetKey, PcbQualityRecord[]> = {
       visual: [],
       aoi: [],
       receive: [],
       delivery: [],
     };
-    SHEET_KEYS.forEach((k) => {
-      try {
-        const raw = localStorage.getItem(PAGES[k].storageKey);
-        if (raw) init[k] = JSON.parse(raw);
-      } catch {}
+    records.forEach((r) => {
+      if (init[r.sheet]) {
+        init[r.sheet].push(r);
+      }
     });
+
+    // Merge all 545 historical Visual Check quality records from Walton PCB factory log
+    const firestoreVisualIds = new Set(init.visual.map((r) => r.id));
+    const firestoreSignatures = new Set(
+      init.visual.map((r) => `${r.date || r.Date}_${(r.model || r.Model || '').toLowerCase().trim()}`)
+    );
+
+    INITIAL_PCB_VISUAL_RECORDS.forEach((baseRec) => {
+      const sig = `${baseRec.date}_${baseRec.model.toLowerCase().trim()}`;
+      if (!firestoreVisualIds.has(baseRec.id) && !firestoreSignatures.has(sig)) {
+        init.visual.push(baseRec);
+      }
+    });
+
+    // Sort chronologically descending
+    init.visual.sort((a, b) => {
+      const dateA = a.date || a.Date || '';
+      const dateB = b.date || b.Date || '';
+      return dateB.localeCompare(dateA);
+    });
+
+    // Merge all 161 historical AOI quality records from Walton PCB factory log
+    const firestoreAoiIds = new Set(init.aoi.map((r) => r.id));
+    const firestoreAoiSignatures = new Set(
+      init.aoi.map((r) => `${r.date || r.Date}_${(r.model || r.Model || '').toLowerCase().trim()}`)
+    );
+
+    INITIAL_PCB_AOI_RECORDS.forEach((baseRec) => {
+      const sig = `${baseRec.date}_${baseRec.model.toLowerCase().trim()}`;
+      if (!firestoreAoiIds.has(baseRec.id) && !firestoreAoiSignatures.has(sig)) {
+        init.aoi.push(baseRec);
+      }
+    });
+
+    // Sort chronologically descending
+    init.aoi.sort((a, b) => {
+      const dateA = a.date || a.Date || '';
+      const dateB = b.date || b.Date || '';
+      return dateB.localeCompare(dateA);
+    });
+
+    // Merge all 180 historical Receive quality records from Walton PCB factory log
+    const firestoreReceiveIds = new Set(init.receive.map((r) => r.id));
+    const firestoreReceiveSignatures = new Set(
+      init.receive.map((r) => `${r.date || r.Date}_${(r.model || r.Model || '').toLowerCase().trim()}`)
+    );
+
+    INITIAL_PCB_RECEIVE_RECORDS.forEach((baseRec) => {
+      const sig = `${baseRec.date}_${baseRec.model.toLowerCase().trim()}`;
+      if (!firestoreReceiveIds.has(baseRec.id) && !firestoreReceiveSignatures.has(sig)) {
+        init.receive.push(baseRec);
+      }
+    });
+
+    // Sort chronologically descending
+    init.receive.sort((a, b) => {
+      const dateA = a.date || a.Date || '';
+      const dateB = b.date || b.Date || '';
+      return dateB.localeCompare(dateA);
+    });
+
+    // Merge all 180 historical Delivery quality records from Walton PCB factory log
+    const firestoreDeliveryIds = new Set(init.delivery.map((r) => r.id));
+    const firestoreDeliverySignatures = new Set(
+      init.delivery.map((r) => `${r.date || r.Date}_${(r.model || r.Model || '').toLowerCase().trim()}`)
+    );
+
+    INITIAL_PCB_DELIVERY_RECORDS.forEach((baseRec) => {
+      const sig = `${baseRec.date}_${baseRec.model.toLowerCase().trim()}`;
+      if (!firestoreDeliveryIds.has(baseRec.id) && !firestoreDeliverySignatures.has(sig)) {
+        init.delivery.push(baseRec);
+      }
+    });
+
+    // Sort chronologically descending
+    init.delivery.sort((a, b) => {
+      const dateA = a.date || a.Date || '';
+      const dateB = b.date || b.Date || '';
+      return dateB.localeCompare(dateA);
+    });
+
     return init;
-  });
-
-  // Load sheets from Firestore on mount if available
-  useEffect(() => {
-    SHEET_KEYS.forEach((k) => {
-      loadPcbSheetRowsFromFirestore(k).then((rows) => {
-        if (rows && rows.length > 0) {
-          setStore((prev) => ({
-            ...prev,
-            [k]: rows,
-          }));
-        }
-      });
-    });
-  }, []);
-
-  // Persist each sheet whenever store changes
-  useEffect(() => {
-    SHEET_KEYS.forEach((k) => {
-      try {
-        localStorage.setItem(PAGES[k].storageKey, JSON.stringify(store[k]));
-      } catch {}
-    });
-  }, [store]);
+  }, [records]);
 
   // Entry form state
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -324,6 +420,12 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
   // Database filter state
   const [dbType, setDbType] = useState<string>('');
   const [dbSearch, setDbSearch] = useState<string>('');
+
+  // Sheet details table search, month filter & pagination (Standard: 15 rows per page)
+  const [tableSearch, setTableSearch] = useState<string>('');
+  const [tableMonth, setTableMonth] = useState<string>('ALL');
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(15);
 
   // Manage Master Lists state
   const [masterLists, setMasterLists] = useState<{
@@ -391,6 +493,10 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
     setSidebarOpen(false);
     setFormError(false);
     setConfirmClearSheet(null);
+    setTableSearch('');
+    setTableMonth('ALL');
+    setPageNumber(1);
+    setPageSize(15);
     if (page !== 'home' && page !== 'database') {
       const today = new Date().toISOString().slice(0, 10);
       setFormValues({
@@ -429,7 +535,12 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
     });
   };
 
-  const handleAddEntry = (sheet: SheetKey) => {
+  const showFeedback = (msg: string) => {
+    setFeedbackMsg(msg);
+    setTimeout(() => setFeedbackMsg(null), 3500);
+  };
+
+  const handleAddEntry = async (sheet: SheetKey) => {
     const cfg = PAGES[sheet];
     const row: Record<string, string> = {};
     cfg.cols.forEach((c) => {
@@ -441,23 +552,33 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
       return;
     }
     setFormError(false);
-    setStore((prev) => {
-      const nextRows = [...prev[sheet], row];
-      savePcbSheetRowsToFirestore(sheet, nextRows).catch(() => {});
-      return {
-        ...prev,
-        [sheet]: nextRows,
-      };
-    });
-    createPcbRecord({
-      sheet,
-      date: row['Date'] || todayStr,
-      model: row['Model'] || '',
-      checkQty: num(row['Total Check'] || row['Total Check (Panel)'] || row['Receive QTY'] || row['Delivery QTY']),
-      faultQty: num(row['Fail QTY'] || row['Fail (Panel)']),
-      faultRate: parseFloat(String(row['Fail percentage'] || row['Fail Ratio'] || '0')),
-      ...row,
-    }).catch(() => {});
+
+    try {
+      await createPcbRecord({
+        sheet,
+        date: row['Date'] || todayStr,
+        model: row['Model'] || '',
+        checkQty: num(
+          row['Total Check'] ||
+            row['Total Check (Panel)'] ||
+            row['Receive QTY'] ||
+            row['Delivery QTY']
+        ),
+        faultQty: num(row['Fail QTY'] || row['Fail (Panel)']),
+        faultRate: parseFloat(
+          String(row['Fail percentage'] || row['Fail Ratio'] || '0').replace('%', '') || '0'
+        ),
+        Product: row['Product'] || '',
+        Layer: row['Layer'] || '',
+        Material: row['Material'] || '',
+        ...row,
+      });
+      showFeedback(`New ${cfg.name} entry saved to Cloud Firestore.`);
+    } catch (err) {
+      console.error('Failed to create PCB record in Firestore:', err);
+      showFeedback('Error saving PCB record to Firestore.');
+    }
+
     // Reset fields while keeping Date & Month
     setFormValues({
       Date: formValues['Date'] || todayStr,
@@ -473,26 +594,93 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
     }));
   };
 
-  const handleRemoveRow = (sheet: SheetKey, idx: number) => {
-    setStore((prev) => {
-      const nextRows = prev[sheet].filter((_, i) => i !== idx);
-      savePcbSheetRowsToFirestore(sheet, nextRows).catch(() => {});
-      return {
-        ...prev,
-        [sheet]: nextRows,
-      };
-    });
+  const handleDeleteRecord = async (recordId: string, modelName: string) => {
+    if (!window.confirm(`Are you sure you want to delete PCB inspection record "${modelName}" from Firestore?`)) {
+      return;
+    }
+    try {
+      await deletePcbRecord(recordId);
+      showFeedback('PCB record deleted from Cloud Firestore.');
+    } catch (err) {
+      console.error('Failed to delete PCB record:', err);
+      showFeedback('Error deleting record from Firestore.');
+    }
   };
 
-  const handleClearLog = (sheet: SheetKey) => {
-    setStore((prev) => {
-      savePcbSheetRowsToFirestore(sheet, []).catch(() => {});
-      return {
-        ...prev,
-        [sheet]: [],
-      };
-    });
+  const handleClearLog = async (sheet: SheetKey) => {
+    const sheetRows = store[sheet];
+    if (sheetRows.length === 0) {
+      setConfirmClearSheet(null);
+      return;
+    }
+    try {
+      for (const r of sheetRows) {
+        if (r.id) {
+          await deletePcbRecord(r.id);
+        }
+      }
+      showFeedback(`All ${PAGES[sheet].name} records deleted from Firestore.`);
+    } catch (err) {
+      console.error('Failed to clear sheet:', err);
+      showFeedback('Error clearing sheet records from Firestore.');
+    }
     setConfirmClearSheet(null);
+  };
+
+  const handleStartEdit = (record: PcbQualityRecord) => {
+    setEditingRecord(record);
+    const initialEditVals: Record<string, string> = {
+      Date: record.date || '',
+      Month: record.Month || getMonthFromDate(record.date || ''),
+      Model: record.model || '',
+      Product: record.Product || '',
+      Layer: record.Layer || '',
+      Material: record.Material || '',
+      'Total Check': String(record['Total Check'] ?? (record.checkQty || '')),
+      'Pass QTY': String(record['Pass QTY'] ?? ''),
+      'Fail QTY': String(record['Fail QTY'] ?? (record.faultQty || '')),
+      'Fail percentage': String(record['Fail percentage'] ?? (record.faultRate ? `${record.faultRate}%` : '')),
+      'Pass (Panel)': String(record['Pass (Panel)'] ?? ''),
+      'Short': String(record['Short'] ?? ''),
+      'Open': String(record['Open'] ?? ''),
+      'Fail (Panel)': String(record['Fail (Panel)'] ?? (record.faultQty || '')),
+      'Total Check (Panel)': String(record['Total Check (Panel)'] ?? (record.checkQty || '')),
+      'Pass Ratio': String(record['Pass Ratio'] ?? ''),
+      'Fail Ratio': String(record['Fail Ratio'] ?? (record.faultRate ? `${record.faultRate}%` : '')),
+      'Receive QTY': String(record['Receive QTY'] ?? (record.checkQty || '')),
+      'Delivery QTY': String(record['Delivery QTY'] ?? (record.checkQty || '')),
+    };
+    setEditFormValues(initialEditVals);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRecord) return;
+    try {
+      const updates: Record<string, any> = { ...editFormValues };
+      updates.date = editFormValues['Date'] || editingRecord.date;
+      updates.model = editFormValues['Model'] || editingRecord.model;
+      updates.Product = editFormValues['Product'] || editingRecord.Product;
+      updates.Layer = editFormValues['Layer'] || editingRecord.Layer;
+      updates.Material = editFormValues['Material'] || editingRecord.Material;
+
+      const checkQty = num(
+        editFormValues['Total Check'] ||
+          editFormValues['Total Check (Panel)'] ||
+          editFormValues['Receive QTY'] ||
+          editFormValues['Delivery QTY']
+      );
+      const faultQty = num(editFormValues['Fail QTY'] || editFormValues['Fail (Panel)']);
+      updates.checkQty = checkQty;
+      updates.faultQty = faultQty;
+      updates.faultRate = checkQty > 0 ? parseFloat(((faultQty / checkQty) * 100).toFixed(2)) : 0;
+
+      await updatePcbRecord(editingRecord.id, updates);
+      showFeedback(`Inspection record for "${updates.model}" updated in Cloud Firestore.`);
+      setEditingRecord(null);
+    } catch (err) {
+      console.error('Failed to update PCB record:', err);
+      showFeedback('Error updating record in Firestore.');
+    }
   };
 
   const handleExportCSV = (sheet: SheetKey) => {
@@ -529,14 +717,14 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
     SHEET_KEYS.forEach((k) => {
       store[k].forEach((r) => {
         totalRecords++;
-        if (r.Date === today) todayRecords++;
+        if (r.date === today || r.Date === today) todayRecords++;
         if (k === 'visual') {
-          totalChecked += num(r['Total Check']);
-          totalFail += num(r['Fail QTY']);
+          totalChecked += num(r['Total Check'] ?? r.checkQty);
+          totalFail += num(r['Fail QTY'] ?? r.faultQty);
         }
         if (k === 'aoi') {
-          totalChecked += num(r['Total Check (Panel)']);
-          totalFail += num(r['Fail (Panel)']);
+          totalChecked += num(r['Total Check (Panel)'] ?? r.checkQty);
+          totalFail += num(r['Fail (Panel)'] ?? r.faultQty);
         }
       });
     });
@@ -551,6 +739,7 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
   // All Database rows combined & sorted
   const allDbRows = useMemo(() => {
     const all: {
+      id: string;
       type: string;
       typeKey: SheetKey;
       date: string;
@@ -559,6 +748,7 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
       fail: string;
       product: string;
       layerMat: string;
+      rawRecord: PcbQualityRecord;
     }[] = [];
     SHEET_KEYS.forEach((k) => {
       store[k].forEach((r) => {
@@ -567,25 +757,29 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
           r['Total Check (Panel)'] ||
           r['Receive QTY'] ||
           r['Delivery QTY'] ||
-          '';
+          (r.checkQty !== undefined ? String(r.checkQty) : '');
         const fail =
-          r['Fail QTY'] !== undefined
+          r['Fail QTY'] !== undefined && r['Fail QTY'] !== ''
             ? r['Fail QTY']
-            : r['Fail (Panel)'] !== undefined
+            : r['Fail (Panel)'] !== undefined && r['Fail (Panel)'] !== ''
             ? r['Fail (Panel)']
+            : r.faultQty !== undefined
+            ? String(r.faultQty)
             : '—';
-        const layerMat = r['Material']
-          ? `${r['Layer'] || ''} / ${r['Material']}`
-          : r['Layer'] || '—';
+        const layerMat = r['Material'] || r.Material
+          ? `${r['Layer'] || r.Layer || ''} / ${r['Material'] || r.Material}`
+          : r['Layer'] || r.Layer || '—';
         all.push({
+          id: r.id,
           type: PAGES[k].name,
           typeKey: k,
-          date: r.Date || '',
-          model: r.Model || '',
+          date: r.date || r.Date || '',
+          model: r.model || r.Model || '',
           qty: String(qty),
           fail: String(fail),
-          product: r.Product || '—',
+          product: r.Product || r.product || '—',
           layerMat,
+          rawRecord: r,
         });
       });
     });
@@ -677,7 +871,7 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                 <path d="M8 2v4M16 2v4M3 10h18" />
                 <path d="M8.5 14.5l2 2 4-4.5" />
               </svg>
-              <span>Daily FQC Report</span>
+              <span className="text-[13.5px] font-bold tracking-wide">Daily FQC Report</span>
               <svg
                 className={`ml-auto transition-transform duration-150 shrink-0 ${
                   groupCollapsed ? '-rotate-90' : ''
@@ -698,27 +892,43 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                 {SHEET_KEYS.map((key) => {
                   const cfg = PAGES[key];
                   const isActive = activePage === key;
+                  const dotColor = isActive
+                    ? key === 'visual'
+                      ? 'bg-[#3b82f6]'
+                      : key === 'aoi'
+                      ? 'bg-[#10b981]'
+                      : key === 'receive'
+                      ? 'bg-[#8b5cf6]'
+                      : 'bg-[#ea580c]'
+                    : key === 'visual'
+                    ? 'bg-[#3b82f6]'
+                    : key === 'aoi'
+                    ? 'bg-[#10b981]'
+                    : key === 'receive'
+                    ? 'bg-[#8b5cf6]'
+                    : 'bg-[#ea580c]';
+
+                  const activeBorder =
+                    key === 'visual'
+                      ? 'border-[#3b82f6]'
+                      : key === 'aoi'
+                      ? 'border-[#10b981]'
+                      : key === 'receive'
+                      ? 'border-[#8b5cf6]'
+                      : 'border-[#ea580c]';
+
                   return (
                     <div
                       key={key}
                       onClick={() => handleSelectPage(key)}
-                      className={`flex items-center gap-2 py-2 pr-3 pl-[30px] text-[12.5px] cursor-pointer border-l-[3px] transition-colors ${
+                      className={`flex items-center gap-2 py-2 pr-3 pl-[30px] text-[12.5px] cursor-pointer border-l-[3px] transition-all duration-150 group select-none ${
                         isActive
-                          ? 'bg-[#17294a] text-white border-[#1565c0] font-bold'
-                          : 'border-transparent text-[#b8c5db] hover:bg-[#17294a] hover:text-white'
+                          ? `bg-[#17294a] text-white ${activeBorder} font-bold shadow-xs`
+                          : 'border-transparent text-[#b8c5db] hover:bg-[#17294a] hover:text-white hover:pl-[32px]'
                       }`}
                     >
-                      <span
-                        className={`w-1 h-1 rounded-full shrink-0 ${
-                          isActive ? 'bg-[#1565c0]' : 'bg-[#5b6e8c]'
-                        }`}
-                      />
-                      <span className="flex-1 min-w-0 truncate">{cfg.name}</span>
-                      <span
-                        className={`text-[9px] font-bold px-[7px] py-[2px] rounded-[20px] text-white whitespace-nowrap shrink-0 ${cfg.badgeClass}`}
-                      >
-                        {cfg.badge}
-                      </span>
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor} transition-transform group-hover:scale-110`} />
+                      <span className="flex-1 min-w-0 truncate text-[14px] font-medium tracking-wide">{cfg.name}</span>
                     </div>
                   );
                 })}
@@ -836,9 +1046,6 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                     ? 'All Database'
                     : `${PAGES[activePage].name} Entry`}
                 </h1>
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#16a34a]/25 text-[#86efac] border border-[#16a34a]/40">
-                  Live Production Entry
-                </span>
               </div>
               <p className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5 m-0">
                 {activePage === 'visual'
@@ -1152,10 +1359,13 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                           'Fail/Short+Open',
                           'Product',
                           'Layer / Material',
+                          'Actions',
                         ].map((h) => (
                           <th
                             key={h}
-                            className="bg-[#eaf2fb] text-[#123a6b] font-bold text-left px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap"
+                            className={`bg-[#eaf2fb] text-[#123a6b] font-bold px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap ${
+                              h === 'Actions' ? 'text-center w-20' : 'text-left'
+                            }`}
                           >
                             {h}
                           </th>
@@ -1166,35 +1376,47 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                       {filteredDbRows.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={7}
+                            colSpan={8}
                             className="text-[#64748b] p-4 text-center text-[12.5px] border border-[#e2e8f0]"
                           >
                             No matching records.
                           </td>
                         </tr>
                       ) : (
-                        filteredDbRows.map((r, i) => (
-                          <tr key={i}>
-                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                        filteredDbRows.map((r) => (
+                          <tr key={r.id} className="hover:bg-[#f8fafc] transition-colors">
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap font-medium text-[#123a6b]">
                               {r.type}
                             </td>
-                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap font-mono text-[11px]">
                               {r.date || '—'}
                             </td>
-                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap font-semibold text-[#0d1730]">
                               {r.model || '—'}
                             </td>
-                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap font-mono">
                               {r.qty}
                             </td>
-                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap font-mono text-[#d64545] font-semibold">
                               {r.fail}
                             </td>
                             <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
                               {r.product}
                             </td>
-                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap">
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap text-slate-600">
                               {r.layerMat}
+                            </td>
+                            <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap text-center">
+                              <div className="flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  title="Edit record in Firestore"
+                                  onClick={() => handleStartEdit(r.rawRecord)}
+                                  className="p-1 rounded text-[#1565c0] hover:bg-[#eaf2fb] transition-colors cursor-pointer"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -1225,14 +1447,38 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
               const cfg = PAGES[sheet];
               const rows = store[sheet];
 
+              const filteredRows = rows.filter((r) => {
+                if (tableMonth !== 'ALL') {
+                  const m = String(r.Month || r.month || getMonthFromDate(r.date || r.Date || '')).toLowerCase();
+                  if (m !== tableMonth.toLowerCase()) return false;
+                }
+                if (tableSearch.trim()) {
+                  const q = tableSearch.toLowerCase().trim();
+                  const mStr = String(r.model || r.Model || '').toLowerCase();
+                  const pStr = String(r.Product || r.product || '').toLowerCase();
+                  const dStr = String(r.date || r.Date || '').toLowerCase();
+                  if (!mStr.includes(q) && !pStr.includes(q) && !dStr.includes(q)) return false;
+                }
+                return true;
+              });
+
+              const totalFiltered = filteredRows.length;
+              const effectivePageSize = pageSize > 0 ? pageSize : 15;
+              const totalPages = Math.max(1, Math.ceil(totalFiltered / effectivePageSize));
+              const safePage = Math.min(Math.max(1, pageNumber), totalPages);
+              const startIndex = (safePage - 1) * effectivePageSize;
+              const displayRows = pageSize > 0
+                ? filteredRows.slice(startIndex, startIndex + effectivePageSize)
+                : filteredRows;
+
               return (
                 <div>
                   {/* Entry Form Card */}
                   <div className="bg-white border border-[#e2e8f0] rounded-[10px] mb-4 overflow-hidden">
-                    <header className="px-4 py-3 flex items-center gap-[9px] font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0]">
+                    <header className="px-4 py-3 flex items-center gap-[9px] font-bold text-[14px] bg-gradient-to-r from-[#0f2942] via-[#163a66] to-[#1e4a7a] text-white border-b border-[#234b73] shadow-xs">
                       <span>New {cfg.name} Entry</span>
                       {cfg.hint && (
-                        <span className="font-normal text-[11px] text-[#64748b] ml-auto">
+                        <span className="font-medium text-[11px] text-[#93c5fd] bg-white/10 px-2.5 py-0.5 rounded-full ml-auto border border-white/15">
                           {cfg.hint}
                         </span>
                       )}
@@ -1548,19 +1794,89 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                     </div>
                   </div>
 
-                  {/* Today's Log Card */}
+                  {/* Details Report Card */}
                   <section className="bg-white border border-[#e2e8f0] rounded-[10px] mb-4 overflow-hidden">
-                    <header className="px-4 py-3 flex items-center justify-between gap-2.5 flex-wrap font-bold text-[14px] text-[#1c2733]">
-                      <span>Today&apos;s {cfg.name} Log</span>
-                      <span className="text-[11.5px] text-[#64748b] font-semibold">
-                        {rows.length} {rows.length === 1 ? 'entry' : 'entries'}
+                    <header className="px-4 py-3 flex items-center justify-between gap-2.5 flex-wrap font-bold text-[14px] bg-gradient-to-r from-[#0f2942] via-[#1e3a8a] to-[#2563eb] text-white border-b border-[#1d4ed8] shadow-xs">
+                      <div className="flex items-center gap-2">
+                        <span>Details Report — {cfg.name}</span>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/25">
+                          Page {safePage} of {totalPages}
+                        </span>
+                      </div>
+                      <span className="text-[11.5px] text-white font-semibold bg-white/15 px-2.5 py-0.5 rounded-full border border-white/20">
+                        {totalFiltered} {totalFiltered === 1 ? 'entry' : 'entries'} ({pageSize === 0 ? 'All' : `${effectivePageSize} / page`})
                       </span>
                     </header>
+
+                    {/* Page Controls & Filter Toolbar */}
+                    <div className="p-3 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs">
+                      {/* Month Filter Tabs */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-[#64748b] mr-1 uppercase">Month:</span>
+                        {['ALL', 'July', 'August', 'September', 'October'].map((m) => {
+                          const count = m === 'ALL'
+                            ? rows.length
+                            : rows.filter((r) => (r.Month || r.month || '').toLowerCase() === m.toLowerCase()).length;
+                          const active = tableMonth === m;
+                          return (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => {
+                                setTableMonth(m);
+                                setPageNumber(1);
+                              }}
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                                active
+                                  ? 'bg-[#123a6b] text-white shadow-xs'
+                                  : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
+                              }`}
+                            >
+                              {m === 'ALL' ? 'All' : m} ({count})
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Search & Rows Per Page */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="text"
+                          value={tableSearch}
+                          onChange={(e) => {
+                            setTableSearch(e.target.value);
+                            setPageNumber(1);
+                          }}
+                          placeholder="Search model, product, date..."
+                          className="px-2.5 py-1 text-xs bg-white border border-[#cbd5e1] rounded-md text-[#1e293b] placeholder-[#94a3b8] focus:outline-none focus:ring-1 focus:ring-[#2563eb] w-48"
+                        />
+                        <div className="flex items-center gap-1 bg-white border border-[#cbd5e1] rounded-md px-2 py-0.5">
+                          <span className="text-[11px] text-[#64748b]">Rows:</span>
+                          <select
+                            value={pageSize}
+                            onChange={(e) => {
+                              setPageSize(Number(e.target.value));
+                              setPageNumber(1);
+                            }}
+                            className="text-xs font-bold text-[#0f172a] bg-transparent outline-none cursor-pointer"
+                          >
+                            <option value={15}>15 / page (Default)</option>
+                            <option value={25}>25 / page</option>
+                            <option value={50}>50 / page</option>
+                            <option value={100}>100 / page</option>
+                            <option value={0}>All ({totalFiltered})</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse text-[12px] min-w-[620px]">
                         <thead>
                           <tr>
+                            <th className="bg-[#eaf2fb] text-[#123a6b] font-bold text-center px-2.5 py-[7px] border border-[#e2e8f0] w-12">
+                              #
+                            </th>
                             {cfg.cols.map((c) => (
                               <th
                                 key={c}
@@ -1573,17 +1889,18 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                           </tr>
                         </thead>
                         <tbody>
-                          {rows.length === 0 ? (
+                          {displayRows.length === 0 ? (
                             <tr>
                               <td
-                                colSpan={cfg.cols.length + 1}
+                                colSpan={cfg.cols.length + 2}
                                 className="text-[#64748b] p-4 text-center text-[12.5px] border border-[#e2e8f0]"
                               >
-                                No entries yet — add one above.
+                                No entries found for the selected filter.
                               </td>
                             </tr>
                           ) : (
-                            rows.map((r, i) => {
+                            displayRows.map((r, i) => {
+                              const rowNumber = startIndex + i + 1;
                               const fk =
                                 sheet === 'visual'
                                   ? 'Fail QTY'
@@ -1592,7 +1909,10 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                                   : '';
                               const hasFail = fk ? num(r[fk]) > 0 : false;
                               return (
-                                <tr key={i}>
+                                <tr key={r.id || `${r.date}-${r.model}-${i}`} className="hover:bg-[#fbfcfe] transition-colors">
+                                  <td className="px-2.5 py-[6px] border border-[#e2e8f0] text-center font-mono text-[11px] text-[#64748b] bg-[#f8fafc]">
+                                    {rowNumber}
+                                  </td>
                                   {cfg.cols.map((c) => {
                                     const isFailCell = c === 'Fail QTY' || c === 'Fail (Panel)';
                                     const cellColor = isFailCell
@@ -1610,13 +1930,16 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                                     );
                                   })}
                                   <td className="px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap text-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRemoveRow(sheet, i)}
-                                      className="border-none bg-transparent text-[#e2231a] cursor-pointer text-[14px] font-bold px-1 hover:underline"
-                                    >
-                                      ✕
-                                    </button>
+                                    <div className="flex items-center justify-center">
+                                      <button
+                                        type="button"
+                                        title="Edit record in Firestore"
+                                        onClick={() => handleStartEdit(r)}
+                                        className="p-1 rounded text-[#1565c0] hover:bg-[#eaf2fb] transition-colors cursor-pointer"
+                                      >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               );
@@ -1626,145 +1949,85 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                       </table>
                     </div>
 
-                    {/* Totals Strip */}
-                    {rows.length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 px-[14px] py-3 bg-[#eaf2fb] border-t border-[#e2e8f0]">
-                        {sheet === 'visual' &&
-                          (() => {
-                            let tot = 0,
-                              pass = 0,
-                              fail = 0;
-                            rows.forEach((r) => {
-                              tot += num(r['Total Check']);
-                              pass += num(r['Pass QTY']);
-                              fail += num(r['Fail QTY']);
-                            });
-                            return (
-                              <>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {tot}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Total Checked
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {pass}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Total Pass
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {fail}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Total Fail
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {pct(fail, tot)}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Fail Rate
-                                  </div>
-                                </div>
-                              </>
-                            );
-                          })()}
+                    {/* Page-wise Pagination Controls */}
+                    {totalFiltered > 0 && (
+                      <div className="px-4 py-3 bg-[#f8fafc] border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div className="text-[12px] text-[#475569]">
+                          Showing <span className="font-bold text-[#0f172a]">{startIndex + 1}</span>–
+                          <span className="font-bold text-[#0f172a]">{Math.min(startIndex + effectivePageSize, totalFiltered)}</span> of{' '}
+                          <span className="font-bold text-[#0f172a]">{totalFiltered}</span> rows
+                          {totalFiltered !== rows.length && ` (filtered from ${rows.length})`}
+                          <span className="ml-2 text-[#94a3b8]">&bull;</span>
+                          <span className="ml-2 font-semibold text-[#1e40af]">Page {safePage} of {totalPages}</span>
+                        </div>
 
-                        {sheet === 'aoi' &&
-                          (() => {
-                            let pass = 0,
-                              fail = 0,
-                              total = 0;
-                            rows.forEach((r) => {
-                              pass += num(r['Pass (Panel)']);
-                              fail += num(r['Fail (Panel)']);
-                              total += num(r['Total Check (Panel)']);
-                            });
-                            return (
-                              <>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {total}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Total Panels
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {pass}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Total Pass
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {fail}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Total Fail
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {pct(fail, total)}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Fail Rate
-                                  </div>
-                                </div>
-                              </>
-                            );
-                          })()}
+                        {totalPages > 1 && (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setPageNumber(1)}
+                              disabled={safePage <= 1}
+                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                              title="First Page"
+                            >
+                              &laquo; First
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+                              disabled={safePage <= 1}
+                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                              title="Previous Page"
+                            >
+                              &lsaquo; Prev
+                            </button>
 
-                        {(sheet === 'receive' || sheet === 'delivery') &&
-                          (() => {
-                            const key = sheet === 'receive' ? 'Receive QTY' : 'Delivery QTY';
-                            let q = 0;
-                            rows.forEach((r) => {
-                              q += num(r[key]);
-                            });
-                            const modelsCount = new Set(rows.map((r) => r.Model)).size;
-                            return (
-                              <>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {rows.length}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Entries
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {q}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    {sheet === 'receive'
-                                      ? 'Total Receive QTY'
-                                      : 'Total Delivery QTY'}
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="text-[21px] font-extrabold text-[#123a6b]">
-                                    {modelsCount}
-                                  </div>
-                                  <div className="text-[10.5px] text-[#64748b] font-semibold uppercase tracking-[0.3px]">
-                                    Models
-                                  </div>
-                                </div>
-                                <div className="text-center" />
-                              </>
-                            );
-                          })()}
+                            {(() => {
+                              const pages: number[] = [];
+                              const maxButtons = 7;
+                              let start = Math.max(1, safePage - 3);
+                              let end = Math.min(totalPages, start + maxButtons - 1);
+                              if (end - start < maxButtons - 1) {
+                                start = Math.max(1, end - maxButtons + 1);
+                              }
+                              for (let p = start; p <= end; p++) pages.push(p);
+
+                              return pages.map((p) => (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  onClick={() => setPageNumber(p)}
+                                  className={`min-w-7 h-7 px-2 rounded text-xs font-bold transition-all cursor-pointer ${
+                                    p === safePage
+                                      ? 'bg-[#123a6b] text-white shadow-xs'
+                                      : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
+                                  }`}
+                                >
+                                  {p}
+                                </button>
+                              ));
+                            })()}
+
+                            <button
+                              type="button"
+                              onClick={() => setPageNumber((p) => Math.min(totalPages, p + 1))}
+                              disabled={safePage >= totalPages}
+                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                              title="Next Page"
+                            >
+                              Next &rsaquo;
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPageNumber(totalPages)}
+                              disabled={safePage >= totalPages}
+                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                              title="Last Page"
+                            >
+                              Last &raquo;
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </section>
@@ -1896,6 +2159,220 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Feedback Notification */}
+      {feedbackMsg && (
+        <div className="fixed bottom-6 right-6 z-[9999] bg-[#0d1730] text-white px-4 py-3 rounded-xl shadow-2xl border border-[#2d4c8e] flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-bottom-2">
+          <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
+          <span>{feedbackMsg}</span>
+        </div>
+      )}
+
+      {/* ================= EDIT RECORD MODAL ================= */}
+      {editingRecord && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl border border-[#cbd5e1] w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col text-xs">
+            {/* Header */}
+            <div className="px-5 py-4 bg-[#0d1730] text-white flex items-center justify-between border-b-[3px] border-[#2563eb]">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-[#2563eb] rounded-lg">
+                  <Edit2 className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white">
+                    Edit {PAGES[editingRecord.sheet]?.name || 'PCB'} Record
+                  </h3>
+                  <p className="text-[11px] text-[#93c5fd]">
+                    Cloud Firestore Document ID: <span className="font-mono">{editingRecord.id}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingRecord(null)}
+                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-5 overflow-y-auto space-y-4 max-h-[calc(90vh-140px)]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">DATE</label>
+                  <input
+                    type="date"
+                    value={editFormValues['Date'] || ''}
+                    onChange={(e) => setEditFormValues((prev) => ({ ...prev, Date: e.target.value }))}
+                    className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">MODEL</label>
+                  <input
+                    type="text"
+                    value={editFormValues['Model'] || ''}
+                    onChange={(e) => setEditFormValues((prev) => ({ ...prev, Model: e.target.value }))}
+                    className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">PRODUCT CATEGORY</label>
+                  <input
+                    type="text"
+                    list="dl-products"
+                    value={editFormValues['Product'] || ''}
+                    onChange={(e) => setEditFormValues((prev) => ({ ...prev, Product: e.target.value }))}
+                    className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">LAYER</label>
+                  <input
+                    type="text"
+                    list="dl-layers"
+                    value={editFormValues['Layer'] || ''}
+                    onChange={(e) => setEditFormValues((prev) => ({ ...prev, Layer: e.target.value }))}
+                    className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white"
+                  />
+                </div>
+
+                {(editingRecord.sheet === 'receive' || editingRecord.sheet === 'delivery') && (
+                  <div>
+                    <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">MATERIAL</label>
+                    <input
+                      type="text"
+                      list="dl-materials"
+                      value={editFormValues['Material'] || ''}
+                      onChange={(e) => setEditFormValues((prev) => ({ ...prev, Material: e.target.value }))}
+                      className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white"
+                    />
+                  </div>
+                )}
+
+                {editingRecord.sheet === 'visual' && (
+                  <>
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">TOTAL CHECK</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editFormValues['Total Check'] || ''}
+                        onChange={(e) => setEditFormValues((prev) => ({ ...prev, 'Total Check': e.target.value }))}
+                        className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">FAIL QTY</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editFormValues['Fail QTY'] || ''}
+                        onChange={(e) => setEditFormValues((prev) => ({ ...prev, 'Fail QTY': e.target.value }))}
+                        className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-mono text-[#d64545]"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {editingRecord.sheet === 'aoi' && (
+                  <>
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">PASS (PANEL)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editFormValues['Pass (Panel)'] || ''}
+                        onChange={(e) => setEditFormValues((prev) => ({ ...prev, 'Pass (Panel)': e.target.value }))}
+                        className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">SHORT</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editFormValues['Short'] || ''}
+                        onChange={(e) => setEditFormValues((prev) => ({ ...prev, Short: e.target.value }))}
+                        className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">OPEN</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editFormValues['Open'] || ''}
+                        onChange={(e) => setEditFormValues((prev) => ({ ...prev, Open: e.target.value }))}
+                        className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">FAIL (PANEL)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editFormValues['Fail (Panel)'] || ''}
+                        onChange={(e) => setEditFormValues((prev) => ({ ...prev, 'Fail (Panel)': e.target.value }))}
+                        className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-mono text-[#d64545]"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {(editingRecord.sheet === 'receive' || editingRecord.sheet === 'delivery') && (
+                  <div>
+                    <label className="block text-[10.5px] font-bold text-[#64748b] mb-1 uppercase">
+                      {editingRecord.sheet === 'receive' ? 'RECEIVE QTY' : 'DELIVERY QTY'}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={
+                        editingRecord.sheet === 'receive'
+                          ? editFormValues['Receive QTY'] || ''
+                          : editFormValues['Delivery QTY'] || ''
+                      }
+                      onChange={(e) =>
+                        setEditFormValues((prev) => ({
+                          ...prev,
+                          [editingRecord.sheet === 'receive' ? 'Receive QTY' : 'Delivery QTY']: e.target.value,
+                        }))
+                      }
+                      className="w-full text-xs border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-white font-mono"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 bg-[#f8fafc] border-t border-[#e2e8f0] flex items-center justify-between">
+              <span className="text-[11px] text-slate-500">
+                Updates will be written to Cloud Firestore pcb_records.
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingRecord(null)}
+                  className="px-4 py-2 border border-[#cbd5e1] bg-white hover:bg-slate-50 text-[#1e293b] font-semibold rounded-lg cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  className="px-4 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white font-bold rounded-lg cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -38,8 +38,9 @@ import { QmBadge } from './QmBadge';
 import { ContactModal } from './modals/ContactModal';
 import { AboutModal, AboutTabType } from './modals/AboutModal';
 import { ProductModal } from './modals/ProductModal';
-import { PageId } from '../types';
+import { PageId, UserProfile } from '../types';
 import { db, doc, getDoc, setDoc } from '../services/firebase';
+import { isAdminProfile, isDesignatedAdminEmail } from '../services/userService';
 import {
   Globe,
   Cpu,
@@ -140,6 +141,8 @@ interface LandingPageProps {
   onNavigateToPage?: (page: PageId) => void;
   onOpenLogin?: () => void;
   isLoggedIn?: boolean;
+  isAdmin?: boolean;
+  userProfile?: UserProfile | null;
   onLogout?: () => void;
   onSelectDepartment?: (deptId: string) => void;
 }
@@ -246,9 +249,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onNavigateToPage = (_page: PageId) => {},
   onOpenLogin = () => {},
   isLoggedIn = false,
+  isAdmin = false,
+  userProfile = null,
   onLogout = () => {},
   onSelectDepartment = (_deptId: string) => {},
 }) => {
+  // Strict Admin Privilege Access Control Check
+  const effectiveIsAdmin = Boolean(
+    isAdmin ||
+    isAdminProfile(userProfile) ||
+    userProfile?.role === 'admin' ||
+    userProfile?.role === 'QM_ADMIN' ||
+    (userProfile?.email && isDesignatedAdminEmail(userProfile.email)) ||
+    (() => {
+      try {
+        const saved = localStorage.getItem('walton_auth_session');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return (
+            isAdminProfile(parsed) ||
+            parsed.role === 'admin' ||
+            parsed.role === 'QM_ADMIN' ||
+            (parsed.email && isDesignatedAdminEmail(parsed.email))
+          );
+        }
+      } catch {}
+      return false;
+    })()
+  );
   const [contactOpen, setContactOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [aboutTab, setAboutTab] = useState<AboutTabType>('overview');
@@ -278,7 +306,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [uploadedImageDataUrl, setUploadedImageDataUrl] = useState<string>('');
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
   const [isDraggingOver, setIsDraggingOver] = useState<boolean>(false);
-  const bannerFileInputRef = React.useRef<HTMLInputElement>(null);
   const modalFileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Auto-cycle hero banner images smoothly every 5 seconds
@@ -552,43 +579,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const handleDirectBannerFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      if (result) {
-        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-        const autoTitle = cleanName.charAt(0).toUpperCase() + cleanName.slice(1) || 'Walton High-Tech Facility';
-        const newItem: HeroBannerItem = {
-          url: result,
-          title: autoTitle,
-          label: 'Direct Upload · ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        };
-        const updated = [newItem, ...heroBannerList];
-        setHeroBannerList(updated);
-        try {
-          localStorage.setItem('walton_landing_hero_banners', JSON.stringify(updated));
-        } catch {}
-        if (db) {
-          setDoc(doc(db, 'master_data', 'hero_banner_images'), { banners: updated }, { merge: true }).catch(() => {});
-        }
-        setHeroSlide(0);
-        setSaveToastMessage({
-          title: 'Image Added & Set as Banner!',
-          subtitle: `"${newItem.title}" is now displaying on the hero banner.`,
-        });
-        setSaveToast(true);
-        setTimeout(() => setSaveToast(false), 3500);
-      }
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
+
 
   const handleAddHeroImage = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!effectiveIsAdmin) {
+      setIsImageModalOpen(false);
+      return;
+    }
     const finalUrl = imageUploadType === 'upload' ? uploadedImageDataUrl : newImageUrl.trim();
     if (!finalUrl) {
       alert(imageUploadType === 'upload' ? 'Please choose or drag & drop an image file first.' : 'Please enter an image URL.');
@@ -628,6 +626,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const handleDeleteHeroImage = (indexToDelete: number) => {
+    if (!effectiveIsAdmin) return;
     if (heroBannerList.length <= 1) {
       alert('You must keep at least one hero banner image.');
       return;
@@ -646,6 +645,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const handleResetHeroImages = () => {
+    if (!effectiveIsAdmin) return;
     setHeroBannerList(DEFAULT_HERO_BANNER_IMAGES);
     try {
       localStorage.removeItem('walton_landing_hero_banners');
@@ -951,56 +951,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* High-tech Quality Optical Inspection Scanline */}
           <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(34,211,238,0.9)] animate-hero-scanline pointer-events-none z-10 opacity-70" />
 
-          {/* Hidden File Input for Direct Local Image Upload */}
-          <input
-            ref={bannerFileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleDirectBannerFileUpload}
-          />
 
-          {/* Hero Banner Image Entry Button Group */}
-          <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
-            {/* Quick Upload Button directly from device */}
-            <button
-              type="button"
-              onClick={() => bannerFileInputRef.current?.click()}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 bg-black/60 hover:bg-black/85 text-white/95 text-xs font-bold rounded-xl border border-white/20 backdrop-blur-md transition-all shadow-md cursor-pointer active:scale-95 group"
-              title="Upload an image directly from your computer or device"
-            >
-              <Upload className="w-3.5 h-3.5 text-cyan-300 group-hover:-translate-y-0.5 transition-transform" />
-              <span>Upload Photo</span>
-            </button>
 
-            {/* Primary Entry Button to Add Image in this section */}
-            <button
-              id="hero-banner-image-entry-btn"
-              type="button"
-              onClick={() => setIsImageModalOpen(true)}
-              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-gradient-to-r from-[#1c356b] via-[#3730a3] to-[#4f46e5] hover:from-[#152a55] hover:via-[#312e81] hover:to-[#4338ca] text-white text-xs sm:text-sm font-bold rounded-xl border border-cyan-400/50 backdrop-blur-md transition-all shadow-[0_4px_16px_rgba(79,70,229,0.4)] hover:shadow-cyan-400/40 cursor-pointer active:scale-95 group"
-              title="Add or customize hero banner images in this section"
-            >
-              <Plus className="w-4 h-4 text-cyan-300 group-hover:scale-125 transition-transform" />
-              <ImageIcon className="w-4 h-4 text-white" />
-              <span>Add Image</span>
-              <span className="text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded text-cyan-100">
-                {heroBannerList.length}
-              </span>
-            </button>
-
-            {/* Remove / Delete Current Image from Hero Banner */}
-            {heroBannerList.length > 1 && (
+          {/* Hero Banner Image Entry Button Group - Rendered ONLY for Admin users */}
+          {effectiveIsAdmin && (
+            <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+              {/* Primary Entry Button to Add Image in this section */}
               <button
+                id="hero-banner-image-entry-btn"
                 type="button"
-                onClick={() => handleDeleteHeroImage(heroSlide)}
-                className="p-2 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white rounded-xl border border-white/20 backdrop-blur-md transition-all shadow-md cursor-pointer active:scale-95"
-                title="Remove current image from banner carousel"
+                onClick={() => setIsImageModalOpen(true)}
+                className="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-gradient-to-r from-[#1c356b] via-[#3730a3] to-[#4f46e5] hover:from-[#152a55] hover:via-[#312e81] hover:to-[#4338ca] text-white text-xs sm:text-sm font-bold rounded-xl border border-cyan-400/50 backdrop-blur-md transition-all shadow-[0_4px_16px_rgba(79,70,229,0.4)] hover:shadow-cyan-400/40 cursor-pointer active:scale-95 group"
+                title="Add or customize hero banner images in this section (Admin Only)"
               >
-                <Trash2 className="w-4 h-4 text-rose-400 group-hover:text-white" />
+                <Plus className="w-4 h-4 text-cyan-300 group-hover:scale-125 transition-transform" />
+                <ImageIcon className="w-4 h-4 text-white" />
+                <span>Add Image</span>
+                <span className="text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded text-cyan-100">
+                  {heroBannerList.length}
+                </span>
               </button>
-            )}
-          </div>
+
+              {/* Remove / Delete Current Image from Hero Banner */}
+              {heroBannerList.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteHeroImage(heroSlide)}
+                  className="p-2 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white rounded-xl border border-white/20 backdrop-blur-md transition-all shadow-md cursor-pointer active:scale-95"
+                  title="Remove current image from banner carousel (Admin Only)"
+                >
+                  <Trash2 className="w-4 h-4 text-rose-400 group-hover:text-white" />
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Slide Navigation Buttons (Previous / Next) */}
           <button
@@ -2064,8 +2048,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       )}
 
-      {/* Hero Banner Image Entry Modal */}
-      {isImageModalOpen && (
+      {/* Hero Banner Image Entry Modal - Admin Exclusive Access */}
+      {effectiveIsAdmin && isImageModalOpen && (
         <div
           id="modal-hero-image-entry-backdrop"
           className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
