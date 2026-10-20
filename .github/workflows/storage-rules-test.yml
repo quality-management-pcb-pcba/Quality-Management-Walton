@@ -38,10 +38,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install dependencies from lockfile
         run: |
-          npm ci || npm install
-          npm install --save-dev @firebase/rules-unit-testing mocha @types/mocha tsx firebase-tools
+          npm ci
 
       - name: Verify Firebase CLI & Java version
         run: |
@@ -50,4 +49,4 @@ jobs:
 
       - name: Execute Storage Rules Unit Test Suite
         run: |
-          npx firebase emulators:exec --only storage "npx mocha -r tsx test/storage.rules.test.ts --timeout 15000"
+          npm run test:storage

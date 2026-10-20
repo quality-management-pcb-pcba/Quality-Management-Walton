@@ -29,13 +29,17 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "firebase-tools": "^13.31.0",
+    "mocha": "^11.1.0",
     "potrace": "^2.1.8",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "@firebase/rules-unit-testing": "^5.0.2"
   }
 }
