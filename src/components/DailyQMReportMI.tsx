@@ -918,38 +918,6 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
                 ))}
               </select>
             </div>
-
-            <button
-              type="button"
-              onClick={handleApplyFilter}
-              className="px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg transition-colors cursor-pointer"
-            >
-              Apply
-            </button>
-            <button
-              type="button"
-              onClick={handleClearFilter}
-              className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer"
-            >
-              Clear
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDownloadCsv}
-              className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>⬇ CSV</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>⬇ PDF</span>
-            </button>
           </div>
         </div>
 

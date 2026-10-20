@@ -53,6 +53,7 @@ import { Sidebar } from './components/Sidebar';
 import { LandingPage } from './components/LandingPage';
 import { LoginModal } from './components/LoginModal';
 import { DashboardView } from './components/views/DashboardView';
+import { AdminDashboardView } from './components/views/AdminDashboardView';
 import { PCBView } from './components/views/PCBView';
 import { PCBAView } from './components/views/PCBAView';
 import { KpiView } from './components/views/KpiView';
@@ -168,10 +169,16 @@ export default function App() {
               return;
             }
 
-            // Strictly enforce: non-designated admin email can never get admin role
+            // Strictly enforce: designated admin UID or email receives admin role
+            const isAdmin =
+              user.uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1' ||
+              isDesignatedAdminEmail(profile.email);
+
             const savedPortal = localStorage.getItem('walton_login_portal');
-            if (savedPortal === 'staff' || !isDesignatedAdminEmail(profile.email)) {
+            if (!isAdmin && savedPortal === 'staff') {
               profile.role = 'qa_staff';
+            } else if (isAdmin) {
+              profile.role = 'admin';
             }
 
             setCurrentUserProfile(profile);
@@ -645,22 +652,29 @@ export default function App() {
           {/* Dynamic Content Body */}
           <main ref={mainScrollRef} className="flex-1 h-full overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 bg-[#f4f6fb]">
             <div className="max-w-7xl mx-auto">
-              {currentPage === 'dashboard' && (
-                <DashboardView
-                  onNavigate={handleNavigate}
-                  onOpenNewNcModal={() => setShowNewNcModal(true)}
-                  onOpenNewCapaModal={() => setShowNewCapaModal(true)}
-                  openNcCount={ncList.filter((n) => n.status !== 'Closed').length}
-                  openCapaCount={capaList.filter((c) => c.status !== 'Closed' && c.status !== 'Cancelled').length}
-                  selectedMonth={selectedMonth}
-                  onMonthChange={setSelectedMonth}
-                  selectedProduct={selectedProduct}
-                  onProductChange={setSelectedProduct}
-                  isLoggedIn={isLoggedIn}
-                  onOpenLoginModal={() => setShowLoginModal(true)}
-                  showSidebar={isSidebarOpen}
-                  onToggleSidebar={handleToggleSidebar}
-                />
+              {(currentPage === 'dashboard' || currentPage === 'admin-dashboard') && (
+                currentUserProfile?.uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1' ? (
+                  <AdminDashboardView
+                    currentUserId={currentUserProfile.uid}
+                    currentUserEmail={currentUserProfile.email}
+                  />
+                ) : (
+                  <DashboardView
+                    onNavigate={handleNavigate}
+                    onOpenNewNcModal={() => setShowNewNcModal(true)}
+                    onOpenNewCapaModal={() => setShowNewCapaModal(true)}
+                    openNcCount={ncList.filter((n) => n.status !== 'Closed').length}
+                    openCapaCount={capaList.filter((c) => c.status !== 'Closed' && c.status !== 'Cancelled').length}
+                    selectedMonth={selectedMonth}
+                    onMonthChange={setSelectedMonth}
+                    selectedProduct={selectedProduct}
+                    onProductChange={setSelectedProduct}
+                    isLoggedIn={isLoggedIn}
+                    onOpenLoginModal={() => setShowLoginModal(true)}
+                    showSidebar={isSidebarOpen}
+                    onToggleSidebar={handleToggleSidebar}
+                  />
+                )
               )}
 
               {currentPage === 'pcb' && (

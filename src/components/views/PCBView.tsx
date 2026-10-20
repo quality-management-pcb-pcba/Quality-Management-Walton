@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   ExternalLink,
   Check,
+  ClipboardCheck,
 } from 'lucide-react';
 import { PageId } from '../../types';
 import { PCBQualityDataEntryPortal } from '../PCBQualityDataEntryPortal';
@@ -67,6 +68,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
   const [activeModal, setActiveModal] = useState<'attendance' | 'report' | 'sop' | null>(null);
   const [portalInitialGate, setPortalInitialGate] = useState<'FQC' | 'AOI' | 'ETEST'>('FQC');
   const [portalInitialNav, setPortalInitialNav] = useState<'report-entry' | 'defect-entry' | undefined>(undefined);
+  const [portalInitialSheet, setPortalInitialSheet] = useState<'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database' | undefined>(undefined);
 
   // PCB Manpower State
   const [manpowerList, setManpowerList] = useState<PCBManpowerEntry[]>(() => {
@@ -366,6 +368,51 @@ export const PCBView: React.FC<PCBViewProps> = ({
 
       {/* Inspection Gate Summary Table matching PCBA */}
       <div className="bg-white border border-[#e2e7f2] rounded-2xl overflow-hidden shadow-xs">
+        {/* Table Header with direct links to PCB Reports */}
+        <div className="px-6 py-4 bg-slate-50 border-b border-[#e2e7f2] flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-base font-bold text-[#0d1730] flex items-center gap-2">
+              <ClipboardCheck className="w-4 h-4 text-[#2563eb]" />
+              <span>Inspection Gate Summary Report</span>
+            </h3>
+            <p className="text-xs text-[#5b6480] mt-0.5">
+              Live inspection yield metrics linked directly to full PCB Quality Reports &amp; defect logs. Click any gate below to open its report.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setPortalInitialGate('FQC');
+                setPortalInitialSheet('visual');
+                setPortalInitialNav('defect-entry');
+                setActiveModal('report');
+              }}
+              className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#2563eb] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              title="Open Final Quality Control (FQC) Summary Report & Defect Data"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
+              <span>FQC Report ↗</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setPortalInitialGate('AOI');
+                setPortalInitialSheet('aoi');
+                setPortalInitialNav('defect-entry');
+                setActiveModal('report');
+              }}
+              className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              title="Open Automated Optical Inspection (AOI) Summary Report & Defect Data"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span>AOI Report ↗</span>
+            </button>
+          </div>
+        </div>
+
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="bg-[#0f172a] text-white">
@@ -377,57 +424,69 @@ export const PCBView: React.FC<PCBViewProps> = ({
           </thead>
           <tbody className="divide-y divide-[#e2e7f2]">
             <tr
+              id="row-fqc-visual-check"
               onClick={() => {
                 setPortalInitialGate('FQC');
+                setPortalInitialSheet('visual');
+                setPortalInitialNav('defect-entry');
                 setActiveModal('report');
               }}
               className="hover:bg-[#f0f4ff] transition-colors cursor-pointer group"
-              title="Click to open Final Quality Control (FQC) Defect Data Entry"
+              title="Click to open Final Quality Control (FQC) Visual Check Report & Defect Entry"
             >
               <td className="py-4 px-6 font-bold text-sm text-[#0d1730]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
-                    <span>Final Quality Control (FQC)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb] ring-4 ring-[#2563eb]/20 group-hover:scale-110 transition-transform" />
+                    <span className="group-hover:text-[#2563eb] transition-colors">Final Quality Control (FQC)</span>
                   </div>
+                  <span className="text-[11px] font-semibold text-[#2563eb] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                    View Report ↗
+                  </span>
                 </div>
               </td>
-              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730]">
+              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730] group-hover:text-[#2563eb] transition-colors">
                 {fqcTotalCheck.toLocaleString()}
               </td>
-              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730]">
+              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730] group-hover:text-[#2563eb] transition-colors">
                 {fqcTotalFail.toLocaleString()}
               </td>
               <td className="py-4 px-6">
-                <span className="inline-block px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#e5f7ee] text-[#10b981]">
+                <span className="inline-block px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#e5f7ee] text-[#10b981] group-hover:ring-2 group-hover:ring-[#10b981]/30 transition-all">
                   {fqcTotalRate}%
                 </span>
               </td>
             </tr>
             <tr
+              id="row-aoi-inspection"
               onClick={() => {
                 setPortalInitialGate('AOI');
+                setPortalInitialSheet('aoi');
+                setPortalInitialNav('defect-entry');
                 setActiveModal('report');
               }}
               className="hover:bg-[#fffbeb] transition-colors cursor-pointer group"
-              title="Click to open Automated Optical Inspection (AOI) Defect Data Entry"
+              title="Click to open Automated Optical Inspection (AOI) Report & Defect Data Entry"
             >
               <td className="py-4 px-6 font-bold text-sm text-[#0d1730]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-500" />
-                    <span>Automated Optical Inspection (AOI)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 ring-4 ring-amber-500/20 group-hover:scale-110 transition-transform" />
+                    <span className="group-hover:text-amber-700 transition-colors">Automated Optical Inspection (AOI)</span>
                   </div>
+                  <span className="text-[11px] font-semibold text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                    View Report ↗
+                  </span>
                 </div>
               </td>
-              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730]">
+              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730] group-hover:text-amber-700 transition-colors">
                 {aoiTotalCheck.toLocaleString()}
               </td>
-              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730]">
+              <td className="py-4 px-6 font-mono text-sm font-bold text-[#0d1730] group-hover:text-amber-700 transition-colors">
                 {aoiTotalFault.toLocaleString()}
               </td>
               <td className="py-4 px-6">
-                <span className="inline-block px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#fbe6e6] text-[#d64545]">
+                <span className="inline-block px-3 py-1 rounded-full font-mono font-bold text-xs bg-[#fbe6e6] text-[#d64545] group-hover:ring-2 group-hover:ring-[#d64545]/30 transition-all">
                   {aoiTotalRate}%
                 </span>
               </td>
@@ -870,14 +929,17 @@ export const PCBView: React.FC<PCBViewProps> = ({
         <PCBQualityDataEntryPortal
           initialGate={portalInitialGate}
           initialNav={portalInitialNav}
+          initialSheet={portalInitialSheet}
           onNavigateHome={() => {
             setActiveModal(null);
             setPortalInitialNav(undefined);
+            setPortalInitialSheet(undefined);
             onNavigate('home');
           }}
           onClose={() => {
             setActiveModal(null);
             setPortalInitialNav(undefined);
+            setPortalInitialSheet(undefined);
           }}
         />
       )}

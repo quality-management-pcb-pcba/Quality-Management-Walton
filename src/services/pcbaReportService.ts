@@ -71,6 +71,19 @@ export function getCurrentUserIdentifier(): string {
 }
 
 /**
+ * Strips any undefined fields from an object so Firestore addDoc/setDoc/updateDoc does not throw
+ */
+function sanitizeFirestorePayload<T extends Record<string, any>>(obj: T): Partial<T> {
+  const clean: Record<string, any> = {};
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] !== undefined) {
+      clean[key] = obj[key];
+    }
+  });
+  return clean as Partial<T>;
+}
+
+/**
  * Saves a single PCBA Report to Firestore collection `pcba_reports`
  * Adds createdBy, createdAt, updatedBy, and updatedAt fields automatically.
  */
@@ -81,7 +94,7 @@ export async function savePcbaReport(
   const now = new Date().toISOString();
   const user = getCurrentUserIdentifier();
 
-  const payload: PcbaReportRecord = {
+  const payload = sanitizeFirestorePayload({
     date: record.date,
     line: record.line,
     model: record.model,
@@ -89,16 +102,16 @@ export async function savePcbaReport(
     desc: (record.desc || '').trim() || '—',
     qty: Math.max(1, Number(record.qty) || 1),
     status: record.status || 'Open',
-    shift: record.shift,
-    product: record.product,
-    operator: record.operator,
-    remarks: record.remarks,
-    source: record.source,
+    shift: record.shift || 'Day',
+    product: record.product || 'General',
+    operator: record.operator || '',
+    remarks: record.remarks || '',
+    source: record.source || 'PCBA Report Portal',
     createdBy: user,
     createdAt: now,
     updatedBy: user,
     updatedAt: now,
-  };
+  });
 
   try {
     const colRef = collection(db, path);
@@ -124,7 +137,7 @@ export async function saveMultiplePcbaReports(
   try {
     const colRef = collection(db, path);
     for (const rec of records) {
-      const payload: PcbaReportRecord = {
+      const payload = sanitizeFirestorePayload({
         date: rec.date,
         line: rec.line,
         model: rec.model,
@@ -132,16 +145,16 @@ export async function saveMultiplePcbaReports(
         desc: (rec.desc || '').trim() || '—',
         qty: Math.max(1, Number(rec.qty) || 1),
         status: rec.status || 'Open',
-        shift: rec.shift,
-        product: rec.product,
-        operator: rec.operator,
-        remarks: rec.remarks,
-        source: rec.source,
+        shift: rec.shift || 'Day',
+        product: rec.product || 'General',
+        operator: rec.operator || '',
+        remarks: rec.remarks || '',
+        source: rec.source || 'PCBA Report Portal',
         createdBy: user,
         createdAt: now,
         updatedBy: user,
         updatedAt: now,
-      };
+      });
       const docRef = await addDoc(colRef, payload);
       createdIds.push(docRef.id);
     }
@@ -163,11 +176,11 @@ export async function updatePcbaReport(
   const now = new Date().toISOString();
   const user = getCurrentUserIdentifier();
 
-  const payload: Record<string, any> = {
+  const payload: Record<string, any> = sanitizeFirestorePayload({
     ...updates,
     updatedBy: user,
     updatedAt: now,
-  };
+  });
 
   if (updates.qty !== undefined) {
     payload.qty = Math.max(1, Number(updates.qty) || 1);

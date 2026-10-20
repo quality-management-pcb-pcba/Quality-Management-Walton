@@ -87,10 +87,14 @@ interface DefectItem {
   qty: number;
 }
 
+import { uploadFileToFirebaseStorage } from '../../services/storage';
+
 interface DocUploadItem {
   name: string;
   type: 'PDF' | 'IMG';
   fileName: string;
+  fileUrl?: string;
+  storagePath?: string;
   status: 'Pending' | 'Received' | 'Verified' | 'Not Required';
 }
 
@@ -316,16 +320,42 @@ export const IqcView: React.FC<IqcViewProps> = ({
     setDocs((prev) => prev.map((d) => (d.name === name ? { ...d, status } : d)));
   };
 
-  const handleFileUpload = (name: string, file: File | null) => {
+  const [isUploadingDoc, setIsUploadingDoc] = useState<string | null>(null);
+
+  const handleFileUpload = async (name: string, file: File | null) => {
     if (!isLoggedIn || !file) return;
-    setDocs((prev) =>
-      prev.map((d) =>
-        d.name === name
-          ? { ...d, fileName: file.name, status: d.status === 'Pending' ? 'Received' : d.status }
-          : d
-      )
-    );
-    showFlash(`Uploaded ${file.name}`);
+    setIsUploadingDoc(name);
+    try {
+      showFlash(`Uploading ${file.name} to Firebase Storage...`);
+      const uploadRes = await uploadFileToFirebaseStorage(file, `iqc_evidence/${reportNo || 'draft'}`);
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.name === name
+            ? {
+                ...d,
+                fileName: uploadRes.fileName,
+                fileUrl: uploadRes.fileUrl,
+                storagePath: uploadRes.storagePath,
+                status: 'Received',
+              }
+            : d
+        )
+      );
+      showFlash(`✓ Uploaded ${file.name} to Firebase Storage successfully!`);
+    } catch (err: any) {
+      console.error('Firebase Storage upload failed:', err);
+      // Fallback locally
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.name === name
+            ? { ...d, fileName: file.name, status: d.status === 'Pending' ? 'Received' : d.status }
+            : d
+        )
+      );
+      showFlash(`Uploaded ${file.name} (local preview)`);
+    } finally {
+      setIsUploadingDoc(null);
+    }
   };
 
   // Save finalized report to Firestore collection iqc_reports
@@ -2080,9 +2110,27 @@ export const IqcView: React.FC<IqcViewProps> = ({
                               onChange={(e) => handleFileUpload(doc.name, e.target.files?.[0] || null)}
                               className="hidden"
                             />
-                            <span className="text-[11px] text-slate-500 truncate max-w-[120px]">
-                              {doc.fileName || 'No file chosen'}
-                            </span>
+                            {isUploadingDoc === doc.name ? (
+                              <span className="text-[11px] text-[#2563eb] font-semibold flex items-center gap-1">
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                Uploading to Storage...
+                              </span>
+                            ) : doc.fileUrl ? (
+                              <a
+                                href={doc.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-[#2563eb] hover:underline font-bold truncate max-w-[130px] flex items-center gap-1"
+                                title="Open uploaded file in Firebase Storage"
+                              >
+                                <span>📄</span>
+                                <span className="truncate">{doc.fileName}</span>
+                              </a>
+                            ) : (
+                              <span className="text-[11px] text-slate-500 truncate max-w-[120px]">
+                                {doc.fileName || 'No file chosen'}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="p-2.5">

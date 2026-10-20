@@ -166,8 +166,17 @@ Approved By: Head of Quality Assurance, Walton Hi-Tech Industries PLC
                     {doc.code}
                   </td>
                   <td className="py-3 px-3 font-semibold text-[#0d1730]">
-                    {doc.title}
-                    <span className="block text-[10px] text-[#8891a8] font-normal">Custodian: {doc.owner}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>{doc.title}</span>
+                      {doc.fileUrl && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#10b981] bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded" title="Attached in Firebase Cloud Storage">
+                          ☁ Cloud File
+                        </span>
+                      )}
+                    </div>
+                    <span className="block text-[10px] text-[#8891a8] font-normal">
+                      Custodian: {doc.owner} {doc.fileName ? `• ${doc.fileName}` : ''}
+                    </span>
                   </td>
                   <td className="py-3 px-3">
                     <span className="px-2 py-0.5 rounded bg-[#eef1f8] text-[#22376b] font-medium text-[10px]">

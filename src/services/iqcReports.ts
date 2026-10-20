@@ -38,6 +38,8 @@ export interface IqcReportRecord {
     name: string;
     type: 'PDF' | 'IMG';
     fileName: string;
+    fileUrl?: string;
+    storagePath?: string;
     status: 'Pending' | 'Received' | 'Verified' | 'Not Required';
   }>;
   finalResult: 'Accept' | 'Conditional Accept' | 'Reject';

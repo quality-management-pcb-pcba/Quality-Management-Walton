@@ -283,61 +283,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div>
           <div className="flex items-center gap-2.5">
             <h2 className="text-2xl font-bold text-[#0d1730]">Dashboard</h2>
-            <button
-              onClick={onToggleSidebar}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer"
-              title={showSidebar ? "Switch to icon rail" : "Expand sidebar to full"}
-            >
-              <Menu className="w-3.5 h-3.5 text-[#1c356b]" />
-              <span>{showSidebar ? 'Full Sidebar' : 'Icon Rail'}</span>
-            </button>
           </div>
           <div className="text-xs text-[#5b6480] mt-0.5">
             Production Overview · All PCB &amp; PCBA Lines
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Month Filter */}
-          <div className="flex items-center gap-2 bg-white border border-[#cbd5e1] hover:border-[#94a3b8] px-3 py-1.5 rounded-lg shadow-2xs transition-colors">
-            <Calendar className="w-3.5 h-3.5 text-[#5b6480] shrink-0" />
-            <label htmlFor="dashboard-month-filter" className="text-xs font-semibold text-[#5b6480]">
-              Month:
-            </label>
-            <select
-              id="dashboard-month-filter"
-              value={currentMonth}
-              onChange={(e) => handleMonthChange(e.target.value)}
-              className="bg-transparent text-xs font-bold text-[#0d1730] focus:outline-none cursor-pointer pr-1"
-            >
-              <option value="All">All Months (2026)</option>
-              <option value="August 2026">August 2026 (Current)</option>
-              <option value="July 2026">July 2026</option>
-              <option value="June 2026">June 2026</option>
-              <option value="May 2026">May 2026</option>
-              <option value="April 2026">April 2026</option>
-            </select>
-          </div>
-
-          {/* Product Filter */}
-          <div className="flex items-center gap-2 bg-white border border-[#cbd5e1] hover:border-[#94a3b8] px-3 py-1.5 rounded-lg shadow-2xs transition-colors">
-            <Layers className="w-3.5 h-3.5 text-[#5b6480] shrink-0" />
-            <label htmlFor="dashboard-product-filter" className="text-xs font-semibold text-[#5b6480]">
-              Product:
-            </label>
-            <select
-              id="dashboard-product-filter"
-              value={currentProduct}
-              onChange={(e) => handleProductChange(e.target.value)}
-              className="bg-transparent text-xs font-bold text-[#0d1730] focus:outline-none cursor-pointer pr-1"
-            >
-              <option value="All Products">All Products</option>
-              <option value="Fridge">Fridge Boards</option>
-              <option value="TV">TV Mainboards</option>
-              <option value="LED Light">LED Light Driver</option>
-              <option value="Mobile">Mobile Sub-boards</option>
-              <option value="Computer">Computer Motherboard</option>
-            </select>
-          </div>
         </div>
       </div>
 

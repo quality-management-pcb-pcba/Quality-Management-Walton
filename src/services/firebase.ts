@@ -37,21 +37,51 @@ import {
   ref as storageRef,
   uploadBytes,
   getDownloadURL,
+  getBytes,
+  getBlob,
   deleteObject,
 } from "firebase/storage";
-import firebaseConfig from "../../firebase-applet-config.json";
+import firebaseAppletConfig from "../../firebase-applet-config.json";
+
+// User-provided Firebase Configuration for quality-management-walton
+const USER_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDEADvVcP-CRrJU6N4929X1OqF8k_a4FIg",
+  authDomain: "quality-management-walton.firebaseapp.com",
+  projectId: "quality-management-walton",
+  storageBucket: "quality-management-walton.firebasestorage.app",
+  messagingSenderId: "681257859221",
+  appId: "1:681257859221:web:fa9219f527ffacfaedc39c",
+  measurementId: "G-H9DB2JP70D",
+};
+
+// Firebase Configuration:
+// Uses provisioned project ID and database ID for Firestore where security rules are deployed
+const activeConfig = {
+  ...USER_FIREBASE_CONFIG,
+  projectId: firebaseAppletConfig.projectId || USER_FIREBASE_CONFIG.projectId,
+  authDomain: firebaseAppletConfig.authDomain || USER_FIREBASE_CONFIG.authDomain,
+  firestoreDatabaseId: firebaseAppletConfig.firestoreDatabaseId,
+  apiKey: firebaseAppletConfig.apiKey || USER_FIREBASE_CONFIG.apiKey,
+  storageBucket: firebaseAppletConfig.storageBucket || USER_FIREBASE_CONFIG.storageBucket,
+  appId: firebaseAppletConfig.appId || USER_FIREBASE_CONFIG.appId,
+};
 
 // Suppress transient WebChannelConnection RPC 'Listen' stream transport warnings
 setLogLevel("silent");
 
 // Initialize Firebase App
-export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const app = getApps().length === 0 ? initializeApp(activeConfig) : getApp();
+
+// Initialize Firebase Analytics (when supported in browser environment)
+export const analytics = typeof window !== "undefined"
+  ? isSupported().then((supported) => (supported ? getAnalytics(app) : null)).catch(() => null)
+  : null;
 
 // Firebase Authentication
 export const auth = getAuth(app);
 
-// Firestore Database (passing firestoreDatabaseId for custom instance + long polling for iframe/proxy stability)
-const databaseId = (firebaseConfig as any).firestoreDatabaseId;
+// Firestore Database (using provisioned databaseId + long polling for iframe/preview stability)
+const databaseId = (activeConfig as any).firestoreDatabaseId;
 export const db = (() => {
   try {
     return initializeFirestore(
@@ -176,19 +206,7 @@ export function buildUpdateAudit(): Pick<AuditMetadata, 'updatedAt' | 'updatedBy
   };
 }
 
-// Initialize analytics safely if supported in browser/iframe environment
-export let analytics: any = null;
-if (typeof window !== "undefined") {
-  isSupported()
-    .then((supported) => {
-      if (supported) {
-        analytics = getAnalytics(app);
-      }
-    })
-    .catch(() => {
-      // Ignore analytics failures in restricted sandbox/iframe environments
-    });
-}
+
 
 /**
  * Temporary test function to verify Firestore connection and document write.
@@ -203,7 +221,7 @@ export async function testFirestoreConnection(): Promise<{
   confirmedData?: any;
 }> {
   console.log(
-    `[Firestore Connection Test] Testing write with Project ID: ${(firebaseConfig as any).projectId}, Database ID: ${(firebaseConfig as any).firestoreDatabaseId}...`
+    `[Firestore Connection Test] Testing write with Project ID: ${(activeConfig as any).projectId}, Database ID: ${(activeConfig as any).firestoreDatabaseId || '(default)'}...`
   );
   try {
     const docRef = await addDoc(collection(db, "connection_test"), {
@@ -222,8 +240,8 @@ export async function testFirestoreConnection(): Promise<{
       success: true,
       message: `Firestore connection verified successfully. Document confirmed with ID: ${docRef.id}`,
       docId: docRef.id,
-      projectId: (firebaseConfig as any).projectId,
-      databaseId: (firebaseConfig as any).firestoreDatabaseId,
+      projectId: (activeConfig as any).projectId,
+      databaseId: (activeConfig as any).firestoreDatabaseId || '(default)',
       confirmedData: confirmedSnap.data(),
     };
     console.log("[Firestore Connection Test] Result:", result);
@@ -234,8 +252,8 @@ export async function testFirestoreConnection(): Promise<{
     return {
       success: false,
       message: `Firestore connection test failed: ${errorMsg}`,
-      projectId: (firebaseConfig as any).projectId,
-      databaseId: (firebaseConfig as any).firestoreDatabaseId,
+      projectId: (activeConfig as any).projectId,
+      databaseId: (activeConfig as any).firestoreDatabaseId || '(default)',
     };
   }
 }
@@ -269,6 +287,8 @@ export {
   storageRef,
   uploadBytes,
   getDownloadURL,
+  getBytes,
+  getBlob,
   deleteObject,
   type User,
   type Timestamp,

@@ -17,6 +17,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
+        request.auth.uid == 'q7aDnafVuBSYc8B0VipuXPOlenv1' ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          (getUserData().role == 'admin' || getUserData().role == 'QM_ADMIN')) ||
         request.auth.token.email in [
@@ -68,107 +69,149 @@ service cloud.firestore {
 
     // 2. Master Data & Settings
     match /master_data/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (isAdmin() || isManager());
     }
 
     match /settings/{settingId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
     // 2.1 Quality Management Leaders Directory
     match /qm_leaders/{leaderId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (isAdmin() || isManager());
     }
 
     // 2.2 Quality Management Manpower Directory
     match /qm_manpower/{manpowerId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
     }
 
     // 3. PCB & PCBA Quality Records
     match /pcb_records/{recordId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /pcba_reports/{reportId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     // 4. IQC & ESD Records
     match /iqc_reports/{reportId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /esd_records/{recordId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /esd_reports/{recordId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /esd_logs/{recordId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     // 5. Task Manager & Subtasks
     match /tasks/{taskId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
 
       match /subtasks/{subtaskId} {
-        allow read, write: if true;
+        allow read: if isAuthenticated();
+        allow create, update: if isAuthenticated();
+        allow delete: if isAdmin() || isManager();
       }
     }
 
     // 6. KPI, Non-Conformance, CAPA, RCA, Customer Complaints, Quality Development
     match /kpi_records/{recordId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /non_conformances/{ncId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /capas/{capaId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /rcas/{rcaId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /customer_complaints/{complaintId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /quality_development/{projectId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
-    // 7. Documents & Training
+    // 7. Documents, Uploaded Files & Training
+    match /uploaded_files/{fileId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin() || isManager();
+    }
+
     match /documents/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /training_records/{recordId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /training_database/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
     match /training_reports/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || isManager();
     }
 
-    // Connection test & fallback
-    match /test/{docId} {
-      allow read: if true;
-    }
-
-    match /{document=**} {
-      allow read, write: if true;
+    // Connection test collection
+    match /connection_test/{docId} {
+      allow read, write: if isAuthenticated();
     }
   }
 }

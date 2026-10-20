@@ -223,12 +223,33 @@
         "email": { "type": "string", "maxLength": 150 }
       },
       "required": ["email"]
+    },
+    "uploaded_file": {
+      "title": "Uploaded File",
+      "description": "Index of files uploaded to Firebase Cloud Storage with user ownership",
+      "type": "object",
+      "properties": {
+        "fileName": { "type": "string", "maxLength": 300 },
+        "fileUrl": { "type": "string" },
+        "storagePath": { "type": "string", "maxLength": 500 },
+        "fileSize": { "type": "string", "maxLength": 50 },
+        "contentType": { "type": "string", "maxLength": 100 },
+        "folder": { "type": "string", "maxLength": 100 },
+        "uploaderUid": { "type": "string", "maxLength": 128 },
+        "uploaderEmail": { "type": "string", "maxLength": 150 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["fileName", "fileUrl", "storagePath", "uploaderUid"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "user_profile",
       "description": "Employee authentication profiles and RBAC roles"
+    },
+    "/uploaded_files/{fileId}": {
+      "schema": "uploaded_file",
+      "description": "Collection of uploaded file indices with ownership and storage paths"
     },
     "/pcba_reports/{reportId}": {
       "schema": "pcba_report",

@@ -154,12 +154,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const isAdminUser =
+    userProfile?.uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1' ||
+    userProfile?.role === 'admin' ||
+    userProfile?.role === 'QM_ADMIN';
+
   const navItems: NavItem[] = [
     {
       id: 'dashboard' as PageId,
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      description: 'Real-time PCB & PCBA quality metrics and PPM analytics',
+      label: isAdminUser ? 'Admin Dashboard' : 'Dashboard',
+      icon: isAdminUser ? ShieldCheck : LayoutDashboard,
+      description: isAdminUser
+        ? 'Admin console: Firestore users, creation dates & uploaded file inspector'
+        : 'Real-time PCB & PCBA quality metrics and PPM analytics',
+      badge: isAdminUser ? 'Admin' : undefined,
+      badgeColor: isAdminUser ? 'bg-rose-600' : undefined,
     },
     {
       id: 'pcb' as PageId,

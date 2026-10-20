@@ -14,9 +14,13 @@ import {
 import { UserProfile, UserRole, UserStatus } from '../types';
 
 /**
- * Authorized Walton Quality Management Administrator Emails
- * Users logging in with any other email can NEVER receive an administrator role.
+ * Authorized Walton Quality Management Administrator User IDs and Emails
+ * Users matching these IDs or emails receive full administrator clearance.
  */
+export const DESIGNATED_ADMIN_UIDS: string[] = [
+  'q7aDnafVuBSYc8B0VipuXPOlenv1',
+];
+
 export const DESIGNATED_ADMIN_EMAILS: string[] = [
   'qm.pcba26@gmail.com',
   'atiqur40736@waltonbd.com',
@@ -27,17 +31,26 @@ export const DESIGNATED_ADMIN_EMAILS: string[] = [
 /**
  * Validates if an email is an authorized Walton System Administrator
  */
-export function isDesignatedAdminEmail(email: string): boolean {
+export function isDesignatedAdminEmail(email?: string): boolean {
   if (!email) return false;
   const normalized = email.trim().toLowerCase();
   return DESIGNATED_ADMIN_EMAILS.includes(normalized);
 }
 
 /**
- * Checks if a user profile has administrative privileges
+ * Validates if a user ID is an authorized Walton System Administrator
+ */
+export function isDesignatedAdminUid(uid?: string): boolean {
+  if (!uid) return false;
+  return DESIGNATED_ADMIN_UIDS.includes(uid);
+}
+
+/**
+ * Checks if a user profile or ID has administrative privileges
  */
 export function isAdminProfile(profile?: UserProfile | null): boolean {
   if (!profile) return false;
+  if (isDesignatedAdminUid(profile.uid)) return true;
   return (
     (profile.role === 'admin' || profile.role === 'QM_ADMIN') &&
     isDesignatedAdminEmail(profile.email)
@@ -182,21 +195,21 @@ export async function getUserProfile(uid: string, fallbackEmail?: string): Promi
  */
 export async function bootstrapUserProfile(uid: string, email: string): Promise<UserProfile> {
   const normalizedEmail = email.trim().toLowerCase();
-  const isAdminEmail = isDesignatedAdminEmail(normalizedEmail);
+  const isAdmin = isDesignatedAdminEmail(normalizedEmail) || isDesignatedAdminUid(uid);
   const seed = INITIAL_STAFF_SEEDS[normalizedEmail] || {
     employeeId: normalizedEmail.split('@')[0].replace(/\D/g, '') || '00000',
     name: normalizedEmail.split('@')[0],
     email: normalizedEmail,
     department: 'Quality Management',
     section: 'PCB & PCBA',
-    designation: isAdminEmail ? 'Head of Quality Management' : 'QA Staff',
-    role: (isAdminEmail ? 'admin' : 'qa_staff') as UserRole,
+    designation: isAdmin ? 'Head of Quality Management' : 'QA Staff',
+    role: (isAdmin ? 'admin' : 'qa_staff') as UserRole,
     status: 'active' as UserStatus,
-    permissions: isAdminEmail ? ['ALL'] : ['READ', 'WRITE_QM'],
+    permissions: isAdmin ? ['ALL'] : ['READ', 'WRITE_QM'],
   };
 
-  // Extra safety safeguard: If not designated admin email, NEVER allow admin role
-  if (!isAdminEmail && (seed.role as string) === 'admin') {
+  // Extra safety safeguard: If not designated admin, NEVER allow admin role
+  if (!isAdmin && (seed.role as string) === 'admin') {
     seed.role = 'qa_staff';
     seed.designation = 'QA Staff';
   }

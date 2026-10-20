@@ -18,6 +18,8 @@ import {
 } from './firebase';
 import { SopDocument } from '../types';
 
+import { uploadFileToFirebaseStorage } from './storage';
+
 const COLLECTION_NAME = 'documents';
 
 export async function uploadSopFileToStorage(
@@ -25,16 +27,12 @@ export async function uploadSopFileToStorage(
   docCode: string
 ): Promise<{ fileName: string; fileUrl: string; storagePath: string; fileSize: string }> {
   const safeCode = docCode.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const storagePath = `documents/${safeCode}/${Date.now()}_${file.name}`;
-  const ref = storageRef(storage, storagePath);
-  await uploadBytes(ref, file);
-  const fileUrl = await getDownloadURL(ref);
-  const sizeMb = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+  const result = await uploadFileToFirebaseStorage(file, `documents/${safeCode}`);
   return {
-    fileName: file.name,
-    fileUrl,
-    storagePath,
-    fileSize: sizeMb,
+    fileName: result.fileName,
+    fileUrl: result.fileUrl,
+    storagePath: result.storagePath,
+    fileSize: result.fileSize,
   };
 }
 

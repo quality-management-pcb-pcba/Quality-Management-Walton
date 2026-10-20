@@ -61,7 +61,8 @@ export type PageId =
   | 'team-entry'
   | 'manpower'
   | 'settings'
-  | 'users';
+  | 'users'
+  | 'admin-dashboard';
 
 export type PageType = PageId;
 

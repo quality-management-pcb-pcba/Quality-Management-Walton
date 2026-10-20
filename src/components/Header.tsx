@@ -220,50 +220,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 </div>
 
-                {/* Admin User Management link - Strictly restricted to admin role */}
-                {userProfile?.role === 'admin' && (
-                  <button
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      onNavigate('users');
-                    }}
-                    className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-[#eef1f8] font-semibold text-[#0d1730] cursor-pointer"
-                  >
-                    <Users className="w-4 h-4 text-[#e35b2a]" />
-                    <span>User Management</span>
-                  </button>
-                )}
 
-                <button
-                  onClick={() => {
-                    setUserMenuOpen(false);
-                    onNavigate('home');
-                  }}
-                  className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-[#eef1f8] font-medium text-[#0d1730] cursor-pointer"
-                >
-                  <Home className="w-4 h-4 text-[#5b6480]" />
-                  Return to Home Page
-                </button>
-                <button
-                  onClick={() => {
-                    setUserMenuOpen(false);
-                    onNavigate('settings');
-                  }}
-                  className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-[#eef1f8] font-medium text-[#0d1730] cursor-pointer"
-                >
-                  <SettingsIcon className="w-4 h-4 text-[#5b6480]" />
-                  Settings &amp; Station Profile
-                </button>
-                <button
-                  onClick={() => {
-                    setUserMenuOpen(false);
-                    setContactModalOpen(true);
-                  }}
-                  className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-[#eef1f8] cursor-pointer"
-                >
-                  <Mail className="w-4 h-4 text-[#5b6480]" />
-                  Contact Quality Management
-                </button>
                 <div className="border-t border-[#e2e7f2] mt-1 pt-1">
                   <button
                     onClick={() => {
@@ -273,7 +230,7 @@ export const Header: React.FC<HeaderProps> = ({
                     className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-[#fbe6e6] text-[#d64545] font-semibold cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 text-[#d64545]" />
-                    Sign Out / Public Home
+                    Sign Out
                   </button>
                 </div>
               </div>

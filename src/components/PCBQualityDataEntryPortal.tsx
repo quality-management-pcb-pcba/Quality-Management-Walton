@@ -30,6 +30,7 @@ export interface PCBQualityDataEntryPortalProps {
   onNavigateHome?: () => void;
   initialGate?: 'FQC' | 'AOI' | 'ETEST';
   initialNav?: 'report-entry' | 'defect-entry';
+  initialSheet?: 'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database';
   initialLine?: string;
 }
 
@@ -277,18 +278,33 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
   onClose,
   initialGate,
   initialNav,
+  initialSheet,
 }) => {
   const defaultPage = useMemo<PageKey>(() => {
+    if (initialSheet) {
+      return initialSheet as PageKey;
+    }
     if (initialNav === 'defect-entry') {
       if (initialGate === 'AOI') return 'aoi';
       if (initialGate === 'RECEIVE' || (initialGate as string) === 'Receive' || (initialGate as string) === 'receive') return 'receive';
       if (initialGate === 'DELIVERY' || (initialGate as string) === 'Delivery' || (initialGate as string) === 'delivery' || (initialGate as string) === 'OQC' || (initialGate as string) === 'ETEST') return 'delivery';
       return 'visual';
     }
+    if (initialGate === 'FQC') {
+      return 'visual';
+    }
+    if (initialGate === 'AOI') {
+      return 'aoi';
+    }
     return 'home';
-  }, [initialGate, initialNav]);
+  }, [initialGate, initialNav, initialSheet]);
 
   const [activePage, setActivePage] = useState<PageKey>(defaultPage);
+
+  useEffect(() => {
+    setActivePage(defaultPage);
+  }, [defaultPage]);
+
   const [groupCollapsed, setGroupCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -1877,15 +1893,39 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                             <th className="bg-[#eaf2fb] text-[#123a6b] font-bold text-center px-2.5 py-[7px] border border-[#e2e8f0] w-12">
                               #
                             </th>
-                            {cfg.cols.map((c) => (
-                              <th
-                                key={c}
-                                className="bg-[#eaf2fb] text-[#123a6b] font-bold text-left px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap"
-                              >
-                                {c}
-                              </th>
-                            ))}
-                            <th className="bg-[#eaf2fb] text-[#123a6b] font-bold text-left px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap" />
+                            {cfg.cols.map((c) => {
+                              // Center-align columns (Date, Month, Total Check, Pass QTY, Fail QTY, Fail percentage, etc.)
+                              const isCenterCol =
+                                c === 'Date' ||
+                                c === 'Month' ||
+                                c === 'Total Check' ||
+                                c === 'Pass QTY' ||
+                                c === 'Fail QTY' ||
+                                c === 'Fail percentage' ||
+                                c === 'Pass (Panel)' ||
+                                c === 'Short' ||
+                                c === 'Open' ||
+                                c === 'Fail (Panel)' ||
+                                c === 'Total Check (Panel)' ||
+                                c === 'Pass Ratio' ||
+                                c === 'Fail Ratio' ||
+                                c === 'Receive QTY' ||
+                                c === 'Delivery QTY';
+
+                              return (
+                                <th
+                                  key={c}
+                                  className={`bg-[#eaf2fb] text-[#123a6b] font-bold px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap ${
+                                    isCenterCol ? 'text-center' : 'text-left'
+                                  }`}
+                                >
+                                  {c}
+                                </th>
+                              );
+                            })}
+                            <th className="bg-[#eaf2fb] text-[#123a6b] font-bold text-center px-[9px] py-[7px] border border-[#e2e8f0] whitespace-nowrap">
+                              Action
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1915,6 +1955,23 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                                   </td>
                                   {cfg.cols.map((c) => {
                                     const isFailCell = c === 'Fail QTY' || c === 'Fail (Panel)';
+                                    const isCenterCol =
+                                      c === 'Date' ||
+                                      c === 'Month' ||
+                                      c === 'Total Check' ||
+                                      c === 'Pass QTY' ||
+                                      c === 'Fail QTY' ||
+                                      c === 'Fail percentage' ||
+                                      c === 'Pass (Panel)' ||
+                                      c === 'Short' ||
+                                      c === 'Open' ||
+                                      c === 'Fail (Panel)' ||
+                                      c === 'Total Check (Panel)' ||
+                                      c === 'Pass Ratio' ||
+                                      c === 'Fail Ratio' ||
+                                      c === 'Receive QTY' ||
+                                      c === 'Delivery QTY';
+
                                     const cellColor = isFailCell
                                       ? hasFail
                                         ? 'text-[#e2231a] font-bold'
@@ -1923,7 +1980,9 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                                     return (
                                       <td
                                         key={c}
-                                        className={`px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap ${cellColor}`}
+                                        className={`px-[9px] py-[6px] border border-[#e2e8f0] whitespace-nowrap ${
+                                          isCenterCol ? 'text-center' : 'text-left'
+                                        } ${cellColor}`}
                                       >
                                         {r[c] !== undefined && r[c] !== '' ? String(r[c]) : '—'}
                                       </td>

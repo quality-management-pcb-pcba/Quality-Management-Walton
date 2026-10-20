@@ -1375,40 +1375,6 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
               </h2>
             </div>
 
-            {/* Quick Actions (Export, Print, Reset) */}
-            <div className="flex flex-wrap items-center gap-2 text-xs print:hidden">
-              <button
-                type="button"
-                onClick={handleDownloadCsv}
-                className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                title="Download Filtered CSV"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-300" />
-                <span>Export CSV</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handlePrintPdf}
-                className="px-3.5 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                title="Print Report"
-              >
-                <Printer className="w-3.5 h-3.5 text-cyan-300" />
-                <span>Print</span>
-              </button>
-
-              {lineName === 'MI Line-01' && (
-                <button
-                  type="button"
-                  onClick={handleResetLineMasterData}
-                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
-                  title="Reset to 2,610 records from MI Line-01 Sheet"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span className="text-[11px]">Reset Sheet</span>
-                </button>
-              )}
-            </div>
           </div>
         </div>
 

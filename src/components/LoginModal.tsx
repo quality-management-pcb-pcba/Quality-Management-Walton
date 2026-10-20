@@ -251,9 +251,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       }
 
       // 5. Automatic Role Verification & Strict Enforcement:
-      // Designated admin emails get admin clearance; all other emails receive qa_staff role
+      // Designated admin UID or emails get admin clearance; all other emails receive qa_staff role
       if (profile) {
-        if (isDesignatedAdminEmail(email)) {
+        if (isDesignatedAdminEmail(email) || uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1') {
           profile.role = 'admin';
         } else {
           profile.role = 'qa_staff';

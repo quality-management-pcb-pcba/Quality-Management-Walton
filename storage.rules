@@ -1,0 +1,111 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Admin role requires BOTH designated UID AND verified email claim,
+    // OR any other designated Walton admin email with verified email claim.
+    function isAdmin() {
+      return isAuthenticated() && (
+        (
+          request.auth.uid == 'q7aDnafVuBSYc8B0VipuXPOlenv1' &&
+          request.auth.token.email == 'atiqur40736@waltonbd.com' &&
+          request.auth.token.email_verified == true
+        ) ||
+        (
+          request.auth.token.email_verified == true &&
+          request.auth.token.email in [
+            'qm.pcba26@gmail.com',
+            'atiqur40736@waltonbd.com',
+            'atiqur.rahman@waltonbd.com',
+            'qa.admin@waltonbd.com'
+          ]
+        )
+      );
+    }
+
+    function isAllowedMimeType() {
+      return request.resource.contentType in [
+        'application/pdf',
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'text/plain',
+        'text/csv',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword'
+      ];
+    }
+
+    function isValidFileSize() {
+      return request.resource.size > 0 && request.resource.size <= 26214400; // 25 MiB max
+    }
+
+    function isValidNewUpload() {
+      return isAuthenticated() &&
+             resource == null &&
+             isAllowedMimeType() &&
+             isValidFileSize();
+    }
+
+    function isValidAdminUpdate() {
+      return isAdmin() &&
+             isAllowedMimeType() &&
+             isValidFileSize();
+    }
+
+    // 1. Standard Operating Procedures & Quality Manuals
+    match /documents/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow create: if isValidNewUpload();
+      allow update: if isValidAdminUpdate();
+      allow delete: if isAdmin();
+    }
+
+    // 2. Incoming Quality Control (IQC) Inspection Evidence
+    match /iqc_evidence/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow create: if isValidNewUpload();
+      allow update: if isValidAdminUpdate();
+      allow delete: if isAdmin();
+    }
+
+    // 3. Root Cause Analysis (RCA) 4M Defect Evidence & Photo Logs
+    match /rca_evidence/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow create: if isValidNewUpload();
+      allow update: if isValidAdminUpdate();
+      allow delete: if isAdmin();
+    }
+
+    // 4. Non-Conformance Reports (NCR) Defect Proof
+    match /nc_evidence/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow create: if isValidNewUpload();
+      allow update: if isValidAdminUpdate();
+      allow delete: if isAdmin();
+    }
+
+    // 5. Corrective & Preventive Action (CAPA) Closure Logs
+    match /capa_evidence/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow create: if isValidNewUpload();
+      allow update: if isValidAdminUpdate();
+      allow delete: if isAdmin();
+    }
+
+    // 6. Generic QMS File Attachments & Uploads
+    match /uploads/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow create: if isValidNewUpload();
+      allow update: if isValidAdminUpdate();
+      allow delete: if isAdmin();
+    }
+  }
+}
