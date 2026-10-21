@@ -257,9 +257,7 @@ export default function App() {
         setNcList(items);
       } else if (!seededNcrs) {
         seededNcrs = true;
-        INITIAL_NCRS.forEach((nc) => {
-          createNonConformance(nc).catch(() => {});
-        });
+        setNcList(INITIAL_NCRS);
       }
     });
 
@@ -269,9 +267,7 @@ export default function App() {
         setCapaList(items);
       } else if (!seededCapas) {
         seededCapas = true;
-        INITIAL_CAPAS.forEach((c) => {
-          createCapa(c).catch(() => {});
-        });
+        setCapaList(INITIAL_CAPAS);
       }
     });
 
@@ -281,9 +277,7 @@ export default function App() {
         setSopList(docs);
       } else if (!seededDocs) {
         seededDocs = true;
-        INITIAL_SOPS.forEach((s) => {
-          createDocumentRecord(s).catch(() => {});
-        });
+        setSopList(INITIAL_SOPS);
       }
     });
 

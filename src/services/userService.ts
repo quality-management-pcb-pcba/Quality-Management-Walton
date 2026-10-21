@@ -19,6 +19,7 @@ import { UserProfile, UserRole, UserStatus } from '../types';
  */
 export const DESIGNATED_ADMIN_UIDS: string[] = [
   'q7aDnafVuBSYc8B0VipuXPOlenv1',
+  'EqqAbCPpNnSuyvXyjzYc63UaI173',
 ];
 
 export const DESIGNATED_ADMIN_EMAILS: string[] = [
