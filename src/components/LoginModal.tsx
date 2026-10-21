@@ -156,39 +156,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setIsLoading(true);
 
     try {
-      // 1. Authenticate with Firebase Authentication
-      let userCredential: any = null;
-      let isFallbackSession = false;
+      // 1. Authenticate directly with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const uid = user.uid;
 
-      try {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-      } catch (signInErr: any) {
-        if (
-          signInErr?.code === 'auth/invalid-credential' ||
-          signInErr?.code === 'auth/user-not-found'
-        ) {
-          try {
-            userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          } catch (createErr: any) {
-            if (createErr?.code === 'auth/operation-not-allowed') {
-              isFallbackSession = true;
-            } else {
-              throw signInErr;
-            }
-          }
-        } else if (signInErr?.code === 'auth/operation-not-allowed') {
-          // Firebase project has not enabled Email/Password provider in the Firebase Console yet
-          isFallbackSession = true;
-        } else {
-          throw signInErr;
+      // 2. Read user profile from Firestore users/{firebaseUID} with fallbackEmail
+      let profile = await getUserProfile(uid, email);
+
+      // Auto-bootstrap admin/staff profile if missing in Firestore
+      if (!profile) {
+        try {
+          profile = await bootstrapUserProfile(uid, email);
+        } catch (bootstrapErr) {
+          console.warn('Could not auto-seed profile:', bootstrapErr);
         }
       }
 
-      let uid: string;
-      let profile: UserProfile | null = null;
-
-      if (isFallbackSession) {
-        // Authenticate with verified Walton staff profiles
+      // 3. Fallback to seed profile if Firestore document does not exist yet
+      if (!profile) {
         const seed = INITIAL_STAFF_SEEDS[email] || {
           employeeId: email.split('@')[0].replace(/\D/g, '') || '00000',
           name: email.split('@')[0],
@@ -199,52 +185,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           role: 'qa_staff',
           status: 'active',
         };
-
-        uid = `walton-${email.replace(/[^a-z0-9]/g, '_')}`;
         profile = {
           uid,
           ...seed,
         };
-      } else {
-        const user = userCredential.user;
-        uid = user.uid;
-
-        // 2. Read user profile from Firestore users/{firebaseUID} with fallbackEmail
-        profile = await getUserProfile(uid, email);
-
-        // Auto-bootstrap admin/staff profile if missing in Firestore
-        if (!profile) {
-          try {
-            profile = await bootstrapUserProfile(uid, email);
-          } catch (bootstrapErr) {
-            console.warn('Could not auto-seed profile:', bootstrapErr);
-          }
-        }
-
-        // 3. Fallback to seed profile if Firestore not populated yet
-        if (!profile) {
-          const seed = INITIAL_STAFF_SEEDS[email] || {
-            employeeId: email.split('@')[0].replace(/\D/g, '') || '00000',
-            name: email.split('@')[0],
-            email,
-            department: 'Quality Management',
-            section: 'PCB & PCBA',
-            designation: 'QA Staff',
-            role: 'qa_staff',
-            status: 'active',
-          };
-          profile = {
-            uid,
-            ...seed,
-          };
-        }
       }
 
       // 4. Verify account status
       if (profile && profile.status === 'inactive') {
-        if (!isFallbackSession) {
-          await signOut(auth);
-        }
+        await signOut(auth);
         setErrorMessage('Your account is inactive. Please contact the Quality Management Administrator.');
         setIsLoading(false);
         return;
@@ -282,9 +231,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       onClose();
     } catch (err: any) {
       const code = err?.code;
-      if (code !== 'auth/operation-not-allowed') {
-        console.error('Firebase Auth Error:', err);
-      }
+      console.error('Firebase Auth Error:', err);
       let msg = 'Invalid email or password.';
       if (
         code === 'auth/invalid-credential' ||
@@ -299,7 +246,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       } else if (code === 'auth/invalid-email') {
         msg = 'Please enter a valid Walton email address.';
       } else if (code === 'auth/operation-not-allowed') {
-        msg = 'Email/Password sign-in provider is pending configuration in Firebase Console. You can use 1-Click Demo Login to continue.';
+        msg = 'Email/Password sign-in provider is disabled in Firebase Console. Please enable it under Authentication > Sign-in method.';
       } else if (err?.message) {
         msg = err.message;
       }

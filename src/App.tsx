@@ -127,24 +127,6 @@ export default function App() {
    * Listen to Firebase Authentication state changes across app lifecycle
    */
   useEffect(() => {
-    // Check for active local Walton session immediately on mount
-    try {
-      const savedSession = localStorage.getItem('walton_auth_session');
-      if (savedSession) {
-        const parsed = JSON.parse(savedSession);
-        if (parsed && parsed.email) {
-          // Strictly enforce: users who are not designated admins can never have 'admin' role
-          const savedPortal = localStorage.getItem('walton_login_portal');
-          if (savedPortal === 'staff' || !isDesignatedAdminEmail(parsed.email)) {
-            parsed.role = 'qa_staff';
-          }
-          setIsLoggedIn(true);
-          setCurrentUserEmail(parsed.email);
-          setCurrentUserProfile(parsed);
-        }
-      }
-    } catch {}
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsLoggedIn(true);
@@ -191,26 +173,14 @@ export default function App() {
           console.warn('Profile fetch warning:', err);
         }
       } else {
-        // If Firebase Auth has no user, verify if an active local session exists
-        try {
-          const savedSession = localStorage.getItem('walton_auth_session');
-          if (savedSession) {
-            const parsed = JSON.parse(savedSession);
-            if (parsed && parsed.email) {
-              const savedPortal = localStorage.getItem('walton_login_portal');
-              if (savedPortal === 'staff' || !isDesignatedAdminEmail(parsed.email)) {
-                parsed.role = 'qa_staff';
-              }
-              setIsLoggedIn(true);
-              setCurrentUserEmail(parsed.email);
-              setCurrentUserProfile(parsed);
-              return;
-            }
-          }
-        } catch {}
-
+        // If Firebase Auth has no active user, clear all session state
         setIsLoggedIn(false);
         setCurrentUserProfile(null);
+        try {
+          localStorage.removeItem('walton_auth_session');
+          localStorage.removeItem('walton_active_user');
+          localStorage.removeItem('walton_login_portal');
+        } catch {}
       }
     });
 

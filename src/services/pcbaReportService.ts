@@ -90,6 +90,10 @@ function sanitizeFirestorePayload<T extends Record<string, any>>(obj: T): Partia
 export async function savePcbaReport(
   record: NewPcbaReport
 ): Promise<string> {
+  if (!auth.currentUser) {
+    throw new Error('Authentication required: You must be logged in with a valid Walton account to save PCBA inspection reports.');
+  }
+
   const path = COLLECTION_NAME;
   const now = new Date().toISOString();
   const user = getCurrentUserIdentifier();
