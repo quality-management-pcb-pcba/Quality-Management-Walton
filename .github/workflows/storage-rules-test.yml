@@ -36,11 +36,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Install dependencies from lockfile
+      - name: Diagnostic Repository Inspection
         run: |
-          npm ci
+          pwd
+          git status --short
+          ls -la
+          find . -maxdepth 3 -name 'package-lock.json' -o -name 'npm-shrinkwrap.json' -o -name 'yarn.lock'
+
+      - name: Install dependencies
+        run: |
+          if [ -f "package-lock.json" ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Verify Firebase CLI & Java version
         run: |
