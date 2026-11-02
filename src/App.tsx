@@ -214,6 +214,28 @@ export default function App() {
    */
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
 
+  /**
+   * @state dashboardWidthMode
+   * Controls main dashboard layout width:
+   * - 'wide': Full width with narrow side margins (matches user's stretch arrows)
+   * - 'standard': Default centered 1280px container
+   * - 'narrow': Compact 1024px container
+   */
+  const [dashboardWidthMode, setDashboardWidthMode] = useState<'wide' | 'standard' | 'narrow'>(() => {
+    try {
+      return (localStorage.getItem('walton_dashboard_width_mode') as 'wide' | 'standard' | 'narrow') || 'wide';
+    } catch {
+      return 'wide';
+    }
+  });
+
+  const handleDashboardWidthChange = (mode: 'wide' | 'standard' | 'narrow') => {
+    setDashboardWidthMode(mode);
+    try {
+      localStorage.setItem('walton_dashboard_width_mode', mode);
+    } catch {}
+  };
+
   // ---------------------------------------------------------------------------------------
   // 2. GLOBAL FILTERS STATE
   // ---------------------------------------------------------------------------------------
@@ -629,8 +651,29 @@ export default function App() {
           />
 
           {/* Dynamic Content Body */}
-          <main ref={mainScrollRef} className="flex-1 h-full overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 bg-[#f4f6fb]">
-            <div className="max-w-7xl mx-auto">
+          <main
+            ref={mainScrollRef}
+            className={`flex-1 h-full overflow-y-auto min-h-0 bg-[#f4f6fb] transition-all ${
+              currentPage === 'dashboard' || currentPage === 'admin-dashboard'
+                ? dashboardWidthMode === 'wide'
+                  ? 'p-2 sm:p-4 lg:p-5'
+                  : dashboardWidthMode === 'narrow'
+                  ? 'p-4 sm:p-6 lg:p-8'
+                  : 'p-4 sm:p-6 lg:p-8'
+                : 'p-4 sm:p-6 lg:p-8'
+            }`}
+          >
+            <div
+              className={`transition-all duration-200 ${
+                currentPage === 'dashboard' || currentPage === 'admin-dashboard'
+                  ? dashboardWidthMode === 'wide'
+                    ? 'w-full max-w-[1780px] mx-auto'
+                    : dashboardWidthMode === 'narrow'
+                    ? 'max-w-5xl mx-auto'
+                    : 'max-w-7xl mx-auto'
+                  : 'max-w-7xl mx-auto'
+              }`}
+            >
               {(currentPage === 'dashboard' || currentPage === 'admin-dashboard') && (
                 currentUserProfile?.uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1' ? (
                   <AdminDashboardView
@@ -653,6 +696,8 @@ export default function App() {
                     showSidebar={isSidebarOpen}
                     onToggleSidebar={handleToggleSidebar}
                     currentUserProfile={currentUserProfile}
+                    dashboardWidthMode={dashboardWidthMode}
+                    onDashboardWidthChange={handleDashboardWidthChange}
                   />
                 )
               )}

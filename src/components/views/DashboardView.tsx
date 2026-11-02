@@ -103,6 +103,8 @@ interface DashboardViewProps {
   showSidebar?: boolean;
   onToggleSidebar?: () => void;
   currentUserProfile?: UserProfile | null;
+  dashboardWidthMode?: 'wide' | 'standard' | 'narrow';
+  onDashboardWidthChange?: (mode: 'wide' | 'standard' | 'narrow') => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -121,6 +123,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   showSidebar = false,
   onToggleSidebar = () => {},
   currentUserProfile,
+  dashboardWidthMode = 'wide',
+  onDashboardWidthChange,
 }) => {
   const [localMonth, setLocalMonth] = useState<string>('August 2026');
   const [localProduct, setLocalProduct] = useState<string>('All Products');
@@ -294,7 +298,47 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             Production Overview · All PCB &amp; PCBA Lines
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
+          {onDashboardWidthChange && (
+            <div className="flex items-center gap-1 bg-white border border-[#e2e7f2] rounded-xl p-1 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => onDashboardWidthChange('wide')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  dashboardWidthMode === 'wide'
+                    ? 'bg-[#182a52] text-white shadow-xs'
+                    : 'text-[#5b6480] hover:text-[#0d1730] hover:bg-slate-100'
+                }`}
+                title="Full width layout with narrow side margins (fills screen to the edges)"
+              >
+                <span>Full Width (Narrow Margins)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDashboardWidthChange('standard')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  dashboardWidthMode === 'standard'
+                    ? 'bg-[#182a52] text-white shadow-xs'
+                    : 'text-[#5b6480] hover:text-[#0d1730] hover:bg-slate-100'
+                }`}
+                title="Standard centered layout (1280px)"
+              >
+                <span>Standard</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDashboardWidthChange('narrow')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  dashboardWidthMode === 'narrow'
+                    ? 'bg-[#182a52] text-white shadow-xs'
+                    : 'text-[#5b6480] hover:text-[#0d1730] hover:bg-slate-100'
+                }`}
+                title="Narrow / compact dashboard width (1024px)"
+              >
+                <span>Narrow Width</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
