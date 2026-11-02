@@ -61,10 +61,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { AlertCircle, CheckCircle2, TrendingUp, ShieldAlert, ArrowUpRight, Calendar, Layers, Lock, ShieldCheck, Home, Menu, Users, UserCheck, UserMinus } from 'lucide-react';
-import { PageId } from '../../types';
+import { PageId, UserProfile } from '../../types';
 import { db, doc, getDoc } from '../../services/firebase';
 import { loadPcbManpowerFromFirestore, PcbManpowerItem } from '../../services/pcbRecords';
 import { loadPcbaManpowerFromFirestore, PcbaManpowerItem } from '../../services/masterData';
+import { canAccessModule, QM_SECTIONS } from '../../services/userService';
 
 const DEFAULT_PCB_MANPOWER: PcbManpowerItem[] = [
   { id: '1', process: 'IQC', department: 'QM', required: 2, available: 2 },
@@ -101,6 +102,7 @@ interface DashboardViewProps {
   onOpenLoginModal?: () => void;
   showSidebar?: boolean;
   onToggleSidebar?: () => void;
+  currentUserProfile?: UserProfile | null;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -118,6 +120,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenLoginModal = () => {},
   showSidebar = false,
   onToggleSidebar = () => {},
+  currentUserProfile,
 }) => {
   const [localMonth, setLocalMonth] = useState<string>('August 2026');
   const [localProduct, setLocalProduct] = useState<string>('All Products');
@@ -180,16 +183,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         })
         .catch(() => {});
     }
-    loadPcbManpowerFromFirestore().then((remote) => {
-      if (remote && remote.length > 0) {
-        setPcbManpower(remote);
-        try {
-          localStorage.setItem('pcb_manpower_attendance_qm_v2', JSON.stringify(remote));
-        } catch {
-          // ignore storage quota errors
+    // Only query PCB manpower if user profile has clearance for PCB
+    if (canAccessModule(currentUserProfile, QM_SECTIONS.PCB)) {
+      loadPcbManpowerFromFirestore().then((remote) => {
+        if (remote && remote.length > 0) {
+          setPcbManpower(remote);
+          try {
+            localStorage.setItem('pcb_manpower_attendance_qm_v2', JSON.stringify(remote));
+          } catch {
+            // ignore storage quota errors
+          }
         }
-      }
-    });
+      });
+    }
     loadPcbaManpowerFromFirestore().then((remote) => {
       if (remote && remote.length > 0) {
         setPcbaManpower(remote);

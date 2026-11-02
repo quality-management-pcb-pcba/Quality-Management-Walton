@@ -2098,17 +2098,8 @@ export const EsdView: React.FC<EsdViewProps> = ({
 
             {/* Filter Bar for Measurements Table */}
             {dbTableMode === 'measurements' && (
-              <div className="p-4 bg-slate-50 border-b border-[#e2e7f2] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <div className="lg:col-span-2 relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search by zone, sample ID, resistance value, section..."
-                    value={dbSearch}
-                    onChange={(e) => setDbSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-800 outline-hidden focus:border-blue-600"
-                  />
-                </div>
+              <div className="p-4 bg-slate-50 border-b border-[#e2e7f2] grid grid-cols-1 sm:grid-cols-3 gap-3">
+
 
                 <div>
                   <select

@@ -24,7 +24,6 @@ import {
   CheckCircle2,
   ExternalLink,
   Check,
-  ClipboardCheck,
 } from 'lucide-react';
 import { PageId } from '../../types';
 import { PCBQualityDataEntryPortal } from '../PCBQualityDataEntryPortal';
@@ -66,9 +65,9 @@ export const PCBView: React.FC<PCBViewProps> = ({
   selectedMonth: _selectedMonth = 'August 2026',
 }) => {
   const [activeModal, setActiveModal] = useState<'attendance' | 'report' | 'sop' | null>(null);
-  const [portalInitialGate, setPortalInitialGate] = useState<'FQC' | 'AOI' | 'ETEST'>('FQC');
+  const [portalInitialGate, setPortalInitialGate] = useState<'FQC' | 'AOI' | 'ETEST' | undefined>(undefined);
   const [portalInitialNav, setPortalInitialNav] = useState<'report-entry' | 'defect-entry' | undefined>(undefined);
-  const [portalInitialSheet, setPortalInitialSheet] = useState<'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database' | undefined>(undefined);
+  const [portalInitialSheet, setPortalInitialSheet] = useState<'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database' | undefined>('home');
 
   // PCB Manpower State
   const [manpowerList, setManpowerList] = useState<PCBManpowerEntry[]>(() => {
@@ -320,7 +319,12 @@ export const PCBView: React.FC<PCBViewProps> = ({
 
           <button
             id="btn-pcb-reports"
-            onClick={() => setActiveModal('report')}
+            onClick={() => {
+              setPortalInitialGate(undefined);
+              setPortalInitialSheet('home');
+              setPortalInitialNav(undefined);
+              setActiveModal('report');
+            }}
             className="px-4 sm:px-6 py-2.5 bg-[#182a52] hover:bg-[#22376b] text-white text-xs sm:text-sm font-bold rounded-xl border border-[#2d4c8e] shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
           >
             <span>Reports</span>
@@ -368,51 +372,6 @@ export const PCBView: React.FC<PCBViewProps> = ({
 
       {/* Inspection Gate Summary Table matching PCBA */}
       <div className="bg-white border border-[#e2e7f2] rounded-2xl overflow-hidden shadow-xs">
-        {/* Table Header with direct links to PCB Reports */}
-        <div className="px-6 py-4 bg-slate-50 border-b border-[#e2e7f2] flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="text-base font-bold text-[#0d1730] flex items-center gap-2">
-              <ClipboardCheck className="w-4 h-4 text-[#2563eb]" />
-              <span>Inspection Gate Summary Report</span>
-            </h3>
-            <p className="text-xs text-[#5b6480] mt-0.5">
-              Live inspection yield metrics linked directly to full PCB Quality Reports &amp; defect logs. Click any gate below to open its report.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setPortalInitialGate('FQC');
-                setPortalInitialSheet('visual');
-                setPortalInitialNav('defect-entry');
-                setActiveModal('report');
-              }}
-              className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#2563eb] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
-              title="Open Final Quality Control (FQC) Summary Report & Defect Data"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
-              <span>FQC Report ↗</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setPortalInitialGate('AOI');
-                setPortalInitialSheet('aoi');
-                setPortalInitialNav('defect-entry');
-                setActiveModal('report');
-              }}
-              className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
-              title="Open Automated Optical Inspection (AOI) Summary Report & Defect Data"
-            >
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              <span>AOI Report ↗</span>
-            </button>
-          </div>
-        </div>
-
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="bg-[#0f172a] text-white">
@@ -932,14 +891,16 @@ export const PCBView: React.FC<PCBViewProps> = ({
           initialSheet={portalInitialSheet}
           onNavigateHome={() => {
             setActiveModal(null);
+            setPortalInitialGate(undefined);
             setPortalInitialNav(undefined);
-            setPortalInitialSheet(undefined);
+            setPortalInitialSheet('home');
             onNavigate('home');
           }}
           onClose={() => {
             setActiveModal(null);
+            setPortalInitialGate(undefined);
             setPortalInitialNav(undefined);
-            setPortalInitialSheet(undefined);
+            setPortalInitialSheet('home');
           }}
         />
       )}

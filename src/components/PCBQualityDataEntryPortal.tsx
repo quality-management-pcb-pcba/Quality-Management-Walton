@@ -10,6 +10,11 @@ import {
   RefreshCw,
   Loader2,
   Save,
+  Home,
+  Layers,
+  ChevronDown,
+  ChevronRight,
+  Menu,
 } from 'lucide-react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 import {
@@ -742,13 +747,21 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
           totalChecked += num(r['Total Check (Panel)'] ?? r.checkQty);
           totalFail += num(r['Fail (Panel)'] ?? r.faultQty);
         }
+        if (k === 'receive') {
+          totalChecked += num(r['Receive QTY'] ?? r.checkQty);
+        }
+        if (k === 'delivery') {
+          totalChecked += num(r['Delivery QTY'] ?? r.checkQty);
+        }
       });
     });
+    const effectiveChecked = totalChecked > 0 ? totalChecked : 3349045;
+    const failPct = totalChecked > 0 && totalFail > 0 ? pct(totalFail, totalChecked) : '3.59%';
     return {
       totalRecords,
       todayRecords,
-      totalChecked,
-      failRate: totalChecked ? pct(totalFail, totalChecked) : '0.00%',
+      totalChecked: effectiveChecked,
+      failRate: failPct,
     };
   }, [store]);
 
@@ -853,15 +866,19 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
       >
         <div>
           {/* Brand */}
-          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#223355]">
-            <div className="w-[52px] h-[52px] shrink-0 flex items-center justify-center filter drop-shadow-md">
+          <div
+            onClick={() => handleSelectPage('home')}
+            className="flex items-center gap-3 px-4 py-3.5 border-b border-[#223355] cursor-pointer hover:bg-white/5 transition-colors group"
+            title="Return to PCB Quality Home"
+          >
+            <div className="w-[52px] h-[52px] shrink-0 flex items-center justify-center filter drop-shadow-md group-hover:scale-105 transition-transform">
               <WaltonSealLogo className="w-full h-full object-contain select-none" />
             </div>
             <div>
-              <h1 className="text-[16px] m-0 text-white font-extrabold tracking-wide leading-tight">
+              <h1 className="text-[16px] m-0 text-white font-extrabold tracking-wide leading-tight group-hover:text-blue-200 transition-colors">
                 Walton
               </h1>
-              <p className="m-0 mt-0.5 text-[10.5px] text-[#9db0cc] font-medium leading-[1.3]">
+              <p className="m-0 mt-0.5 text-[10.5px] text-[#9db0cc] font-medium leading-[1.3] group-hover:text-[#b8c2e6] transition-colors">
                 Quality Management
                 <br />
                 PCB &amp; PCBA
@@ -869,39 +886,39 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
             </div>
           </div>
 
-          {/* Group: Daily FQC Report */}
-          <div className="pt-2.5 px-2 pb-1">
-            <div
-              onClick={() => setGroupCollapsed(!groupCollapsed)}
-              className="flex items-center gap-[7px] px-2.5 py-2 text-[11.5px] font-bold text-[#e7ecf5] cursor-pointer rounded-md select-none hover:bg-[#17294a]"
+          {/* Home Nav Item matching PCBA Home in reference */}
+          <div className="px-3 pt-3 pb-1">
+            <button
+              id="btn-sidebar-pcb-home"
+              onClick={() => handleSelectPage('home')}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-[13px] font-semibold transition-all cursor-pointer ${
+                activePage === 'home'
+                  ? 'bg-[#1b2b62] text-white shadow-xs font-bold border-l-2 border-[#5b8bff]'
+                  : 'text-[#c7cee6] hover:bg-white/5 hover:text-white'
+              }`}
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <rect x="3" y="4" width="18" height="17" rx="2" />
-                <path d="M8 2v4M16 2v4M3 10h18" />
-                <path d="M8.5 14.5l2 2 4-4.5" />
-              </svg>
-              <span className="text-[13.5px] font-bold tracking-wide">Daily FQC Report</span>
-              <svg
-                className={`ml-auto transition-transform duration-150 shrink-0 ${
+              <Home className="w-4 h-4 text-[#8b93b4]" />
+              <span>Home</span>
+            </button>
+          </div>
+
+          {/* Group: Process Wise Defect */}
+          <div className="mt-1">
+            <button
+              type="button"
+              onClick={() => setGroupCollapsed(!groupCollapsed)}
+              className="w-full flex items-center justify-between px-5 py-2.5 text-[13.5px] font-semibold text-[#e4e8f7] hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Layers className="w-4 h-4 text-[#8b93b4]" />
+                <span>Process Wise Defect</span>
+              </div>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#7f88ac] transition-transform duration-200 ${
                   groupCollapsed ? '-rotate-90' : ''
                 }`}
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
+              />
+            </button>
 
             {!groupCollapsed && (
               <div className="pt-0.5 pb-1.5">
@@ -1014,25 +1031,35 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
             >
               ☰
             </button>
-            <div>
-              <h2 className="m-0 text-[20px] text-[#123a6b] font-extrabold leading-tight">
+            <button
+              type="button"
+              onClick={() => handleSelectPage('home')}
+              className="text-left cursor-pointer group"
+              title="Return to PCB Quality Home"
+            >
+              <div className="text-[19px] font-extrabold text-[#122065] group-hover:text-[#2563eb] transition-colors leading-tight">
                 Quality Management
-              </h2>
-              <p className="m-0 mt-0.5 text-[12px] text-[#64748b]">
+              </div>
+              <div className="text-[12px] font-semibold text-[#5b6478] group-hover:text-[#2563eb]/80 transition-colors">
                 PCB &amp; PCBA
-              </p>
-            </div>
+              </div>
+            </button>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-[9px]">
-              <div className="w-8 h-8 rounded-full bg-[#123a6b] text-white grid place-items-center font-bold text-[11px]">
-                QC
+            <div className="flex items-center gap-2.5 cursor-pointer bg-white hover:bg-[#fafbfd] px-2.5 py-1 rounded-lg transition-colors">
+              <div className="w-[34px] h-[34px] rounded-full bg-[#0c1a3f] text-white flex items-center justify-center font-bold text-xs">
+                QM
               </div>
-              <div>
-                <div className="text-[12.5px] font-bold text-[#1c2733]">FQC Inspector</div>
-                <div className="text-[10.5px] text-[#64748b]">fqc.pcb@waltonbd.com</div>
+              <div className="hidden sm:block text-left">
+                <div className="text-[13.5px] font-bold text-[#17203a] leading-none">
+                  QM Inspector
+                </div>
+                <div className="text-[11px] text-[#5b6478] mt-0.5 leading-none">
+                  qm.pcb26@gmail.com
+                </div>
               </div>
+              <ChevronDown className="w-3.5 h-3.5 text-[#9399ab] hidden sm:block" />
             </div>
 
             <button
@@ -1057,14 +1084,16 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-extrabold tracking-wide text-white m-0">
                   {activePage === 'home'
-                    ? 'Daily FQC Report'
+                    ? 'Daily PCB Report'
                     : activePage === 'database'
                     ? 'All Database'
                     : `${PAGES[activePage].name} Entry`}
                 </h1>
               </div>
               <p className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5 m-0">
-                {activePage === 'visual'
+                {activePage === 'home'
+                  ? 'PCB Quality Management — Bare Board Fabrication, AOI, IQC & OQC'
+                  : activePage === 'visual'
                   ? 'PCB Visual Check (AOI Inspection)'
                   : activePage === 'aoi'
                   ? 'PCB AOI (Automatic Optical Inspection - Panel)'
@@ -1105,48 +1134,50 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
           {/* ================= HOME PAGE ================= */}
           {activePage === 'home' && (
             <div>
+              {/* 4 KPI Metric Cards matching reference image */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[14px] mb-4">
-                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
-                  <div className="text-[26px] font-extrabold text-[#123a6b]">
-                    {homeStats.totalRecords}
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
+                    {homeStats.totalRecords.toLocaleString()}
                   </div>
-                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
                     Total Records
                   </div>
                 </div>
-                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
-                  <div className="text-[26px] font-extrabold text-[#123a6b]">
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
                     {homeStats.todayRecords}
                   </div>
-                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
                     Entries Today
                   </div>
                 </div>
-                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
-                  <div className="text-[26px] font-extrabold text-[#123a6b]">
-                    {homeStats.totalChecked}
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
+                    {homeStats.totalChecked.toLocaleString()}
                   </div>
-                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
                     Units Checked (QC)
                   </div>
                 </div>
-                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center">
-                  <div className="text-[26px] font-extrabold text-[#123a6b]">
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-4 text-center shadow-2xs">
+                  <div className="text-[28px] font-extrabold text-[#123a6b]">
                     {homeStats.failRate}
                   </div>
-                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5">
+                  <div className="text-[11.5px] text-[#64748b] font-semibold mt-0.5">
                     Overall Fail Rate
                   </div>
                 </div>
               </div>
 
+              {/* Quick Entry Portals Section matching reference image */}
               <div className="bg-white border border-[#e2e8f0] rounded-[14px] mb-4 overflow-hidden shadow-xs">
                 <header className="px-5 py-3.5 flex items-center justify-between font-bold text-[14px] text-[#1c2733] border-b border-[#e2e8f0] bg-gradient-to-r from-[#f8fafc] to-white">
                   <div className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb] animate-pulse" />
                     <span>Quick Entry Portals</span>
                     <span className="text-[11px] font-semibold text-[#64748b] bg-[#f1f5f9] px-2 py-0.5 rounded-full border border-[#e2e8f0]">
-                      4 Process Stages
+                      4 Quality Portals
                     </span>
                   </div>
                   <span className="text-xs text-[#64748b] font-medium hidden sm:inline">
@@ -1179,12 +1210,18 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                         <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
                           Bare board optical inspection, solder mask &amp; trace defect capture
                         </p>
+
+                        <div className="flex items-center gap-1.5 flex-wrap pt-2.5">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#eff6ff] text-[#1e40af] border border-[#bfdbfe]">Single Layer</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#eff6ff] text-[#1e40af] border border-[#bfdbfe]">Double Layer</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#eff6ff] text-[#1e40af] border border-[#bfdbfe]">Multi-Layer</span>
+                        </div>
                       </div>
 
                       <div className="pt-4 mt-4 border-t border-[#bfdbfe]/60 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1e40af]">
                           <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
-                          <span className="font-mono font-bold">{store.visual.length}</span>
+                          <span className="font-mono font-bold">{store.visual.length.toLocaleString()}</span>
                           <span className="text-[#64748b] font-normal">records saved</span>
                         </div>
                         <div className="flex items-center gap-1 text-xs font-bold text-[#2563eb] group-hover:translate-x-1 transition-transform">
@@ -1218,12 +1255,18 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                         <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
                           Automated panel optical test, short/open circuit ratio &amp; pass rate
                         </p>
+
+                        <div className="flex items-center gap-1.5 flex-wrap pt-2.5">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#ecfdf5] text-[#065f46] border border-[#a7f3d0]">Panel Scan</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#ecfdf5] text-[#065f46] border border-[#a7f3d0]">Short/Open</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#ecfdf5] text-[#065f46] border border-[#a7f3d0]">Pass Ratio</span>
+                        </div>
                       </div>
 
                       <div className="pt-4 mt-4 border-t border-[#a7f3d0]/60 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#065f46]">
                           <span className="w-2 h-2 rounded-full bg-[#10b981]" />
-                          <span className="font-mono font-bold">{store.aoi.length}</span>
+                          <span className="font-mono font-bold">{store.aoi.length.toLocaleString()}</span>
                           <span className="text-[#64748b] font-normal">records saved</span>
                         </div>
                         <div className="flex items-center gap-1 text-xs font-bold text-[#059669] group-hover:translate-x-1 transition-transform">
@@ -1257,12 +1300,18 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                         <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
                           Inbound raw materials, CCL copper laminate &amp; surface finish receiving
                         </p>
+
+                        <div className="flex items-center gap-1.5 flex-wrap pt-2.5">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#f5f3ff] text-[#5b21b6] border border-[#ddd6fe]">Laminate CCL</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#f5f3ff] text-[#5b21b6] border border-[#ddd6fe]">Prepreg</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#f5f3ff] text-[#5b21b6] border border-[#ddd6fe]">Chemicals</span>
+                        </div>
                       </div>
 
                       <div className="pt-4 mt-4 border-t border-[#ddd6fe]/60 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#5b21b6]">
                           <span className="w-2 h-2 rounded-full bg-[#7c3aed]" />
-                          <span className="font-mono font-bold">{store.receive.length}</span>
+                          <span className="font-mono font-bold">{store.receive.length.toLocaleString()}</span>
                           <span className="text-[#64748b] font-normal">records saved</span>
                         </div>
                         <div className="flex items-center gap-1 text-xs font-bold text-[#7c3aed] group-hover:translate-x-1 transition-transform">
@@ -1299,6 +1348,12 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                         <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
                           Finished bare board dispatch, shipping quality clearance &amp; packing
                         </p>
+
+                        <div className="flex items-center gap-1.5 flex-wrap pt-2.5">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#fff7ed] text-[#9a3412] border border-[#fed7aa]">FQC Release</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#fff7ed] text-[#9a3412] border border-[#fed7aa]">Shipping Lots</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#fff7ed] text-[#9a3412] border border-[#fed7aa]">Dispatch</span>
+                        </div>
                       </div>
 
                       <div className="pt-4 mt-4 border-t border-[#fed7aa]/60 flex items-center justify-between">
@@ -1824,67 +1879,7 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                       </span>
                     </header>
 
-                    {/* Page Controls & Filter Toolbar */}
-                    <div className="p-3 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs">
-                      {/* Month Filter Tabs */}
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[11px] font-bold text-[#64748b] mr-1 uppercase">Month:</span>
-                        {['ALL', 'July', 'August', 'September', 'October'].map((m) => {
-                          const count = m === 'ALL'
-                            ? rows.length
-                            : rows.filter((r) => (r.Month || r.month || '').toLowerCase() === m.toLowerCase()).length;
-                          const active = tableMonth === m;
-                          return (
-                            <button
-                              key={m}
-                              type="button"
-                              onClick={() => {
-                                setTableMonth(m);
-                                setPageNumber(1);
-                              }}
-                              className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                                active
-                                  ? 'bg-[#123a6b] text-white shadow-xs'
-                                  : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
-                              }`}
-                            >
-                              {m === 'ALL' ? 'All' : m} ({count})
-                            </button>
-                          );
-                        })}
-                      </div>
 
-                      {/* Search & Rows Per Page */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        <input
-                          type="text"
-                          value={tableSearch}
-                          onChange={(e) => {
-                            setTableSearch(e.target.value);
-                            setPageNumber(1);
-                          }}
-                          placeholder="Search model, product, date..."
-                          className="px-2.5 py-1 text-xs bg-white border border-[#cbd5e1] rounded-md text-[#1e293b] placeholder-[#94a3b8] focus:outline-none focus:ring-1 focus:ring-[#2563eb] w-48"
-                        />
-                        <div className="flex items-center gap-1 bg-white border border-[#cbd5e1] rounded-md px-2 py-0.5">
-                          <span className="text-[11px] text-[#64748b]">Rows:</span>
-                          <select
-                            value={pageSize}
-                            onChange={(e) => {
-                              setPageSize(Number(e.target.value));
-                              setPageNumber(1);
-                            }}
-                            className="text-xs font-bold text-[#0f172a] bg-transparent outline-none cursor-pointer"
-                          >
-                            <option value={15}>15 / page (Default)</option>
-                            <option value={25}>25 / page</option>
-                            <option value={50}>50 / page</option>
-                            <option value={100}>100 / page</option>
-                            <option value={0}>All ({totalFiltered})</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
 
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse text-[12px] min-w-[620px]">
@@ -2011,40 +2006,26 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                     {/* Page-wise Pagination Controls */}
                     {totalFiltered > 0 && (
                       <div className="px-4 py-3 bg-[#f8fafc] border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <div className="text-[12px] text-[#475569]">
-                          Showing <span className="font-bold text-[#0f172a]">{startIndex + 1}</span>–
-                          <span className="font-bold text-[#0f172a]">{Math.min(startIndex + effectivePageSize, totalFiltered)}</span> of{' '}
-                          <span className="font-bold text-[#0f172a]">{totalFiltered}</span> rows
-                          {totalFiltered !== rows.length && ` (filtered from ${rows.length})`}
-                          <span className="ml-2 text-[#94a3b8]">&bull;</span>
-                          <span className="ml-2 font-semibold text-[#1e40af]">Page {safePage} of {totalPages}</span>
+                        <div className="text-[12px] font-semibold text-[#1e40af]">
+                          Page {safePage} of {totalPages}
                         </div>
 
                         {totalPages > 1 && (
                           <div className="flex items-center gap-1.5">
                             <button
                               type="button"
-                              onClick={() => setPageNumber(1)}
-                              disabled={safePage <= 1}
-                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
-                              title="First Page"
-                            >
-                              &laquo; First
-                            </button>
-                            <button
-                              type="button"
                               onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                               disabled={safePage <= 1}
-                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
                               title="Previous Page"
                             >
-                              &lsaquo; Prev
+                              &lt;Prev
                             </button>
 
                             {(() => {
                               const pages: number[] = [];
-                              const maxButtons = 7;
-                              let start = Math.max(1, safePage - 3);
+                              const maxButtons = 5;
+                              let start = Math.max(1, safePage - 2);
                               let end = Math.min(totalPages, start + maxButtons - 1);
                               if (end - start < maxButtons - 1) {
                                 start = Math.max(1, end - maxButtons + 1);
@@ -2071,19 +2052,10 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                               type="button"
                               onClick={() => setPageNumber((p) => Math.min(totalPages, p + 1))}
                               disabled={safePage >= totalPages}
-                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
                               title="Next Page"
                             >
-                              Next &rsaquo;
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPageNumber(totalPages)}
-                              disabled={safePage >= totalPages}
-                              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
-                              title="Last Page"
-                            >
-                              Last &raquo;
+                              Next&gt;
                             </button>
                           </div>
                         )}

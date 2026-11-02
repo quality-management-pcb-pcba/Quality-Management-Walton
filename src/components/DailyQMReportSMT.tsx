@@ -385,7 +385,7 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(15);
 
   const handleApplyFilter = () => {
     setAppliedFrom(filterFrom);
@@ -1021,26 +1021,6 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
             </div>
 
             <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-lg">
-              <span className="text-[#cbd5e1] font-semibold">From</span>
-              <input
-                type="date"
-                value={filterFrom}
-                onChange={(e) => setFilterFrom(e.target.value)}
-                className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none w-[130px]"
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-lg">
-              <span className="text-[#cbd5e1] font-semibold">To</span>
-              <input
-                type="date"
-                value={filterTo}
-                onChange={(e) => setFilterTo(e.target.value)}
-                className="bg-white text-[#1e293b] rounded px-2 py-0.5 text-xs font-semibold outline-none w-[130px]"
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1.5 rounded-lg">
               <span className="text-[#cbd5e1] font-semibold">Line</span>
               <select
                 value={filterLine}
@@ -1089,16 +1069,6 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
 
             <button
               type="button"
-              onClick={handleResetToOfficialData}
-              title="Reset or re-sync all 306 official inspection records"
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Official Logs ({SMT_SUMMARY_RECORDS.length})</span>
-            </button>
-
-            <button
-              type="button"
               onClick={handleDownloadCsv}
               className="px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
             >
@@ -1126,10 +1096,10 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
           </p>
         </div>
 
-        {/* Scrollable Table Preview */}
-        <div className="overflow-x-auto max-h-[460px] overflow-y-auto">
+        {/* Table Preview */}
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-[#f1f5f9] text-[#475569] font-bold sticky top-0 z-10 border-b border-[#e2e8f0]">
+            <thead className="bg-[#f1f5f9] text-[#475569] font-bold border-b border-[#e2e8f0]">
               <tr>
                 <th className="py-2.5 px-3 whitespace-nowrap">Month</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Date</th>
@@ -1216,53 +1186,56 @@ export const DailyQMReportSMT: React.FC<DailyQMReportSMTProps> = ({ onNavigateTo
         {/* Pagination Bar */}
         {filteredRows.length > 0 && (
           <div className="px-4 py-3 bg-[#fafbfc] border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748b] print:hidden">
-            <div className="flex items-center gap-2">
-              <span>
-                Showing <strong className="text-[#0f2942]">{Math.min(filteredRows.length, (currentPage - 1) * pageSize + 1)}</strong> to{' '}
-                <strong className="text-[#0f2942]">{Math.min(filteredRows.length, currentPage * pageSize)}</strong> of{' '}
-                <strong className="text-[#0f2942]">{filteredRows.length}</strong> records
-              </span>
-              <span className="text-[#cbd5e1]">|</span>
-              <div className="flex items-center gap-1">
-                <span>Per page:</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="bg-white border border-[#cbd5e1] rounded px-2 py-0.5 text-xs text-[#1e293b] font-semibold outline-none"
-                >
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={99999}>All ({filteredRows.length})</option>
-                </select>
-              </div>
+            <div className="text-[12px] font-semibold text-[#1e40af]">
+              Page {currentPage} of {totalPages}
             </div>
 
             {totalPages > 1 && (
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  disabled={currentPage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="px-2.5 py-1 rounded border border-[#cbd5e1] bg-white text-[#1e293b] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 font-medium flex items-center gap-0.5"
+                  disabled={currentPage <= 1}
+                  className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                  title="Previous Page"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>Prev</span>
+                  &lt;Prev
                 </button>
-                <span className="px-2 font-mono font-bold text-[#0f2942]">
-                  {currentPage} / {totalPages}
-                </span>
+
+                {(() => {
+                  const pages: number[] = [];
+                  const maxButtons = 5;
+                  let start = Math.max(1, currentPage - 2);
+                  let end = Math.min(totalPages, start + maxButtons - 1);
+                  if (end - start < maxButtons - 1) {
+                    start = Math.max(1, end - maxButtons + 1);
+                  }
+                  for (let p = start; p <= end; p++) pages.push(p);
+
+                  return pages.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCurrentPage(p)}
+                      className={`min-w-7 h-7 px-2 rounded text-xs font-bold transition-all cursor-pointer ${
+                        p === currentPage
+                          ? 'bg-[#123a6b] text-white shadow-xs'
+                          : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ));
+                })()}
+
                 <button
                   type="button"
-                  disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-2.5 py-1 rounded border border-[#cbd5e1] bg-white text-[#1e293b] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 font-medium flex items-center gap-0.5"
+                  disabled={currentPage >= totalPages}
+                  className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                  title="Next Page"
                 >
-                  <span>Next</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  Next&gt;
                 </button>
               </div>
             )}

@@ -195,11 +195,9 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
   const [selectedDate, setSelectedDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
-  const [selectedShift, setSelectedShift] = useState('Day');
-  const [selectedProduct, setSelectedProduct] = useState('Adapter');
-  const [selectedModel, setSelectedModel] = useState(
-    formData.productModels['Adapter']?.[0] || ''
-  );
+  const [selectedShift, setSelectedShift] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
   const [remarks, setRemarks] = useState('');
 
   // Operator fields
@@ -509,8 +507,7 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
   // Sync model selection when product changes
   const handleProductChange = (prod: string) => {
     setSelectedProduct(prod);
-    const availableModels = formData.productModels[prod] || [];
-    setSelectedModel(availableModels[0] || '');
+    setSelectedModel('');
   };
 
   // Sync selected operators when master operators list is updated
@@ -530,18 +527,14 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
 
   // Sync selected product/model if removed from master list
   useEffect(() => {
-    if (formData.products.length > 0) {
-      if (!selectedProduct || !formData.products.includes(selectedProduct)) {
-        const nextProd = formData.products[0];
-        setSelectedProduct(nextProd);
-        const models = formData.productModels[nextProd] || [];
-        setSelectedModel(models[0] || '');
-      }
-    } else {
+    if (selectedProduct && !formData.products.includes(selectedProduct)) {
       setSelectedProduct('');
       setSelectedModel('');
     }
-  }, [formData.products, selectedProduct, formData.productModels]);
+    if (selectedModel && selectedProduct && !(formData.productModels[selectedProduct] || []).includes(selectedModel)) {
+      setSelectedModel('');
+    }
+  }, [formData.products, selectedProduct, selectedModel, formData.productModels]);
 
   // Aesthetics list - strictly enforce user-specified categories for MI Line-01
   const allAesthetics = useMemo(() => {
@@ -1015,8 +1008,9 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
             <select
               value={selectedShift}
               onChange={(e) => setSelectedShift(e.target.value)}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
+              <option value="">Select Shift…</option>
               {formData.shifts.map((s: string) => (
                 <option key={s} value={s}>
                   {s}
@@ -1034,6 +1028,7 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
               onChange={(e) => handleProductChange(e.target.value)}
               className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
+              <option value="">Select Product…</option>
               {formData.products.map((p: string) => (
                 <option key={p} value={p}>
                   {p}
@@ -1050,16 +1045,21 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
               disabled={!selectedProduct}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer disabled:bg-slate-50 disabled:text-slate-400"
             >
-              {(formData.productModels[selectedProduct] || []).length === 0 ? (
+              {!selectedProduct ? (
+                <option value="">Select Product first…</option>
+              ) : (formData.productModels[selectedProduct] || []).length === 0 ? (
                 <option value="">No models yet — add via ⚙ Manage Lists</option>
               ) : (
-                (formData.productModels[selectedProduct] || []).map((m: string) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))
+                <>
+                  <option value="">Select Model…</option>
+                  {(formData.productModels[selectedProduct] || []).map((m: string) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </>
               )}
             </select>
           </div>
@@ -1379,108 +1379,44 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="p-3.5 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
-          <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
-            {/* Search Input */}
-            <div className="relative flex-1 min-w-[180px] max-w-[280px]">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" />
-              <input
-                type="text"
-                value={reportSearch}
-                onChange={(e) => setReportSearch(e.target.value)}
-                placeholder="Search model, defect, operator..."
-                className="w-full bg-white border border-[#cbd5e1] focus:border-[#2563eb] rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-[#1e293b] outline-none"
-              />
-            </div>
+        <div className="p-3.5 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-wrap items-center gap-2.5 text-xs print:hidden">
+          {/* Product Filter */}
+          <select
+            value={reportProductFilter}
+            onChange={(e) => {
+              setReportProductFilter(e.target.value);
+              setReportModelFilter('ALL');
+            }}
+            className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
+          >
+            <option value="ALL">All Products</option>
+            {distinctReportProducts.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
 
-            {/* Shift Filter */}
-            <select
-              value={reportShiftFilter}
-              onChange={(e) => setReportShiftFilter(e.target.value)}
-              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
-            >
-              <option value="ALL">All Shifts</option>
-              {distinctReportShifts.map((s) => (
-                <option key={s} value={s}>{s} Shift</option>
-              ))}
-            </select>
+          {/* Model Filter */}
+          <select
+            value={reportModelFilter}
+            onChange={(e) => setReportModelFilter(e.target.value)}
+            className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer max-w-[170px] truncate"
+          >
+            <option value="ALL">All Models</option>
+            {distinctReportModels.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
 
-            {/* Product Filter */}
-            <select
-              value={reportProductFilter}
-              onChange={(e) => {
-                setReportProductFilter(e.target.value);
-                setReportModelFilter('ALL');
-              }}
-              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
-            >
-              <option value="ALL">All Products</option>
-              {distinctReportProducts.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-
-            {/* Model Filter */}
-            <select
-              value={reportModelFilter}
-              onChange={(e) => setReportModelFilter(e.target.value)}
-              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer max-w-[170px] truncate"
-            >
-              <option value="ALL">All Models</option>
-              {distinctReportModels.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-
-            {/* Defect Type Filter */}
-            <select
-              value={reportTypeFilter}
-              onChange={(e) => setReportTypeFilter(e.target.value as any)}
-              className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
-            >
-              <option value="ALL">All Defect Types</option>
-              <option value="Aesthetic">Aesthetic Only</option>
-              <option value="Function">Function Only</option>
-            </select>
-          </div>
-
-          {/* Date Filter & Clear */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-white border border-[#cbd5e1] px-2 py-1 rounded-lg">
-              <span className="text-gray-400 text-[11px]">From</span>
-              <input
-                type="date"
-                value={filterFrom}
-                onChange={(e) => setFilterFrom(e.target.value)}
-                className="text-xs text-[#1e293b] outline-none"
-              />
-            </div>
-            <div className="flex items-center gap-1.5 bg-white border border-[#cbd5e1] px-2 py-1 rounded-lg">
-              <span className="text-gray-400 text-[11px]">To</span>
-              <input
-                type="date"
-                value={filterTo}
-                onChange={(e) => setFilterTo(e.target.value)}
-                className="text-xs text-[#1e293b] outline-none"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleApplyFilter}
-              className="px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg transition-colors cursor-pointer"
-            >
-              Apply
-            </button>
-            <button
-              type="button"
-              onClick={handleClearAllReportFilters}
-              className="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-              title="Reset all filters"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset</span>
-            </button>
-          </div>
+          {/* Defect Type Filter */}
+          <select
+            value={reportTypeFilter}
+            onChange={(e) => setReportTypeFilter(e.target.value as any)}
+            className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 text-xs text-[#1e293b] font-medium outline-none cursor-pointer"
+          >
+            <option value="ALL">All Defect Types</option>
+            <option value="Aesthetic">Aesthetic Only</option>
+            <option value="Function">Function Only</option>
+          </select>
         </div>
 
         {/* Scrollable Table */}
@@ -1589,70 +1525,55 @@ export const MILineDefectEntry: React.FC<MILineDefectEntryProps> = ({
 
         {/* Pagination Bar */}
         <div className="p-3 bg-white border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
-          <div className="flex items-center gap-3 text-gray-500">
-            <span>
-              Showing{' '}
-              <strong className="text-gray-800">
-                {filteredRecords.length === 0 ? 0 : (reportPage - 1) * reportPageSize + 1}
-              </strong>{' '}
-              to{' '}
-              <strong className="text-gray-800">
-                {Math.min(reportPage * reportPageSize, filteredRecords.length)}
-              </strong>{' '}
-              of <strong className="text-gray-800">{filteredRecords.length.toLocaleString()}</strong> rows
-            </span>
-
-            {/* Page Size Selector */}
-            <div className="flex items-center gap-1.5">
-              <span>Per page:</span>
-              <select
-                value={reportPageSize}
-                onChange={(e) => setReportPageSize(Number(e.target.value))}
-                className="bg-gray-50 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-gray-700 outline-none cursor-pointer"
-              >
-                <option value={15}>15</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
+          <div className="text-[12px] font-semibold text-[#1e40af]">
+            Page {reportPage} of {totalReportPages}
           </div>
 
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              disabled={reportPage === 1}
-              onClick={() => setReportPage(1)}
-              className="px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
-            >
-              First
-            </button>
-            <button
-              type="button"
-              disabled={reportPage === 1}
               onClick={() => setReportPage((p) => Math.max(1, p - 1))}
-              className="p-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              disabled={reportPage <= 1}
+              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+              title="Previous Page"
             >
-              <ChevronLeft className="w-4 h-4" />
+              &lt;Prev
             </button>
-            <span className="px-2 text-xs font-bold text-gray-700">
-              Page {reportPage} of {totalReportPages}
-            </span>
+
+            {(() => {
+              const pages: number[] = [];
+              const maxButtons = 5;
+              let start = Math.max(1, reportPage - 2);
+              let end = Math.min(totalReportPages, start + maxButtons - 1);
+              if (end - start < maxButtons - 1) {
+                start = Math.max(1, end - maxButtons + 1);
+              }
+              for (let p = start; p <= end; p++) pages.push(p);
+
+              return pages.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setReportPage(p)}
+                  className={`min-w-7 h-7 px-2 rounded text-xs font-bold transition-all cursor-pointer ${
+                    p === reportPage
+                      ? 'bg-[#123a6b] text-white shadow-xs'
+                      : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
+                  }`}
+                >
+                  {p}
+                </button>
+              ));
+            })()}
+
             <button
               type="button"
-              disabled={reportPage === totalReportPages}
               onClick={() => setReportPage((p) => Math.min(totalReportPages, p + 1))}
-              className="p-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              disabled={reportPage >= totalReportPages}
+              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+              title="Next Page"
             >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              disabled={reportPage === totalReportPages}
-              onClick={() => setReportPage(totalReportPages)}
-              className="px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
-            >
-              Last
+              Next&gt;
             </button>
           </div>
         </div>

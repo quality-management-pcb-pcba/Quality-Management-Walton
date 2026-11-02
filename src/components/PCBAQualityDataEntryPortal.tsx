@@ -1700,43 +1700,48 @@ export const PCBAQualityDataEntryPortal: React.FC<PCBAQualityDataEntryPortalProp
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  disabled={effectivePage === 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="min-w-[32px] h-[32px] px-2 rounded-[7px] border border-[#e4e8f1] bg-white text-[12.5px] font-bold text-[#5b6478] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#2b62e8] hover:text-[#2b62e8] transition-colors cursor-pointer flex items-center justify-center"
+                  disabled={effectivePage <= 1}
+                  className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                  title="Previous Page"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  &lt;Prev
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - effectivePage) <= 1)
-                  .map((p, idx, arr) => {
-                    const prev = arr[idx - 1];
-                    const hasGap = prev && p - prev > 1;
-                    return (
-                      <React.Fragment key={p}>
-                        {hasGap && <span className="px-1 text-xs text-[#9399ab]">…</span>}
-                        <button
-                          type="button"
-                          onClick={() => setCurrentPage(p)}
-                          className={`min-w-[32px] h-[32px] px-2 rounded-[7px] border text-[12.5px] font-bold transition-colors cursor-pointer flex items-center justify-center ${
-                            p === effectivePage
-                              ? 'bg-[#2b62e8] border-[#2b62e8] text-white'
-                              : 'bg-white border-[#e4e8f1] text-[#5b6478] hover:border-[#2b62e8] hover:text-[#2b62e8]'
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      </React.Fragment>
-                    );
-                  })}
+                {(() => {
+                  const pages: number[] = [];
+                  const maxButtons = 5;
+                  let start = Math.max(1, effectivePage - 2);
+                  let end = Math.min(totalPages, start + maxButtons - 1);
+                  if (end - start < maxButtons - 1) {
+                    start = Math.max(1, end - maxButtons + 1);
+                  }
+                  for (let p = start; p <= end; p++) pages.push(p);
+
+                  return pages.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCurrentPage(p)}
+                      className={`min-w-7 h-7 px-2 rounded text-xs font-bold transition-all cursor-pointer ${
+                        p === effectivePage
+                          ? 'bg-[#123a6b] text-white shadow-xs'
+                          : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ));
+                })()}
 
                 <button
                   type="button"
-                  disabled={effectivePage === totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="min-w-[32px] h-[32px] px-2 rounded-[7px] border border-[#e4e8f1] bg-white text-[12.5px] font-bold text-[#5b6478] disabled:opacity-40 disabled:cursor-not-allowed hover:border-[#2b62e8] hover:text-[#2b62e8] transition-colors cursor-pointer flex items-center justify-center"
+                  disabled={effectivePage >= totalPages}
+                  className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                  title="Next Page"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  Next&gt;
                 </button>
               </div>
             </div>

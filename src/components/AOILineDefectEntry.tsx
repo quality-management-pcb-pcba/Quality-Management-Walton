@@ -748,12 +748,10 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
 
   // Form Fields
   const [date, setDate] = useState<string>(getTodayString());
-  const [shift, setShift] = useState<string>('Day');
-  const [product, setProduct] = useState<string>('Fridge');
-  const [model, setModel] = useState<string>('SMT-255L-Freezer Display');
-  const [operator, setOperator] = useState<string>(() => {
-    return formData.operators[0] || 'Anik Sutradhar(50280)';
-  });
+  const [shift, setShift] = useState<string>('');
+  const [product, setProduct] = useState<string>('');
+  const [model, setModel] = useState<string>('');
+  const [operator, setOperator] = useState<string>('');
   const [remarks, setRemarks] = useState<string>('');
 
   // Fault quantities mapping
@@ -776,6 +774,7 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterShift, setFilterShift] = useState<string>('');
   const [filterProduct, setFilterProduct] = useState<string>('');
+  const [filterModel, setFilterModel] = useState<string>('');
   const [filterFault, setFilterFault] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
@@ -799,42 +798,31 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     return formData.productModels[product] || [];
   }, [product, formData.productModels]);
 
-  // When product changes, adjust model
+  // When product changes, adjust model - keep blank by default so user can choose
   const handleProductChange = (newProd: string) => {
     setProduct(newProd);
-    const models = formData.productModels[newProd] || [];
-    if (models.length > 0) {
-      setModel(models[0]);
-    } else {
-      setModel('');
-    }
+    setModel('');
   };
 
   // Sync selected operator when master operators list is updated
   useEffect(() => {
-    if (formData.operators.length > 0) {
-      if (!operator || !formData.operators.includes(operator)) {
-        setOperator(formData.operators[0]);
-      }
-    } else {
+    if (operator && !formData.operators.includes(operator)) {
       setOperator('');
     }
   }, [formData.operators, operator]);
 
-  // Sync selected product/model if removed from master list
+  // Sync selected product/model if removed from master list, without forcing auto fill-up
   useEffect(() => {
-    if (formData.products.length > 0) {
-      if (!product || !formData.products.includes(product)) {
-        const nextProd = formData.products[0];
-        setProduct(nextProd);
-        const models = formData.productModels[nextProd] || [];
-        setModel(models[0] || '');
-      }
-    } else {
+    if (product && !formData.products.includes(product)) {
       setProduct('');
       setModel('');
+    } else if (model && product) {
+      const models = formData.productModels[product] || [];
+      if (!models.includes(model)) {
+        setModel('');
+      }
     }
-  }, [formData.products, product, formData.productModels]);
+  }, [formData.products, product, model, formData.productModels]);
 
   // Show Toast Helper
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -978,7 +966,25 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
   // Applied filters state
   const [appliedFilterShift, setAppliedFilterShift] = useState<string>('');
   const [appliedFilterProduct, setAppliedFilterProduct] = useState<string>('');
+  const [appliedFilterModel, setAppliedFilterModel] = useState<string>('');
   const [appliedFilterFault, setAppliedFilterFault] = useState<string>('');
+
+  // Distinct models available for Details Report filter
+  const filterAvailableModels = useMemo(() => {
+    if (filterProduct && formData.productModels[filterProduct]) {
+      return formData.productModels[filterProduct];
+    }
+    const set = new Set<string>();
+    Object.values(formData.productModels).forEach((arr) => {
+      if (Array.isArray(arr)) {
+        arr.forEach((m: string) => m && set.add(m));
+      }
+    });
+    records.forEach((r) => {
+      if (r.model) set.add(r.model);
+    });
+    return Array.from(set).sort();
+  }, [filterProduct, formData.productModels, records]);
 
   // Filtered rows for Details Report
   const filteredRows = useMemo(() => {
@@ -987,6 +993,7 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
       if (appliedReportTo && r.date > appliedReportTo) return false;
       if (appliedFilterShift && r.shift !== appliedFilterShift) return false;
       if (appliedFilterProduct && r.product !== appliedFilterProduct) return false;
+      if (appliedFilterModel && r.model !== appliedFilterModel) return false;
       if (appliedFilterFault && r.fault !== appliedFilterFault) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -1010,6 +1017,7 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     appliedFilterProduct,
     appliedFilterFault,
     searchQuery,
+    appliedFilterModel,
   ]);
 
   // Total defect qty for filtered rows
@@ -1042,6 +1050,7 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     setAppliedReportTo(reportTo);
     setAppliedFilterShift(filterShift);
     setAppliedFilterProduct(filterProduct);
+    setAppliedFilterModel(filterModel);
     setAppliedFilterFault(filterFault);
     setCurrentPage(1);
   };
@@ -1055,9 +1064,11 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
     setSearchQuery('');
     setFilterShift('');
     setFilterProduct('');
+    setFilterModel('');
     setFilterFault('');
     setAppliedFilterShift('');
     setAppliedFilterProduct('');
+    setAppliedFilterModel('');
     setAppliedFilterFault('');
     setCurrentPage(1);
   };
@@ -1704,60 +1715,18 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
             </div>
           </div>
 
-          {/* Search, Filter & Date Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
-            {/* Search Input */}
-            <div className="lg:col-span-2 relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Search model, fault, operator, remarks…"
-                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs"
-              />
-              <Search className="w-3.5 h-3.5 text-[#64748b] absolute left-2.5 top-2.5 pointer-events-none" />
-            </div>
-
-            {/* Product Filter */}
-            <div>
-              <select
-                value={filterProduct}
-                onChange={(e) => setFilterProduct(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs cursor-pointer"
-              >
-                <option value="">All Products</option>
-                {formData.products.map((p: string) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Shift Filter */}
-            <div>
-              <select
-                value={filterShift}
-                onChange={(e) => setFilterShift(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs cursor-pointer"
-              >
-                <option value="">All Shifts</option>
-                {formData.shifts.map((s: string) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Filter Controls */}
+          <div className="max-w-xs pt-1">
 
             {/* Fault Filter */}
             <div>
               <select
                 value={filterFault}
-                onChange={(e) => setFilterFault(e.target.value)}
+                onChange={(e) => {
+                  setFilterFault(e.target.value);
+                  setAppliedFilterFault(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-2 py-1.5 text-xs rounded-md bg-white text-[#1e293b] font-medium outline-none border-none shadow-xs cursor-pointer"
               >
                 <option value="">All Faults</option>
@@ -1768,109 +1737,9 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
                 ))}
               </select>
             </div>
-
-            {/* Filter Buttons */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handleApplyFilter}
-                className="flex-1 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-md cursor-pointer transition-colors shadow-xs"
-              >
-                Filter
-              </button>
-              <button
-                type="button"
-                onClick={handleClearFilter}
-                className="px-2.5 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-bold rounded-md cursor-pointer transition-colors border border-white/20"
-                title="Reset all filters"
-              >
-                Reset
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Pagination Toolbar */}
-        <div className="px-5 py-2.5 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748b]">
-          <div className="flex items-center gap-2">
-            <span>Show</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="px-2 py-1 bg-white border border-[#cbd5e1] rounded text-[#1e293b] font-bold text-xs cursor-pointer outline-none"
-            >
-              <option value="15">15 rows</option>
-              <option value="25">25 rows</option>
-              <option value="50">50 rows</option>
-              <option value="100">100 rows</option>
-              <option value="0">All ({filteredRows.length})</option>
-            </select>
-            <span>
-              Showing {pageSize === 0 ? 1 : Math.min((currentPage - 1) * pageSize + 1, filteredRows.length)} to{' '}
-              {pageSize === 0 ? filteredRows.length : Math.min(currentPage * pageSize, filteredRows.length)} of{' '}
-              <strong className="text-[#1e293b]">{filteredRows.length}</strong> entries
-            </span>
-          </div>
-
-          {pageSize > 0 && totalPages > 1 && (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(1)}
-                className={`px-2 py-1 rounded text-xs font-semibold ${
-                  currentPage === 1
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
-              >
-                « First
-              </button>
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className={`px-2.5 py-1 rounded text-xs font-semibold ${
-                  currentPage === 1
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
-              >
-                ‹ Prev
-              </button>
-              <span className="px-2 py-1 font-bold text-[#1e293b]">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className={`px-2.5 py-1 rounded text-xs font-semibold ${
-                  currentPage === totalPages
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
-              >
-                Next ›
-              </button>
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(totalPages)}
-                className={`px-2 py-1 rounded text-xs font-semibold ${
-                  currentPage === totalPages
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
-              >
-                Last »
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Scrollable Table */}
         <div className="max-h-[460px] overflow-auto">
@@ -1882,7 +1751,6 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-[#f1f5f9] sticky top-0 z-10 text-[#475569] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
                 <tr>
-                  <th className="py-2.5 px-3 whitespace-nowrap text-center text-[#94a3b8] w-12">#</th>
                   <th className="py-2.5 px-3.5 whitespace-nowrap">Date</th>
                   <th className="py-2.5 px-3.5 whitespace-nowrap">Shift</th>
                   <th className="py-2.5 px-3.5 whitespace-nowrap">Product</th>
@@ -1894,13 +1762,9 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f1f5f9]">
-                {paginatedRows.map((r, idx) => {
-                  const globalIndex = pageSize === 0 ? idx + 1 : (currentPage - 1) * pageSize + idx + 1;
+                {paginatedRows.map((r) => {
                   return (
                     <tr key={r.id} className="hover:bg-[#f8fafc] transition-colors">
-                      <td className="py-2.5 px-3 font-mono text-[#94a3b8] text-center text-[11px]">
-                        {globalIndex}
-                      </td>
                       <td className="py-2.5 px-3.5 font-mono text-[#1e293b] whitespace-nowrap font-medium">
                         {r.date}
                       </td>
@@ -1942,61 +1806,54 @@ export const AOILineDefectEntry: React.FC<AOILineDefectEntryProps> = ({
         {/* Bottom Pagination Bar */}
         {pageSize > 0 && totalPages > 1 && (
           <div className="px-5 py-2.5 bg-[#f8fafc] border-t border-[#e2e8f0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748b]">
-            <div>
-              Showing {Math.min((currentPage - 1) * pageSize + 1, filteredRows.length)} to{' '}
-              {Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length} records
+            <div className="text-[12px] font-semibold text-[#1e40af]">
+              Page {currentPage} of {totalPages}
             </div>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(1)}
-                className={`px-2 py-1 rounded text-xs font-semibold ${
-                  currentPage === 1
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
-              >
-                « First
-              </button>
-              <button
-                type="button"
-                disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className={`px-2.5 py-1 rounded text-xs font-semibold ${
-                  currentPage === 1
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
+                disabled={currentPage <= 1}
+                className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                title="Previous Page"
               >
-                ‹ Prev
+                &lt;Prev
               </button>
-              <span className="px-2 py-1 font-bold text-[#1e293b]">
-                Page {currentPage} of {totalPages}
-              </span>
+
+              {(() => {
+                const pages: number[] = [];
+                const maxButtons = 5;
+                let start = Math.max(1, currentPage - 2);
+                let end = Math.min(totalPages, start + maxButtons - 1);
+                if (end - start < maxButtons - 1) {
+                  start = Math.max(1, end - maxButtons + 1);
+                }
+                for (let p = start; p <= end; p++) pages.push(p);
+
+                return pages.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setCurrentPage(p)}
+                    className={`min-w-7 h-7 px-2 rounded text-xs font-bold transition-all cursor-pointer ${
+                      p === currentPage
+                        ? 'bg-[#123a6b] text-white shadow-xs'
+                        : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ));
+              })()}
+
               <button
                 type="button"
-                disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className={`px-2.5 py-1 rounded text-xs font-semibold ${
-                  currentPage === totalPages
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
+                disabled={currentPage >= totalPages}
+                className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
+                title="Next Page"
               >
-                Next ›
-              </button>
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(totalPages)}
-                className={`px-2 py-1 rounded text-xs font-semibold ${
-                  currentPage === totalPages
-                    ? 'text-[#94a3b8] cursor-not-allowed bg-transparent'
-                    : 'text-[#1e293b] bg-white border border-[#cbd5e1] hover:bg-[#f1f5f9] cursor-pointer'
-                }`}
-              >
-                Last »
+                Next&gt;
               </button>
             </div>
           </div>

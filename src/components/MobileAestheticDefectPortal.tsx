@@ -266,7 +266,7 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
   }, [selectedModel, selectedShift, selectedStage, selectedDefect]);
 
   // Paginated Rows
-  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
+  const totalPages = Math.min(25, Math.max(1, Math.ceil(filteredRecords.length / pageSize)));
   const currentRows = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredRecords.slice(start, start + pageSize);
@@ -713,142 +713,58 @@ export const MobileAestheticDefectPortal: React.FC<MobileAestheticDefectPortalPr
 
         {/* PAGINATION CONTROLS */}
         <div className="p-4 border-t border-[#e4e8f1] flex flex-wrap items-center justify-between gap-4 bg-white">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#64748b]">
-            <span>
-              Showing{' '}
-              <span className="font-bold text-[#0f172a]">
-                {filteredRecords.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}
-              </span>{' '}
-              to{' '}
-              <span className="font-bold text-[#0f172a]">
-                {Math.min(currentPage * pageSize, filteredRecords.length)}
-              </span>{' '}
-              of <span className="font-bold text-[#0f172a]">{filteredRecords.length}</span> records
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#1e40af]">
+            <span className="text-[12px] font-semibold text-[#1e40af]">
+              Page {currentPage} of 25
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* First Page */}
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(1)}
-              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="First Page"
-            >
-              <ChevronsLeft className="w-4 h-4" />
-            </button>
-
-            {/* Prev Page */}
-            <button
-              type="button"
-              disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              disabled={currentPage <= 1}
+              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
               title="Previous Page"
             >
-              <ChevronLeft className="w-4 h-4" />
+              &lt;Prev
             </button>
 
-            {/* Page Buttons */}
-            <div className="flex items-center gap-1">
-              {(() => {
-                const pages: (number | string)[] = [];
-                if (totalPages <= 7) {
-                  for (let i = 1; i <= totalPages; i++) pages.push(i);
-                } else {
-                  if (currentPage <= 4) {
-                    pages.push(1, 2, 3, 4, 5, '...', totalPages);
-                  } else if (currentPage >= totalPages - 3) {
-                    pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
-                  } else {
-                    pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
-                  }
-                }
-                return pages.map((page, pIdx) => {
-                  if (page === '...') {
-                    return (
-                      <span key={`dots-${pIdx}`} className="px-1.5 text-xs text-gray-400 font-bold">
-                        ...
-                      </span>
-                    );
-                  }
-                  const isCurrent = page === currentPage;
-                  return (
-                    <button
-                      key={`page-${page}`}
-                      type="button"
-                      onClick={() => setCurrentPage(page as number)}
-                      className={`min-w-8 h-8 px-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                        isCurrent
-                          ? 'bg-[#7c3aed] text-white border-[#7c3aed] shadow-xs'
-                          : 'bg-white text-gray-700 border-gray-200 hover:bg-purple-50 hover:text-purple-700'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                });
-              })()}
-            </div>
+            {(() => {
+              const pages: number[] = [];
+              const maxButtons = 5;
+              let start = Math.max(1, currentPage - 2);
+              let end = Math.min(totalPages, start + maxButtons - 1);
+              if (end - start < maxButtons - 1) {
+                start = Math.max(1, end - maxButtons + 1);
+              }
+              for (let p = start; p <= end; p++) pages.push(p);
 
-            {/* Next Page */}
+              return pages.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setCurrentPage(p)}
+                  className={`min-w-7 h-7 px-2 rounded text-xs font-bold transition-all cursor-pointer ${
+                    p === currentPage
+                      ? 'bg-[#123a6b] text-white shadow-xs'
+                      : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-[#e2e8f0]'
+                  }`}
+                >
+                  {p}
+                </button>
+              ));
+            })()}
+
             <button
               type="button"
-              disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              disabled={currentPage >= totalPages}
+              className="px-2.5 py-1 rounded bg-white border border-[#cbd5e1] text-[#1e293b] font-semibold text-xs disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#e2e8f0] cursor-pointer"
               title="Next Page"
             >
-              <ChevronRight className="w-4 h-4" />
+              Next&gt;
             </button>
-
-            {/* Last Page */}
-            <button
-              type="button"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(totalPages)}
-              className="p-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="Last Page"
-            >
-              <ChevronsRight className="w-4 h-4" />
-            </button>
-
-            {/* Jump to page */}
-            <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-gray-200 text-xs text-gray-600">
-              <span className="font-semibold">Go to:</span>
-              <input
-                type="number"
-                min={1}
-                max={totalPages}
-                value={jumpPageInput}
-                onChange={(e) => setJumpPageInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const target = parseInt(jumpPageInput, 10);
-                    if (!isNaN(target) && target >= 1 && target <= totalPages) {
-                      setCurrentPage(target);
-                      setJumpPageInput('');
-                    }
-                  }
-                }}
-                placeholder={String(currentPage)}
-                className="w-12 px-2 py-1 text-center bg-gray-50 border border-gray-300 rounded-md text-xs font-bold text-gray-800 outline-none focus:border-purple-600"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const target = parseInt(jumpPageInput, 10);
-                  if (!isNaN(target) && target >= 1 && target <= totalPages) {
-                    setCurrentPage(target);
-                    setJumpPageInput('');
-                  }
-                }}
-                className="px-2 py-1 bg-gray-100 hover:bg-purple-600 hover:text-white rounded-md text-[11px] font-bold text-gray-700 transition-colors cursor-pointer"
-              >
-                Go
-              </button>
-            </div>
           </div>
         </div>
       </div>

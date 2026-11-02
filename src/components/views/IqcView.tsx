@@ -66,12 +66,19 @@ import {
   updateIqcReport,
   seedBaselineIqcReportsIfEmpty,
   IqcReportRecord,
+  IQC_PCBA_ALLOWED_MATERIALS,
+  IQC_PCB_ALLOWED_MATERIALS,
+  resolveIqcAuthorizedFilter,
 } from '../../services/iqcReports';
+
+import { UserProfile } from '../../types';
+import { canAccessModule, QM_SECTIONS, isAdminProfile } from '../../services/userService';
 
 interface IqcViewProps {
   onNavigate?: (page: PageId) => void;
   selectedSubsection?: 'all' | 'pcb' | 'pcba';
   isLoggedIn?: boolean;
+  currentUserProfile?: UserProfile | null;
   onOpenLoginModal?: () => void;
 }
 
@@ -154,12 +161,28 @@ export const IqcView: React.FC<IqcViewProps> = ({
   onNavigate,
   selectedSubsection = 'all',
   isLoggedIn = false,
+  currentUserProfile,
   onOpenLoginModal,
 }) => {
+  // Check explicit IQC permissions
+  const isUserAdmin = isAdminProfile(currentUserProfile);
+  const canAccessPcbIqc = canAccessModule(currentUserProfile, QM_SECTIONS.IQC_PCB);
+  const canAccessPcbaIqc = canAccessModule(currentUserProfile, QM_SECTIONS.IQC_PCBA);
+
+  const iqcAuth = useMemo(() => {
+    return resolveIqcAuthorizedFilter(isUserAdmin, canAccessPcbaIqc, canAccessPcbIqc);
+  }, [isUserAdmin, canAccessPcbaIqc, canAccessPcbIqc]);
+
   type IqcTab = 'all' | 'history' | 'pcb' | 'pcba';
-  const [activeTab, setActiveTab] = useState<IqcTab>(
-    selectedSubsection === 'pcb' || selectedSubsection === 'pcba' ? selectedSubsection : 'all'
-  );
+  const initialTab: IqcTab = (() => {
+    if (selectedSubsection === 'pcb') {
+      return canAccessPcbIqc ? 'pcb' : 'pcba';
+    }
+    if (selectedSubsection === 'pcba') return 'pcba';
+    return 'all';
+  })();
+
+  const [activeTab, setActiveTab] = useState<IqcTab>(initialTab);
 
   // Firestore Historical Reports state (collection: iqc_reports)
   const [historicalReports, setHistoricalReports] = useState<IqcReportRecord[]>([]);
@@ -221,7 +244,16 @@ export const IqcView: React.FC<IqcViewProps> = ({
 
   // Real-time Cloud Firestore subscription for iqc_reports (Source of Truth)
   useEffect(() => {
-    seedBaselineIqcReportsIfEmpty().catch(() => {});
+    // Fail Closed: If user is not authorized to query IQC data, do NOT initiate query
+    if (!iqcAuth.allowed) {
+      setLoadingReports(false);
+      setReportsError(iqcAuth.reason || 'IQC access denied by permission policy.');
+      return;
+    }
+
+    // Automatic baseline seeding has been removed from component lifecycle per Phase 1C-3 hardening.
+    // Unfiltered reads and writes are not permitted during normal user navigation.
+
     const unsub = subscribeIqcReports(
       (list) => {
         setHistoricalReports(list);
@@ -232,10 +264,11 @@ export const IqcView: React.FC<IqcViewProps> = ({
         console.error('Failed to subscribe to IQC reports:', err);
         setReportsError('Failed to load historical IQC reports from Cloud Firestore.');
         setLoadingReports(false);
-      }
+      },
+      iqcAuth.filter
     );
     return () => unsub();
-  }, []);
+  }, [iqcAuth]);
 
   const showFlash = (msg: string) => {
     setNotice(msg);
@@ -244,9 +277,13 @@ export const IqcView: React.FC<IqcViewProps> = ({
     }, 3200);
   };
 
-  // Filtered Historical Reports
+  // Filtered Historical Reports (strictly excludes PCB inspection records if user lacks PCB IQC access)
   const filteredHistoricalReports = useMemo(() => {
     return historicalReports.filter((r) => {
+      // Security Filter: Non-PCB personnel can never view PCB material records
+      if (!canAccessPcbIqc && r.material === 'PCB') {
+        return false;
+      }
       if (historyMaterialFilter !== 'all' && r.material !== historyMaterialFilter) {
         return false;
       }
@@ -265,7 +302,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
       }
       return true;
     });
-  }, [historicalReports, historyMaterialFilter, historyResultFilter, historySearch]);
+  }, [historicalReports, historyMaterialFilter, historyResultFilter, historySearch, canAccessPcbIqc]);
 
   // Calculations
   const tLots = Number(totalLots) || 0;
@@ -366,6 +403,39 @@ export const IqcView: React.FC<IqcViewProps> = ({
       return;
     }
 
+    if (!iqcAuth.allowed) {
+      showFlash(iqcAuth.reason || 'IQC report saving denied by permission policy.');
+      return;
+    }
+
+    // Material Presence & Authorization Validation
+    const effectiveMaterial = (material || '').trim();
+    if (!effectiveMaterial) {
+      showFlash('Material classification is required. Please select a valid material type before saving.');
+      return;
+    }
+
+    const isMaterialAuthorized = isUserAdmin || (
+      canAccessPcbIqc
+        ? IQC_PCB_ALLOWED_MATERIALS.includes(effectiveMaterial)
+        : IQC_PCBA_ALLOWED_MATERIALS.includes(effectiveMaterial)
+    );
+
+    if (!isMaterialAuthorized) {
+      showFlash(`Material "${effectiveMaterial}" is not authorized for your profile. Report saving blocked.`);
+      return;
+    }
+
+    // Tab vs Material Consistency Check
+    if (activeTab === 'pcba' && effectiveMaterial === 'PCB') {
+      showFlash('Inconsistent entry: Material "PCB" cannot be submitted under the PCBA Inspection Form.');
+      return;
+    }
+    if (activeTab === 'pcb' && effectiveMaterial !== 'PCB') {
+      showFlash(`Inconsistent entry: Material "${effectiveMaterial}" cannot be submitted under the PCB Inspection Form.`);
+      return;
+    }
+
     const assignedReportNo =
       reportNo.trim() ||
       `IQC-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(
@@ -380,7 +450,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
         reportNo: assignedReportNo,
         inspDate: assignedDate,
         supplier: supplier || 'Supplier-A',
-        material: material || (activeTab === 'pcba' ? 'PCBA' : 'PCB'),
+        material: effectiveMaterial as any,
         partNo: partNo || '',
         model: model || '',
         poNo: poNo || '',
@@ -467,11 +537,15 @@ export const IqcView: React.FC<IqcViewProps> = ({
     showFlash(editMode ? `Editing IQC report "${report.reportNo}".` : `Opened IQC report "${report.reportNo}".`);
   };
 
-  // Delete historical report from Firestore
+  // Delete historical report from Firestore (Admin Only)
   const handleDeleteReport = async (id: string, repNo: string) => {
     if (!isLoggedIn) {
       showFlash('Authorized login required to delete IQC reports.');
       if (onOpenLoginModal) onOpenLoginModal();
+      return;
+    }
+    if (!isUserAdmin) {
+      showFlash('Administrative authorization required. Only System Administrators can permanently delete IQC reports.');
       return;
     }
     if (!window.confirm(`Are you sure you want to permanently delete IQC report "${repNo}" from Cloud Firestore?`)) {
@@ -493,6 +567,11 @@ export const IqcView: React.FC<IqcViewProps> = ({
     }
   };
 
+  // User-scoped localStorage draft key to prevent cross-account draft leakage
+  const userDraftKey = currentUserProfile?.uid
+    ? `walton-iqc-draft-user-${currentUserProfile.uid}`
+    : STORAGE_KEY;
+
   // Save local draft
   const handleSaveDraft = async () => {
     if (!isLoggedIn) {
@@ -500,9 +579,16 @@ export const IqcView: React.FC<IqcViewProps> = ({
       if (onOpenLoginModal) onOpenLoginModal();
       return;
     }
+    if (!iqcAuth.allowed) {
+      showFlash(iqcAuth.reason || 'IQC draft saving denied by permission policy.');
+      return;
+    }
+
     try {
       const draft = {
         savedAt: new Date().toISOString(),
+        uploaderUid: currentUserProfile?.uid,
+        uploaderEmail: currentUserProfile?.email,
         id: currentReportId,
         reportNo,
         inspDate,
@@ -532,33 +618,55 @@ export const IqcView: React.FC<IqcViewProps> = ({
         signQmName,
         signQmDate,
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+      localStorage.setItem(userDraftKey, JSON.stringify(draft));
       showFlash('IQC report draft saved to local browser storage.');
     } catch {
       showFlash('Error saving draft locally.');
     }
   };
 
-  // Restore draft from localStorage or Firestore
+  // Restore draft from localStorage or Firestore (Strict Authorization & Material Validation)
   const handleRestoreDraft = async () => {
+    if (!iqcAuth.allowed) {
+      showFlash(iqcAuth.reason || 'IQC draft restoration denied by permission policy.');
+      return;
+    }
+
     try {
       let d: any = null;
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(userDraftKey) || localStorage.getItem(STORAGE_KEY);
       if (raw) {
         d = JSON.parse(raw);
       } else {
-        const cloudReports = await getIqcReports();
+        const cloudReports = await getIqcReports(iqcAuth.filter);
         if (cloudReports.length > 0) d = cloudReports[0];
       }
       if (!d) {
         showFlash('No saved draft found in local storage or database.');
         return;
       }
+
+      // Authorization & Material Set Validation:
+      // PCBA-only users may only restore PCBA, Component, Solder Paste.
+      // PCB-only users may only restore PCB.
+      // If draft material violates currently authorized material set, do NOT restore restricted values.
+      const candidateMaterial = (d.material || '').trim();
+      const isCandidateAllowed = isUserAdmin || (
+        canAccessPcbIqc
+          ? IQC_PCB_ALLOWED_MATERIALS.includes(candidateMaterial)
+          : IQC_PCBA_ALLOWED_MATERIALS.includes(candidateMaterial)
+      );
+
+      if (candidateMaterial && !isCandidateAllowed) {
+        showFlash(`Restricted draft: material "${candidateMaterial}" is not authorized for your profile. Draft restoration blocked.`);
+        return;
+      }
+
       if (d.id) setCurrentReportId(d.id);
       if (d.reportNo) setReportNo(d.reportNo);
       if (d.inspDate) setInspDate(d.inspDate);
       if (d.supplier) setSupplier(d.supplier);
-      if (d.material) setMaterial(d.material);
+      if (d.material && isCandidateAllowed) setMaterial(d.material);
       if (d.partNo) setPartNo(d.partNo);
       if (d.model) setModel(d.model);
       if (d.poNo) setPoNo(d.poNo);
@@ -729,8 +837,12 @@ export const IqcView: React.FC<IqcViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
+                    if (!iqcAuth.allowed) {
+                      showFlash(iqcAuth.reason || 'IQC access denied by permission policy.');
+                      return;
+                    }
                     setLoadingReports(true);
-                    getIqcReports().then((r) => {
+                    getIqcReports(iqcAuth.filter).then((r) => {
                       setHistoricalReports(r);
                       setLoadingReports(false);
                       showFlash('Refreshed IQC reports from Cloud Firestore.');
@@ -779,20 +891,22 @@ export const IqcView: React.FC<IqcViewProps> = ({
               {historicalReports.length}
             </span>
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (material !== 'PCB') setMaterial('PCB');
-              setActiveTab('pcb');
-            }}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'pcb'
-                ? 'bg-[#123a6b] text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            PCB Inspection Form
-          </button>
+          {canAccessPcbIqc && (
+            <button
+              type="button"
+              onClick={() => {
+                if (material !== 'PCB') setMaterial('PCB');
+                setActiveTab('pcb');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'pcb'
+                  ? 'bg-[#123a6b] text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              PCB Inspection Form
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -1367,7 +1481,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
                     className="px-2.5 py-1.5 border border-[#cbd5e1] rounded-lg text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1565c0]"
                   >
                     <option value="all">All Materials</option>
-                    <option value="PCB">PCB</option>
+                    {canAccessPcbIqc && <option value="PCB">PCB</option>}
                     <option value="PCBA">PCBA</option>
                     <option value="Component">Component</option>
                     <option value="Solder Paste">Solder Paste</option>
@@ -1422,8 +1536,12 @@ export const IqcView: React.FC<IqcViewProps> = ({
                   <button
                     type="button"
                     onClick={() => {
+                      if (!iqcAuth.allowed) {
+                        setReportsError(iqcAuth.reason || 'IQC access denied by permission policy.');
+                        return;
+                      }
                       setLoadingReports(true);
-                      getIqcReports().then((r) => {
+                      getIqcReports(iqcAuth.filter).then((r) => {
                         setHistoricalReports(r);
                         setLoadingReports(false);
                       });
@@ -1563,23 +1681,21 @@ export const IqcView: React.FC<IqcViewProps> = ({
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
                                 </button>
-                                <button
-                                  type="button"
-                                  disabled={!isLoggedIn || isDeletingId === r.id}
-                                  onClick={() => handleDeleteReport(r.id!, r.reportNo)}
-                                  title={
-                                    isLoggedIn
-                                      ? 'Permanently delete report from Cloud Firestore'
-                                      : 'Login required to delete reports'
-                                  }
-                                  className="p-1 rounded text-[#e2231a] hover:bg-[#fee2e2] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                                >
-                                  {isDeletingId === r.id ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  ) : (
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  )}
-                                </button>
+                                {isUserAdmin && (
+                                  <button
+                                    type="button"
+                                    disabled={!isLoggedIn || isDeletingId === r.id}
+                                    onClick={() => handleDeleteReport(r.id!, r.reportNo)}
+                                    title="Permanently delete report from Cloud Firestore (Admin Only)"
+                                    className="p-1 rounded text-[#e2231a] hover:bg-[#fee2e2] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                  >
+                                    {isDeletingId === r.id ? (
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    )}
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -1651,7 +1767,7 @@ export const IqcView: React.FC<IqcViewProps> = ({
                       className="w-full min-w-0 h-8 px-2 py-1 border border-[#cbd5e1] rounded bg-white text-xs font-bold text-[#123a6b] truncate disabled:bg-slate-50"
                     >
                       <option value=""></option>
-                      <option value="PCB">PCB (Printed Circuit Board)</option>
+                      {canAccessPcbIqc && <option value="PCB">PCB (Printed Circuit Board)</option>}
                       <option value="PCBA">PCBA (Assembly Sub-Module)</option>
                       <option value="Component">Component (SMD/DIP)</option>
                       <option value="Solder Paste">Solder Paste / Flux</option>

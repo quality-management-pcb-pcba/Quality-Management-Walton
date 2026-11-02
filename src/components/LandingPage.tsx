@@ -332,6 +332,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const [talentModalOpen, setTalentModalOpen] = useState(false);
   const [editForm, setEditForm] = useState<WorkerTalentData>(talentData);
+  const talentPhoto1FileRef = React.useRef<HTMLInputElement>(null);
+  const talentPhoto2FileRef = React.useRef<HTMLInputElement>(null);
   const [saveToast, setSaveToast] = useState(false);
   const [saveToastMessage, setSaveToastMessage] = useState({
     title: 'Worker Talent Section Updated!',
@@ -971,18 +973,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   {heroBannerList.length}
                 </span>
               </button>
-
-              {/* Remove / Delete Current Image from Hero Banner */}
-              {heroBannerList.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleDeleteHeroImage(heroSlide)}
-                  className="p-2 bg-black/60 hover:bg-red-600 text-white/80 hover:text-white rounded-xl border border-white/20 backdrop-blur-md transition-all shadow-md cursor-pointer active:scale-95"
-                  title="Remove current image from banner carousel (Admin Only)"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-400 group-hover:text-white" />
-                </button>
-              )}
             </div>
           )}
 
@@ -1653,15 +1643,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="p-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold text-[#334155]">
                       <span>Photo 1 (Team/Inspection)</span>
-                      <span className="text-[10px] text-slate-400 font-normal">URL &amp; Label</span>
                     </div>
+
+                    {/* Hidden PC File Input */}
                     <input
-                      type="text"
-                      value={editForm.photo1Url}
-                      onChange={(e) => setEditForm({ ...editForm, photo1Url: e.target.value })}
-                      placeholder="Photo 1 Image URL"
-                      className="w-full px-2.5 py-1.5 text-xs border border-[#cbd5e1] rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#1c356b]"
+                      ref={talentPhoto1FileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (loadEvt) => {
+                            if (typeof loadEvt.target?.result === 'string') {
+                              setEditForm({ ...editForm, photo1Url: loadEvt.target.result });
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
                     />
+
+                    {/* Choose Image From PC */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => talentPhoto1FileRef.current?.click()}
+                        className="flex-1 py-1.5 px-3 bg-[#1c356b] hover:bg-[#152a55] text-white text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-cyan-300" />
+                        <span>Choose Image From PC</span>
+                      </button>
+                      {editForm.photo1Url && (
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, photo1Url: '' })}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                          title="Clear image"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
                     <input
                       type="text"
                       value={editForm.photo1Label}
@@ -1688,15 +1713,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="p-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold text-[#334155]">
                       <span>Photo 2 (Award Gala)</span>
-                      <span className="text-[10px] text-slate-400 font-normal">URL &amp; Label</span>
                     </div>
+
+                    {/* Hidden PC File Input */}
                     <input
-                      type="text"
-                      value={editForm.photo2Url}
-                      onChange={(e) => setEditForm({ ...editForm, photo2Url: e.target.value })}
-                      placeholder="Photo 2 Image URL"
-                      className="w-full px-2.5 py-1.5 text-xs border border-[#cbd5e1] rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-[#1c356b]"
+                      ref={talentPhoto2FileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (loadEvt) => {
+                            if (typeof loadEvt.target?.result === 'string') {
+                              setEditForm({ ...editForm, photo2Url: loadEvt.target.result });
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
                     />
+
+                    {/* Choose Image From PC */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => talentPhoto2FileRef.current?.click()}
+                        className="flex-1 py-1.5 px-3 bg-[#1c356b] hover:bg-[#152a55] text-white text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-cyan-300" />
+                        <span>Choose Image From PC</span>
+                      </button>
+                      {editForm.photo2Url && (
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, photo2Url: '' })}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                          title="Clear image"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
                     <input
                       type="text"
                       value={editForm.photo2Label}

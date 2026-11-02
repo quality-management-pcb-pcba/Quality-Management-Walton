@@ -58,6 +58,7 @@ import {
   UserCheck,
   Zap,
 } from 'lucide-react';
+import { canAccessPage } from '../services/userService';
 import { motion, AnimatePresence } from 'motion/react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 
@@ -321,6 +322,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
+  // Securely filter navigation items against the user's explicit permissions
+  const visibleNavItems = navItems
+    .filter((item) => canAccessPage(userProfile, item.id))
+    .map((item) => {
+      if (!item.subItems || item.subItems.length === 0) return item;
+      return {
+        ...item,
+        subItems: item.subItems.filter((sub) => canAccessPage(userProfile, sub.id)),
+      };
+    });
+
   return (
     <>
       {/* Sidebar container: auto-opens when cursor touches it and auto-closes when cursor leaves */}
@@ -386,7 +398,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             /* 1. EXPANDED / FULL LOOKING SIDEBAR                                        */
             /* ========================================================================= */
             <nav className="px-2.5 space-y-1">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 const hasSubItems = item.subItems && item.subItems.length > 0;
                 const isSubActive = hasSubItems && item.subItems?.some((sub) => sub.id === currentPage);
@@ -509,7 +521,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             /* 2. COLLAPSED ICON-ONLY SIDEBAR                                            */
             /* ========================================================================= */
             <nav className="flex flex-col items-center space-y-1.5 px-2">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 const hasSubItems = item.subItems && item.subItems.length > 0;
                 const isSubActive = hasSubItems && item.subItems?.some((sub) => sub.id === currentPage);

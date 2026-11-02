@@ -103,6 +103,8 @@ export interface UserProfile {
   role: UserRole;
   status: UserStatus;
   permissions?: string[];
+  allowedSections?: string[];
+  excludedSections?: string[];
   photoURL?: string;
   createdAt?: any;
   updatedAt?: any;

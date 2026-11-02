@@ -8,11 +8,75 @@ import {
   deleteDoc,
   getDocs,
   onSnapshot,
+  query,
+  where,
   buildCreateAudit,
   buildUpdateAudit,
   handleFirestoreError,
   OperationType,
 } from './firebase';
+
+/**
+ * Verified, explicit IQC material categories in Walton QMS
+ */
+export const IQC_MATERIALS = {
+  PCB: 'PCB',
+  PCBA: 'PCBA',
+  COMPONENT: 'Component',
+  SOLDER_PASTE: 'Solder Paste',
+} as const;
+
+export const IQC_PCBA_ALLOWED_MATERIALS: string[] = [
+  IQC_MATERIALS.PCBA,
+  IQC_MATERIALS.COMPONENT,
+  IQC_MATERIALS.SOLDER_PASTE,
+];
+
+export const IQC_PCB_ALLOWED_MATERIALS: string[] = [
+  IQC_MATERIALS.PCB,
+];
+
+/**
+ * Resolves the explicit authorized IQC material filter based on least-privilege policy.
+ * Returns:
+ * - { allowed: true, filter: undefined } -> Unfiltered (Verified Admin)
+ * - { allowed: true, filter: [...] }    -> Bounded material filter (PCBA-only or PCB-only)
+ * - { allowed: false, reason: string }   -> Denied (Neither permission, unverified, or ambiguous both without policy)
+ */
+export function resolveIqcAuthorizedFilter(
+  isAdmin: boolean,
+  canAccessPcbaIqc: boolean,
+  canAccessPcbIqc: boolean
+): { allowed: boolean; filter?: string[]; reason?: string } {
+  // 1. Verified Admin: Full unfiltered access
+  if (isAdmin) {
+    return { allowed: true, filter: undefined };
+  }
+
+  // 2. Both PCB and PCBA IQC: Deny per least-privilege policy until explicit multi-section policy is approved
+  if (canAccessPcbaIqc && canAccessPcbIqc) {
+    return {
+      allowed: false,
+      reason: 'Dual PCB and PCBA IQC assignment requires explicit management policy clearance. Access blocked.',
+    };
+  }
+
+  // 3. PCBA IQC Authorized Staff (e.g. Tajedul Islam)
+  if (canAccessPcbaIqc) {
+    return { allowed: true, filter: IQC_PCBA_ALLOWED_MATERIALS };
+  }
+
+  // 4. PCB IQC Authorized Staff
+  if (canAccessPcbIqc) {
+    return { allowed: true, filter: IQC_PCB_ALLOWED_MATERIALS };
+  }
+
+  // 5. Neither permission or unverified/missing profile: Fail closed
+  return {
+    allowed: false,
+    reason: 'User profile does not have authorization for Incoming Quality Control inspection records.',
+  };
+}
 
 export interface IqcReportRecord {
   id?: string;
@@ -150,9 +214,14 @@ export async function deleteIqcReport(id: string): Promise<void> {
   }
 }
 
-export async function getIqcReports(): Promise<IqcReportRecord[]> {
+export async function getIqcReports(materialFilter?: string[]): Promise<IqcReportRecord[]> {
   try {
-    const snap = await getDocs(collection(db, COLLECTION_NAME));
+    const colRef = collection(db, COLLECTION_NAME);
+    const q = materialFilter && materialFilter.length > 0
+      ? query(colRef, where('material', 'in', materialFilter))
+      : colRef;
+
+    const snap = await getDocs(q);
     const list: IqcReportRecord[] = [];
     snap.forEach((d) => {
       list.push({ ...(d.data() as IqcReportRecord), id: d.id });
@@ -167,11 +236,17 @@ export async function getIqcReports(): Promise<IqcReportRecord[]> {
 
 export function subscribeIqcReports(
   onData: (reports: IqcReportRecord[]) => void,
-  onError?: (err: unknown) => void
+  onError?: (err: unknown) => void,
+  materialFilter?: string[]
 ): () => void {
   try {
+    const colRef = collection(db, COLLECTION_NAME);
+    const q = materialFilter && materialFilter.length > 0
+      ? query(colRef, where('material', 'in', materialFilter))
+      : colRef;
+
     return onSnapshot(
-      collection(db, COLLECTION_NAME),
+      q,
       (snap) => {
         const list: IqcReportRecord[] = [];
         snap.forEach((d) => {

@@ -105,11 +105,9 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
   const [selectedDate, setSelectedDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
-  const [selectedShift, setSelectedShift] = useState(formData.shifts[0] || 'Day');
-  const [selectedProduct, setSelectedProduct] = useState(formData.products[0] || 'Charger');
-  const [selectedModel, setSelectedModel] = useState(
-    formData.productModels['Charger']?.[1] || formData.productModels['Charger']?.[0] || ''
-  );
+  const [selectedShift, setSelectedShift] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
   const [operator, setOperator] = useState(formData.operators[0] || '');
   const [remarks, setRemarks] = useState('');
 
@@ -258,8 +256,7 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
   // Sync model selection when product changes
   const handleProductChange = (prod: string) => {
     setSelectedProduct(prod);
-    const availableModels = formData.productModels[prod] || [];
-    setSelectedModel(availableModels[0] || '');
+    setSelectedModel('');
   };
 
   // Sync selected operator when master operators list is updated
@@ -275,18 +272,14 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
 
   // Sync selected product/model if removed from master list
   useEffect(() => {
-    if (formData.products.length > 0) {
-      if (!selectedProduct || !formData.products.includes(selectedProduct)) {
-        const nextProd = formData.products[0];
-        setSelectedProduct(nextProd);
-        const models = formData.productModels[nextProd] || [];
-        setSelectedModel(models[0] || '');
-      }
-    } else {
+    if (selectedProduct && !formData.products.includes(selectedProduct)) {
       setSelectedProduct('');
       setSelectedModel('');
     }
-  }, [formData.products, selectedProduct, formData.productModels]);
+    if (selectedModel && selectedProduct && !(formData.productModels[selectedProduct] || []).includes(selectedModel)) {
+      setSelectedModel('');
+    }
+  }, [formData.products, selectedProduct, selectedModel, formData.productModels]);
 
   // Manage Lists Handlers
   const handleAddProduct = () => {
@@ -640,8 +633,9 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
             <select
               value={selectedShift}
               onChange={(e) => setSelectedShift(e.target.value)}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white"
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
+              <option value="">Select Shift…</option>
               {formData.shifts.map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -659,6 +653,7 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
               onChange={(e) => handleProductChange(e.target.value)}
               className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
             >
+              <option value="">Select Product…</option>
               {formData.products.map((p) => (
                 <option key={p} value={p}>
                   {p}
@@ -675,16 +670,21 @@ export const MILineChargerDefectEntry: React.FC<MILineChargerDefectEntryProps> =
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
               disabled={!selectedProduct}
-              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer"
+              className="px-3 py-2 border border-[#cbd5e1] rounded-lg text-sm text-[#1e293b] font-medium focus:ring-2 focus:ring-[#2563eb]/20 focus:border-[#2563eb] outline-none transition-all bg-white cursor-pointer disabled:bg-slate-50 disabled:text-slate-400"
             >
-              {(formData.productModels[selectedProduct] || []).length === 0 ? (
+              {!selectedProduct ? (
+                <option value="">Select Product first…</option>
+              ) : (formData.productModels[selectedProduct] || []).length === 0 ? (
                 <option value="">No models yet — add via ⚙ Manage Lists</option>
               ) : (
-                (formData.productModels[selectedProduct] || []).map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))
+                <>
+                  <option value="">Select Model…</option>
+                  {(formData.productModels[selectedProduct] || []).map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </>
               )}
             </select>
           </div>

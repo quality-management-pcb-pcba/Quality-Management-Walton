@@ -24,7 +24,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Lock, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { Lock, ShieldAlert, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { PageType, NonConformanceItem, CapaItem, SopDocument, UserProfile } from './types';
 import {
   INITIAL_NCRS,
@@ -32,7 +32,13 @@ import {
   INITIAL_SOPS,
 } from './data/initialData';
 import { auth, signOut, onAuthStateChanged } from './services/firebase';
-import { getUserProfile, bootstrapUserProfile, isDesignatedAdminEmail, isAdminProfile } from './services/userService';
+import {
+  getUserProfile,
+  bootstrapUserProfile,
+  isDesignatedAdminEmail,
+  isAdminProfile,
+  canAccessPage,
+} from './services/userService';
 import {
   subscribeNonConformances,
   createNonConformance,
@@ -459,6 +465,15 @@ export default function App() {
       return;
     }
 
+    // Direct Route Access Guard:
+    // If the requested module is unauthorized for the current profile, block transition and redirect to dashboard
+    if (!canAccessPage(currentUserProfile, page)) {
+      console.warn(`[Access Guard] Blocked unauthorized navigation attempt to /${page} for user ${currentUserProfile?.email || 'unauthenticated'}`);
+      setCurrentPage('dashboard');
+      setInPortal(true);
+      return;
+    }
+
     setCurrentPage(page);
     setInPortal(true);
   };
@@ -637,20 +652,57 @@ export default function App() {
                     onOpenLoginModal={() => setShowLoginModal(true)}
                     showSidebar={isSidebarOpen}
                     onToggleSidebar={handleToggleSidebar}
+                    currentUserProfile={currentUserProfile}
                   />
                 )
               )}
 
               {currentPage === 'pcb' && (
-                <PCBView
-                  onNavigate={handleNavigate}
-                  selectedProduct={selectedProduct}
-                  selectedMonth={selectedMonth}
-                />
+                canAccessPage(currentUserProfile, 'pcb') ? (
+                  <PCBView
+                    onNavigate={handleNavigate}
+                    selectedProduct={selectedProduct}
+                    selectedMonth={selectedMonth}
+                  />
+                ) : (
+                  <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-2xl border border-rose-200 shadow-sm text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                      <ShieldCheck className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800">Access Restricted: PCB Module</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Your Walton employee profile is authorized for PCBA Quality Management only. Bare-board PCB fabrication records are restricted.
+                    </p>
+                    <button
+                      onClick={() => handleNavigate('dashboard')}
+                      className="px-4 py-2 bg-[#0d1730] text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors"
+                    >
+                      Return to Dashboard
+                    </button>
+                  </div>
+                )
               )}
 
               {currentPage === 'pcb-process' && (
-                <PCBProcessFlowView onNavigate={handleNavigate} />
+                canAccessPage(currentUserProfile, 'pcb-process') ? (
+                  <PCBProcessFlowView onNavigate={handleNavigate} />
+                ) : (
+                  <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-2xl border border-rose-200 shadow-sm text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                      <ShieldCheck className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800">Access Restricted: PCB Process</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Your Walton employee profile does not have clearance to view PCB manufacturing process flows.
+                    </p>
+                    <button
+                      onClick={() => handleNavigate('dashboard')}
+                      className="px-4 py-2 bg-[#0d1730] text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors"
+                    >
+                      Return to Dashboard
+                    </button>
+                  </div>
+                )
               )}
 
               {(currentPage === 'iqc' || currentPage === 'iqc-pcb' || currentPage === 'iqc-pcba') && (
@@ -660,6 +712,7 @@ export default function App() {
                     currentPage === 'iqc-pcb' ? 'pcb' : currentPage === 'iqc-pcba' ? 'pcba' : 'all'
                   }
                   isLoggedIn={isLoggedIn}
+                  currentUserProfile={currentUserProfile}
                   onOpenLoginModal={() => setShowLoginModal(true)}
                 />
               )}

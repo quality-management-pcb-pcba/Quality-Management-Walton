@@ -1,0 +1,278 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // 1. EXACT 4-ACCOUNT ALLOWLIST ARCHITECTURE (1 Admin + 3 Regular Users)
+    // =========================================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Fail-Closed Active Profile Guard:
+    // Requires verified document in /users/{uid} and status == 'active'.
+    function hasActiveProfile() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        getUserData().get('status', 'inactive') == 'active';
+    }
+
+    // -------------------------------------------------------------------------
+    // ACCOUNT 1: DESIGNATED SYSTEM ADMINISTRATOR (CONFIRMED)
+    // -------------------------------------------------------------------------
+    function isAdmin() {
+      return isAuthenticated() &&
+        request.auth.uid == 'EqqAbCPpNnSuyvXyjzYc63UaI173' &&
+        request.auth.token.email == 'qm.pcba26@gmail.com';
+    }
+
+    // -------------------------------------------------------------------------
+    // ACCOUNT 2: TAJEDUL ISLAM (CONFIRMED REGULAR USER)
+    // Scope: PCBA, SMT, MI, IQC_PCBA, ESD, TASKS, KPI, NCR, CAPA, RCA, COMPLAINTS, DOCS, MANPOWER
+    // Strict Exclusion: PCB, PCB_PROCESS, IQC_PCB
+    // -------------------------------------------------------------------------
+    function isTajedul() {
+      return isAuthenticated() &&
+        hasActiveProfile() &&
+        request.auth.uid == 'GzeuJVQenDNNCoauo3iWBH8EZZO2' &&
+        request.auth.token.email == 'tajedul36924@waltonbd.com' &&
+        !('PCB' in getUserData().get('excludedSections', []));
+    }
+
+    // -------------------------------------------------------------------------
+    // ACCOUNT 3: APPROVED REGULAR USER 03 (PLACEHOLDER - CURRENTLY BLOCKED)
+    // Locked until exact UID, verified email, and approved section scope are confirmed.
+    // -------------------------------------------------------------------------
+    function isApprovedUser03() {
+      return false; // PLACEHOLDER: Denied by default
+    }
+
+    // -------------------------------------------------------------------------
+    // ACCOUNT 4: APPROVED REGULAR USER 04 (PLACEHOLDER - CURRENTLY BLOCKED)
+    // Locked until exact UID, verified email, and approved section scope are confirmed.
+    // -------------------------------------------------------------------------
+    function isApprovedUser04() {
+      return false; // PLACEHOLDER: Denied by default
+    }
+
+    // -------------------------------------------------------------------------
+    // COMPREHENSIVE APPROVED STAFF VERIFICATION
+    // Exactly 1 Admin + 3 Approved Regular Users. Everyone else is a Visitor.
+    // -------------------------------------------------------------------------
+    function isApprovedStaff() {
+      return isAdmin() || isTajedul() || isApprovedUser03() || isApprovedUser04();
+    }
+
+    // =========================================================================
+    // 2. GRANULAR MODULE PERMISSION GATES
+    // =========================================================================
+
+    // PCBA Manufacturing Clearance (Admin + Tajedul + approved PCBA delegates)
+    function canAccessPcba() {
+      return isAdmin() || isTajedul();
+    }
+
+    // Bare-Board PCB Manufacturing Clearance (Admin only until User 03/04 assigned)
+    function canAccessPcb() {
+      return isAdmin(); // Tajedul is strictly excluded
+    }
+
+    // IQC PCBA Materials Clearance (PCBA, Component, Solder Paste)
+    function canAccessIqcPcba() {
+      return isAdmin() || isTajedul();
+    }
+
+    // IQC Bare-Board PCB Materials Clearance (PCB)
+    function canAccessIqcPcb() {
+      return isAdmin(); // Tajedul is strictly excluded
+    }
+
+    // Quality Governance Clearance (NCR, CAPA, RCA, Complaints)
+    function canAccessGovernance() {
+      return isAdmin() || isTajedul();
+    }
+
+    // Quality Operations Clearance (Tasks, ESD, KPI, Docs)
+    function canAccessOperations() {
+      return isAdmin() || isTajedul();
+    }
+
+    // =========================================================================
+    // 3. USER PROFILES & VISITORS (ANTI-PRIVILEGE ESCALATION)
+    // =========================================================================
+    match /users/{userId} {
+      // User can read own profile; Admin can read all.
+      // Visitors CANNOT enumerate company staff directory.
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Self-Registration:
+      // Visitors can ONLY create a pending viewer profile with zero permissions.
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        (isOwner(userId) &&
+         request.resource.data.keys().hasOnly(['uid', 'email', 'name', 'role', 'status', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy']) &&
+         request.resource.data.uid == request.auth.uid &&
+         request.resource.data.email == request.auth.token.email &&
+         request.resource.data.role == 'viewer' &&
+         request.resource.data.status == 'pending')
+      );
+
+      // Self-Updates:
+      // Users can modify display name/metadata, but CANNOT modify ANY security/authorization field.
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'uid', 'role', 'status', 'email', 'employeeId', 'permissions',
+          'allowedSections', 'excludedSections', 'section', 'department'
+        ])
+      );
+
+      // Deletion: Strict Admin Only
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // 4. PCBA QUALITY MODULE (CONFIDENTIAL MANUFACTURING REPORTS)
+    // Visitors: ZERO ACCESS.
+    // =========================================================================
+    match /pcba_reports/{reportId} {
+      allow read: if canAccessPcba();
+      allow create: if canAccessPcba() &&
+        request.resource.data.keys().hasAll(['reportNo', 'date']) &&
+        request.resource.data.reportNo is string;
+      allow update: if canAccessPcba() &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['reportNo']);
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // 5. PCB QUALITY MODULE (BARE-BOARD MANUFACTURING - TAJEDUL STRICTLY BLOCKED)
+    // Visitors: ZERO ACCESS.
+    // =========================================================================
+    match /pcb_records/{recordId} {
+      allow read: if canAccessPcb();
+      allow create: if canAccessPcb() &&
+        request.resource.data.keys().hasAll(['sheet', 'date', 'model']);
+      allow update: if canAccessPcb();
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // 6. INCOMING QUALITY CONTROL (IQC) - SCHEMA AWARE & IMMUTABLE MATERIAL
+    // Visitors: ZERO ACCESS.
+    // =========================================================================
+    match /iqc_reports/{reportId} {
+      // READ:
+      // - Admin: All materials.
+      // - Tajedul (PCBA): PCBA, Component, Solder Paste only.
+      // - Bare PCB Staff: Bare PCB only.
+      // - Visitors & Unauthorized: Denied.
+      allow read: if isAdmin() ||
+        (canAccessIqcPcb() && !canAccessIqcPcba() && resource.data.material == 'PCB') ||
+        (canAccessIqcPcba() && !canAccessIqcPcb() && resource.data.material in ['PCBA', 'Component', 'Solder Paste']);
+
+      // CREATE:
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        (
+          request.resource.data.keys().hasAll(['reportNo', 'inspDate', 'material', 'supplier', 'finalResult']) &&
+          request.resource.data.reportNo is string &&
+          request.resource.data.inspDate is string &&
+          request.resource.data.finalResult in ['Accept', 'Conditional Accept', 'Reject'] &&
+          (
+            (canAccessIqcPcb() && !canAccessIqcPcba() && request.resource.data.material == 'PCB') ||
+            (canAccessIqcPcba() && !canAccessIqcPcb() && request.resource.data.material in ['PCBA', 'Component', 'Solder Paste'])
+          )
+        )
+      );
+
+      // UPDATE: Material and report number are immutable
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['reportNo']) &&
+          (
+            (canAccessIqcPcb() && !canAccessIqcPcba() &&
+             resource.data.material == 'PCB' &&
+             request.resource.data.material == 'PCB') ||
+            (canAccessIqcPcba() && !canAccessIqcPcb() &&
+             resource.data.material in ['PCBA', 'Component', 'Solder Paste'] &&
+             request.resource.data.material in ['PCBA', 'Component', 'Solder Paste'])
+          )
+        )
+      );
+
+      // DELETE: Strict Admin Only
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // 7. MASTER DATA & STATION SETTINGS
+    // =========================================================================
+    match /master_data/{docId} {
+      // Non-sensitive public summary for dashboard display:
+      // Visitors can only read 'landing_kpi_stats' (aggregated plant headcount/overview).
+      // All other operational data (manpower quotas) require approved staff.
+      allow read: if (docId == 'landing_kpi_stats') ||
+        (isApprovedStaff() && (docId != 'pcb_manpower' || canAccessPcb()));
+
+      // Write: Strict Admin Only
+      allow write: if isAdmin();
+    }
+
+    match /settings/{userId} {
+      // User station preferences
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // =========================================================================
+    // 8. QUALITY GOVERNANCE MODULES (CONFIDENTIAL AUDIT & DEFECT DATA)
+    // Visitors: ZERO ACCESS.
+    // =========================================================================
+    match /non_conformances/{id}       { allow read, create, update: if canAccessGovernance(); allow delete: if isAdmin(); }
+    match /capas/{id}                   { allow read, create, update: if canAccessGovernance(); allow delete: if isAdmin(); }
+    match /rcas/{id}                    { allow read, create, update: if canAccessGovernance(); allow delete: if isAdmin(); }
+    match /customer_complaints/{id}     { allow read, create, update: if canAccessGovernance(); allow delete: if isAdmin(); }
+
+    // =========================================================================
+    // 9. QUALITY OPERATIONS MODULES (TASKS, ESD, KPI, DOCS)
+    // Visitors: ZERO ACCESS.
+    // =========================================================================
+    match /tasks/{id}                   { allow read, create, update: if canAccessOperations(); allow delete: if isAdmin();
+      match /subtasks/{subId}           { allow read, create, update: if canAccessOperations(); allow delete: if isAdmin(); }
+    }
+    match /kpi_records/{id}             { allow read, create, update: if canAccessOperations(); allow delete: if isAdmin(); }
+    match /documents/{id}               { allow read, create, update: if canAccessOperations(); allow delete: if isAdmin(); }
+    match /uploaded_files/{id}          { allow read, create: if canAccessOperations(); allow update, delete: if isAdmin(); }
+    match /esd_records/{id}             { allow read, create, update: if canAccessOperations(); allow delete: if isAdmin(); }
+    match /esd_reports/{id}             { allow read, create, update: if canAccessOperations(); allow delete: if isAdmin(); }
+    match /esd_logs/{id}                { allow read, create, update: if canAccessOperations(); allow delete: if isAdmin(); }
+
+    // Personnel Roster & Leadership Organograms: Approved Staff Only; Admin Write
+    match /qm_manpower/{id}             { allow read: if isApprovedStaff(); allow write: if isAdmin(); }
+    match /qm_leaders/{id}              { allow read: if isApprovedStaff(); allow write: if isAdmin(); }
+
+    // Training Modules: Approved Staff Only; Admin Write
+    match /training_records/{id}        { allow read: if isApprovedStaff(); allow write: if isAdmin(); }
+    match /training_database/{id}       { allow read: if isApprovedStaff(); allow write: if isAdmin(); }
+    match /training_reports/{id}        { allow read: if isApprovedStaff(); allow write: if isAdmin(); }
+
+    // Quality Development (Six Sigma / R&D): Approved Staff Only; Admin Write
+    match /quality_development/{id}     { allow read: if isApprovedStaff(); allow write: if isAdmin(); }
+
+    // Diagnostic Self-Test (Strictly constrained to owner)
+    match /connection_test/{id} {
+      allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid;
+      allow read, delete: if isAuthenticated() && (resource.data.createdBy == request.auth.uid || isAdmin());
+    }
+  }
+}

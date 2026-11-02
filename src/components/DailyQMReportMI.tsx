@@ -931,10 +931,10 @@ export const DailyQMReportMI: React.FC<DailyQMReportMIProps> = ({ onNavigateToDa
           </p>
         </div>
 
-        {/* Scrollable Table Preview */}
-        <div className="overflow-x-auto max-h-[380px] overflow-y-auto">
+        {/* Table Preview */}
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-[#f1f5f9] text-[#475569] font-bold sticky top-0 z-10 border-b border-[#e2e8f0]">
+            <thead className="bg-[#f1f5f9] text-[#475569] font-bold border-b border-[#e2e8f0]">
               <tr>
                 <th className="py-2.5 px-3 whitespace-nowrap">Month</th>
                 <th className="py-2.5 px-3 whitespace-nowrap">Date</th>
