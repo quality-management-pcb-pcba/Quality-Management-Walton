@@ -10,22 +10,10 @@ service firebase.storage {
     // Admin role requires BOTH designated UID AND verified email claim,
     // OR any other designated Walton admin email with verified email claim.
     function isAdmin() {
-      return isAuthenticated() && (
-        (
-          request.auth.uid == 'q7aDnafVuBSYc8B0VipuXPOlenv1' &&
-          request.auth.token.email == 'atiqur40736@waltonbd.com' &&
-          request.auth.token.email_verified == true
-        ) ||
-        (
-          request.auth.token.email_verified == true &&
-          request.auth.token.email in [
-            'qm.pcba26@gmail.com',
-            'atiqur40736@waltonbd.com',
-            'atiqur.rahman@waltonbd.com',
-            'qa.admin@waltonbd.com'
-          ]
-        )
-      );
+      return isAuthenticated() &&
+        request.auth.uid == 'EqqAbCPpNnSuyvXyjzYc63UaI173' &&
+        request.auth.token.email == 'qm.pcba26@gmail.com' &&
+        request.auth.token.email_verified == true;
     }
 
     function isAllowedMimeType() {

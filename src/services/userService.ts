@@ -18,7 +18,6 @@ import { UserProfile, UserRole, UserStatus } from '../types';
  * Users matching these IDs or emails receive full administrator clearance.
  */
 export const DESIGNATED_ADMIN_UIDS: string[] = [
-  'q7aDnafVuBSYc8B0VipuXPOlenv1',
   'EqqAbCPpNnSuyvXyjzYc63UaI173',
 ];
 
@@ -26,7 +25,6 @@ export const DESIGNATED_ADMIN_EMAILS: string[] = [
   'qm.pcba26@gmail.com',
   'atiqur40736@waltonbd.com',
   'atiqur.rahman@waltonbd.com',
-  'qa.admin@waltonbd.com',
 ];
 
 /**
@@ -59,12 +57,14 @@ export function isAdminProfile(profile?: UserProfile | null): boolean {
 }
 
 /**
- * Default seed profiles for known Walton QM staff when initializing system
+ * Default seed profiles for the 4 designated Walton QM accounts:
+ * Exactly 1 Admin + 3 Regular Users with explicit section-based access control.
  */
 export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
+  // ACCOUNT 01: ADMIN
   'qm.pcba26@gmail.com': {
-    employeeId: 'ADM-26',
-    name: 'Atiqur Rahman',
+    employeeId: '40736',
+    name: 'Md. Atiqur Rahman',
     email: 'qm.pcba26@gmail.com',
     department: 'Quality Management',
     section: 'PCB & PCBA',
@@ -72,74 +72,99 @@ export const INITIAL_STAFF_SEEDS: Record<string, Omit<UserProfile, 'uid'>> = {
     role: 'admin',
     status: 'active',
     permissions: ['ALL'],
+    allowedSections: ['ALL'],
+    excludedSections: [],
   },
-  'atiqur.rahman@waltonbd.com': {
-    employeeId: '40736',
-    name: 'Atiqur Rahman',
-    email: 'atiqur.rahman@waltonbd.com',
-    department: 'Quality Management',
-    section: 'PCB & PCBA',
-    designation: 'Head of Quality Management',
-    role: 'admin',
-    status: 'active',
-    permissions: ['ALL'],
-  },
-  'atiqur40736@waltonbd.com': {
-    employeeId: '40736',
-    name: 'Atiqur Rahman',
-    email: 'atiqur40736@waltonbd.com',
-    department: 'Quality Management',
-    section: 'PCB & PCBA',
-    designation: 'Head of Quality Management',
-    role: 'admin',
-    status: 'active',
-    permissions: ['ALL'],
-  },
+
+  // ACCOUNT 02: USER 01 (PCBA Scope; Excluded from PCB & MD Sir Report)
   'tajedul36924@waltonbd.com': {
     employeeId: '36924',
     name: 'Tajedul Islam',
     email: 'tajedul36924@waltonbd.com',
     department: 'Quality Management',
     section: 'PCBA',
-    designation: 'QA Staff',
+    designation: 'Co-Ordinator QM - PCBA',
     role: 'qa_staff',
     status: 'active',
     permissions: ['READ', 'WRITE_QM'],
-    allowedSections: ['PCBA', 'IQC_PCBA', 'SMT', 'MI', 'ESD', 'TASKS', 'KPI', 'NCR', 'CAPA', 'RCA', 'COMPLAINTS', 'DOCS', 'MANPOWER'],
-    excludedSections: ['PCB'],
+    allowedSections: [
+      'PCBA',
+      'PCBA_PROCESS',
+      'IQC_PCBA',
+      'SMT',
+      'MI',
+      'ESD',
+      'TASKS',
+      'KPI',
+      'NCR',
+      'CAPA',
+      'RCA',
+      'COMPLAINTS',
+      'DOCS',
+      'MANPOWER',
+      'DASHBOARD',
+    ],
+    excludedSections: ['MD_REPORT', 'PCB', 'PCB_PROCESS', 'IQC_PCB'],
   },
-  'khalid52190@waltonbd.com': {
-    employeeId: '52190',
-    name: 'Khalid Hasan',
-    email: 'khalid52190@waltonbd.com',
+
+  // ACCOUNT 03: USER 02 (PCB Scope; Excluded from PCBA & MD Sir Report)
+  'alamgir.pcb@waltonbd.com': {
+    employeeId: '25673',
+    name: 'Md. Alamgir Hossain',
+    email: 'alamgir.pcb@waltonbd.com',
     department: 'Quality Management',
-    section: 'SMT Line 1-4',
-    designation: 'QA Engineer',
+    section: 'PCB',
+    designation: 'Supervisor QM - PCB',
     role: 'qa_staff',
     status: 'active',
     permissions: ['READ', 'WRITE_QM'],
+    allowedSections: [
+      'PCB',
+      'PCB_PROCESS',
+      'IQC_PCB',
+      'ESD',
+      'TASKS',
+      'KPI',
+      'NCR',
+      'CAPA',
+      'RCA',
+      'COMPLAINTS',
+      'DOCS',
+      'MANPOWER',
+      'DASHBOARD',
+    ],
+    excludedSections: ['MD_REPORT', 'PCBA', 'PCBA_PROCESS', 'IQC_PCBA', 'SMT', 'MI'],
   },
-  'auditor.ext@waltonbd.com': {
-    employeeId: 'AUD-01',
-    name: 'Quality Lead Auditor',
-    email: 'auditor.ext@waltonbd.com',
+
+  // ACCOUNT 04: USER 03 (PCBA Scope; Excluded from PCB & MD Sir Report)
+  'mamun.pcba@waltonbd.com': {
+    employeeId: '42179',
+    name: 'Md. Mamun Hossen',
+    email: 'mamun.pcba@waltonbd.com',
     department: 'Quality Management',
-    section: 'Audit & Compliance',
-    designation: 'Lead Auditor',
+    section: 'PCBA',
+    designation: 'Supervisor QM - PCBA',
     role: 'qa_staff',
     status: 'active',
-    permissions: ['READ', 'AUDIT'],
-  },
-  'qa.admin@waltonbd.com': {
-    employeeId: 'QA-001',
-    name: 'System Administrator',
-    email: 'qa.admin@waltonbd.com',
-    department: 'Quality Management',
-    section: 'Executive Operations',
-    designation: 'Quality Systems Manager',
-    role: 'admin',
-    status: 'active',
-    permissions: ['ALL'],
+    permissions: ['READ', 'WRITE_QM'],
+    allowedSections: [
+      'PCBA',
+      'PCBA_PROCESS',
+      'IQC_PCBA',
+      'SMT',
+      'MI',
+      'ESD',
+      'TASKS',
+      'KPI',
+      'NCR',
+      'CAPA',
+      'RCA',
+      'COMPLAINTS',
+      'DOCS',
+      'MANPOWER',
+      'DASHBOARD',
+    ],
+    excludedSections: ['MD_REPORT', 'PCB', 'PCB_PROCESS', 'IQC_PCB'],
   },
 };
 
@@ -405,6 +430,7 @@ export const QM_SECTIONS = {
   SETTINGS: 'SETTINGS',
   USERS: 'USERS',
   DASHBOARD: 'DASHBOARD',
+  MD_REPORT: 'MD_REPORT',
 } as const;
 
 export type QmSectionId = (typeof QM_SECTIONS)[keyof typeof QM_SECTIONS];
@@ -459,8 +485,6 @@ export function mapPageToSection(pageId: string): QmSectionId {
       return QM_SECTIONS.SETTINGS;
     case 'users':
       return QM_SECTIONS.USERS;
-    case 'dashboard':
-    case 'admin-dashboard':
     case 'md-report':
     case 'md-report-summary':
     case 'md-report-pcb':
@@ -470,6 +494,9 @@ export function mapPageToSection(pageId: string): QmSectionId {
     case 'md-report-trend':
     case 'md-report-action':
     case 'md-report-data':
+      return QM_SECTIONS.MD_REPORT;
+    case 'dashboard':
+    case 'admin-dashboard':
     default:
       return QM_SECTIONS.DASHBOARD;
   }
@@ -489,12 +516,30 @@ export function isPcbRelatedSection(section: QmSectionId | string): boolean {
 }
 
 /**
+ * Checks whether a given QM Section is related to PCBA assembly
+ */
+export function isPcbaRelatedSection(section: QmSectionId | string): boolean {
+  const norm = section.trim().toUpperCase();
+  return (
+    norm === QM_SECTIONS.PCBA ||
+    norm === QM_SECTIONS.PCBA_PROCESS ||
+    norm === QM_SECTIONS.IQC_PCBA ||
+    norm === 'PCBA' ||
+    norm === 'SMT' ||
+    norm === 'MI'
+  );
+}
+
+/**
  * Pure authorization check for access to a specific QM Module / Section.
  * Follows least-privilege default-deny policy:
  * - Missing, null, or inactive profiles FAIL CLOSED (return false).
  * - Designated Admins receive FULL ACCESS across all modules.
- * - PCB-related sections are denied if 'PCB' is in excludedSections or not authorized.
- * - Non-PCB sections require explicit section authorization or role.
+ * - MD Sir Report is strictly restricted to designated Admin only.
+ * - PCB-related sections are denied if 'PCB' is in excludedSections or not in allowedSections.
+ * - PCBA-related sections are denied if 'PCBA' is in excludedSections or not in allowedSections.
+ * - Regular Users cannot access Admin-only modules (USERS, SETTINGS).
+ * - No loose fallback: all regular Users must be actively authorized.
  */
 export function canAccessModule(
   profile: UserProfile | null | undefined,
@@ -511,9 +556,20 @@ export function canAccessModule(
 
   const targetUpper = targetSection.trim().toUpperCase();
   const isPcbTarget = isPcbRelatedSection(targetUpper);
+  const isPcbaTarget = isPcbaRelatedSection(targetUpper);
 
-  // 3. Excluded Sections Guard:
-  // If the target section or 'PCB' is explicitly in excludedSections, deny access immediately
+  // 3. MD Sir Report Guard: Strictly restricted to Admin only (Regular users BLOCKED)
+  if (targetUpper === QM_SECTIONS.MD_REPORT || targetUpper.startsWith('MD-REPORT')) {
+    return false;
+  }
+
+  // 4. Admin Modules Guard: User Management & System Settings are Admin-only
+  if (targetUpper === QM_SECTIONS.USERS || targetUpper === QM_SECTIONS.SETTINGS) {
+    return false;
+  }
+
+  // 5. Excluded Sections Guard:
+  // If the target section or plant category is in excludedSections, deny access immediately
   const excluded = (profile.excludedSections || []).map((s) => s.trim().toUpperCase());
   if (excluded.includes(targetUpper)) {
     return false;
@@ -521,44 +577,22 @@ export function canAccessModule(
   if (isPcbTarget && (excluded.includes('PCB') || excluded.includes(QM_SECTIONS.PCB))) {
     return false;
   }
-
-  // 4. PCB-Specific Authorization Guard:
-  // Non-admin users requesting PCB access MUST be explicitly authorized for PCB
-  if (isPcbTarget) {
-    const userSection = (profile.section || '').trim().toUpperCase();
-    const allowed = (profile.allowedSections || []).map((s) => s.trim().toUpperCase());
-
-    const hasExplicitPcbAllowed =
-      allowed.includes(targetUpper) ||
-      allowed.includes(QM_SECTIONS.PCB) ||
-      allowed.includes('ALL');
-
-    const hasPcbSection =
-      userSection === 'PCB' ||
-      userSection === 'PCB & PCBA' ||
-      userSection === 'PCB PLANT';
-
-    return hasExplicitPcbAllowed || (hasPcbSection && allowed.length === 0);
+  if (isPcbaTarget && (excluded.includes('PCBA') || excluded.includes(QM_SECTIONS.PCBA))) {
+    return false;
   }
 
-  // 5. Non-PCB Quality Management Modules (PCBA, SMT, MI, IQC-PCBA, ESD, NCR, CAPA, etc.)
-  // Deny users trying to access administrative modules without admin role
-  if (targetUpper === QM_SECTIONS.USERS || targetUpper === QM_SECTIONS.SETTINGS) {
-    return profile.role === 'admin' || profile.role === 'manager';
-  }
-
-  // Dashboard is accessible to all active verified employees
+  // 6. Dashboard is accessible to all active verified employees
   if (targetUpper === QM_SECTIONS.DASHBOARD) {
     return true;
   }
 
-  // Check allowedSections if explicitly defined on the user profile
+  // 7. Strict Evaluation of allowedSections
   if (Array.isArray(profile.allowedSections) && profile.allowedSections.length > 0) {
     const allowed = profile.allowedSections.map((s) => s.trim().toUpperCase());
     if (allowed.includes('ALL') || allowed.includes(targetUpper)) {
       return true;
     }
-    // Check module grouping (e.g., 'PCBA' grants access to 'PCBA_PROCESS', SMT, MI)
+    // Check PCBA module grouping
     if (
       allowed.includes('PCBA') &&
       (targetUpper === QM_SECTIONS.PCBA ||
@@ -569,36 +603,22 @@ export function canAccessModule(
     ) {
       return true;
     }
-    // Check IQC grouping
-    if (allowed.includes('IQC') && targetUpper === QM_SECTIONS.IQC_PCBA) {
+    // Check PCB module grouping
+    if (
+      allowed.includes('PCB') &&
+      (targetUpper === QM_SECTIONS.PCB ||
+        targetUpper === QM_SECTIONS.PCB_PROCESS ||
+        targetUpper === QM_SECTIONS.IQC_PCB)
+    ) {
       return true;
     }
-  }
-
-  // Fallback to section field:
-  // ONLY if allowedSections is not specified, evaluate verified employee profile section
-  const sectionUpper = (profile.section || '').trim().toUpperCase();
-  const departmentUpper = (profile.department || '').trim().toUpperCase();
-
-  const isQmMember =
-    departmentUpper === 'QUALITY MANAGEMENT' ||
-    departmentUpper === 'QM' ||
-    departmentUpper === 'PCBA SMT PLANT' ||
-    departmentUpper === 'R&D ENGINEERING';
-
-  // If user has allowedSections defined, do not grant arbitrary access via loose section strings
-  if (Array.isArray(profile.allowedSections) && profile.allowedSections.length > 0) {
+    // Check IQC grouping
+    if (allowed.includes('IQC')) {
+      if (targetUpper === QM_SECTIONS.IQC) return true;
+      if (allowed.includes('PCBA') && targetUpper === QM_SECTIONS.IQC_PCBA) return true;
+      if (allowed.includes('PCB') && targetUpper === QM_SECTIONS.IQC_PCB) return true;
+    }
     return false;
-  }
-
-  // Without explicit allowedSections, only verified PCBA QM staff can access PCBA non-PCB modules
-  const isPcbaStaff =
-    sectionUpper.includes('PCBA') ||
-    sectionUpper.includes('SMT') ||
-    sectionUpper.includes('MI');
-
-  if (isQmMember && isPcbaStaff && !isPcbTarget) {
-    return true;
   }
 
   // Default Deny for any unverified combination

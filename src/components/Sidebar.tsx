@@ -59,7 +59,7 @@ import {
   Zap,
   Award,
 } from 'lucide-react';
-import { canAccessPage } from '../services/userService';
+import { canAccessPage, isAdminProfile } from '../services/userService';
 import { motion, AnimatePresence } from 'motion/react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 
@@ -166,10 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const isAdminUser =
-    userProfile?.uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1' ||
-    userProfile?.role === 'admin' ||
-    userProfile?.role === 'QM_ADMIN';
+  const isAdminUser = isAdminProfile(userProfile);
 
   const navItems: NavItem[] = [
     {

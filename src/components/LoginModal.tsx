@@ -5,6 +5,12 @@
  * @description Interactive Cute Lamp Authentication Modal for Walton Quality Management
  * When the lamp switch is pressed, the lamp turns ON and the login form appears.
  * When pressed again to turn OFF, the login form vanishes.
+ * 
+ * Features:
+ * - Empty default credentials on initial load (no hardcoded passwords or emails)
+ * - Secure Remember Me functionality (stores ONLY email address with user consent)
+ * - Show/Hide password toggle with eye icon
+ * - Standard HTML autocomplete attributes for browser password managers
  * =========================================================================================
  */
 
@@ -19,13 +25,13 @@ import {
   ArrowLeft,
   UserCheck,
   Send,
-  Shield,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 import {
   auth,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signOut,
 } from '../services/firebase';
@@ -34,6 +40,7 @@ import {
   bootstrapUserProfile,
   INITIAL_STAFF_SEEDS,
   isDesignatedAdminEmail,
+  isDesignatedAdminUid,
 } from '../services/userService';
 import { UserProfile } from '../types';
 
@@ -43,6 +50,10 @@ interface LoginModalProps {
   onLogin?: (email: string, profile?: UserProfile) => void;
   onLoginSuccess?: (email?: string, profile?: UserProfile) => void;
 }
+
+// LocalStorage keys for Remember Me (email ONLY, NEVER password)
+const REMEMBER_EMAIL_KEY = 'walton_qm_remembered_email';
+const REMEMBER_ME_FLAG_KEY = 'walton_qm_remember_me';
 
 const ON_THEMES = [
   {
@@ -94,17 +105,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLogin,
   onLoginSuccess,
 }) => {
-  const [username, setUsername] = useState('qm.pcba26@gmail.com');
-  const [password, setPassword] = useState('WaltonQM@2026');
+  // Authentication Form State - empty by default (no hardcoded demo/test credentials)
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
+
   const [authMode, setAuthMode] = useState<'signin' | 'forgot' | 'request'>('signin');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [resetSentMessage, setResetSentMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLampOn, setIsLampOn] = useState(false);
-  const [colorIndex, setColorIndex] = useState(0);
-  const [isPulling, setIsPulling] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLampOn, setIsLampOn] = useState<boolean>(false);
+  const [colorIndex, setColorIndex] = useState<number>(0);
+  const [isPulling, setIsPulling] = useState<boolean>(false);
 
-  // When modal opens, initialize form and start lamp and login form in OFF mode
+  // When modal opens: initialize form and restore remembered email ONLY if user previously selected Remember Me
   useEffect(() => {
     if (isOpen) {
       setIsLampOn(false);
@@ -112,8 +127,23 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       setErrorMessage(null);
       setResetSentMessage(null);
       setAuthMode('signin');
-      setUsername('qm.pcba26@gmail.com');
-      setPassword('WaltonQM@2026');
+      setShowPassword(false);
+      setPassword('');
+
+      try {
+        const isRemembered = localStorage.getItem(REMEMBER_ME_FLAG_KEY) === 'true';
+        const savedEmail = localStorage.getItem(REMEMBER_EMAIL_KEY);
+        if (isRemembered && savedEmail) {
+          setUsername(savedEmail);
+          setRememberMe(true);
+        } else {
+          setUsername('');
+          setRememberMe(false);
+        }
+      } catch {
+        setUsername('');
+        setRememberMe(false);
+      }
     }
   }, [isOpen]);
 
@@ -136,6 +166,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   /**
+   * Handle Remember Me Checkbox Change
+   * If user explicitly unchecks Remember Me, immediately purge remembered email from local storage.
+   */
+  const handleRememberMeToggle = (checked: boolean) => {
+    setRememberMe(checked);
+    if (!checked) {
+      try {
+        localStorage.removeItem(REMEMBER_EMAIL_KEY);
+        localStorage.removeItem(REMEMBER_ME_FLAG_KEY);
+      } catch {}
+    }
+  };
+
+  /**
    * Handle Form Submission
    */
   const handleSubmit = async (e: React.FormEvent) => {
@@ -145,7 +189,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     const email = username.trim().toLowerCase();
     if (!email) {
-      setErrorMessage('Please enter an email address.');
+      setErrorMessage('Please enter your Walton email address.');
       return;
     }
     if (!password) {
@@ -161,7 +205,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       const user = userCredential.user;
       const uid = user.uid;
 
-      // 2. Read user profile from Firestore users/{firebaseUID} with fallbackEmail
+      // 2. Remember Me handling: store ONLY email if consented; NEVER store passwords or tokens
+      if (rememberMe) {
+        try {
+          localStorage.setItem(REMEMBER_EMAIL_KEY, email);
+          localStorage.setItem(REMEMBER_ME_FLAG_KEY, 'true');
+        } catch {}
+      } else {
+        try {
+          localStorage.removeItem(REMEMBER_EMAIL_KEY);
+          localStorage.removeItem(REMEMBER_ME_FLAG_KEY);
+        } catch {}
+      }
+
+      // 3. Read user profile from Firestore users/{firebaseUID} with fallbackEmail
       let profile = await getUserProfile(uid, email);
 
       // Auto-bootstrap admin/staff profile if missing in Firestore
@@ -173,7 +230,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         }
       }
 
-      // 3. Fallback to seed profile if Firestore document does not exist yet
+      // 4. Fallback to seed profile if Firestore document does not exist yet
       if (!profile) {
         const seed = INITIAL_STAFF_SEEDS[email] || {
           employeeId: email.split('@')[0].replace(/\D/g, '') || '00000',
@@ -191,7 +248,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         };
       }
 
-      // 4. Verify account status
+      // 5. Verify account status
       if (profile && profile.status === 'inactive') {
         await signOut(auth);
         setErrorMessage('Your account is inactive. Please contact the Quality Management Administrator.');
@@ -199,10 +256,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         return;
       }
 
-      // 5. Automatic Role Verification & Strict Enforcement:
+      // 6. Automatic Role Verification & Strict Enforcement:
       // Designated admin UID or emails get admin clearance; all other emails receive qa_staff role
       if (profile) {
-        if (isDesignatedAdminEmail(email) || uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1') {
+        if (isDesignatedAdminEmail(email) || isDesignatedAdminUid(uid)) {
           profile.role = 'admin';
         } else {
           profile.role = 'qa_staff';
@@ -220,7 +277,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         } catch {}
       }
 
-      // 6. Allow access and pass full employee profile
+      // 7. Allow access and pass full employee profile
       if (typeof onLogin === 'function' && profile) {
         onLogin(profile.email, profile);
       }
@@ -238,9 +295,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         code === 'auth/wrong-password' ||
         code === 'auth/user-not-found'
       ) {
-        msg = 'Invalid email or password. Please verify your Walton credentials or use Quick Fill below.';
+        msg = 'Invalid email or password. Please verify your Walton email address and password.';
       } else if (code === 'auth/network-request-failed') {
-        msg = 'Unable to connect to the authentication service. Please check your connection or use 1-Click Demo.';
+        msg = 'Unable to connect to the authentication service. Please check your network connection.';
       } else if (code === 'auth/too-many-requests') {
         msg = 'Too many failed login attempts. Please try again later or reset your password.';
       } else if (code === 'auth/invalid-email') {
@@ -535,20 +592,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     </div>
                   )}
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form onSubmit={handleSubmit} method="post" action="#" className="space-y-4">
+                    {/* Email Input */}
                     <div className="space-y-1.5 text-left">
-                      <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
+                      <label
+                        htmlFor="input-login-username"
+                        className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5"
+                      >
                         <Mail className="w-3.5 h-3.5 text-slate-400" />
                         <span>Email Address</span>
                       </label>
                       <input
                         id="input-login-username"
+                        name="username"
                         type="email"
+                        autoComplete="username"
                         required
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Enter your Walton email address"
-                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans"
+                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans placeholder:text-slate-500"
                         onFocus={(e) => {
                           e.currentTarget.style.borderColor = currentTheme.themeColor;
                           e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
@@ -560,28 +623,82 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       />
                     </div>
 
+                    {/* Password Input with Show/Hide Eye Toggle */}
                     <div className="space-y-1.5 text-left">
-                      <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
+                      <label
+                        htmlFor="input-login-password"
+                        className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5"
+                      >
                         <Lock className="w-3.5 h-3.5 text-slate-400" />
                         <span>Password</span>
                       </label>
-                      <input
-                        id="input-login-password"
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter password"
-                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans"
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = currentTheme.themeColor;
-                          e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
+                      <div className="relative">
+                        <input
+                          id="input-login-password"
+                          name="password"
+                          type={showPassword ? 'text' : 'password'}
+                          autoComplete="current-password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter your password"
+                          className="w-full bg-[#151a21] border border-[#2a2c30] pl-4 pr-11 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans placeholder:text-slate-500"
+                          onFocus={(e) => {
+                            e.currentTarget.style.borderColor = currentTheme.themeColor;
+                            e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.borderColor = '#2a2c30';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />
+                        <button
+                          id="btn-toggle-show-password"
+                          type="button"
+                          tabIndex={-1}
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          title={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4 text-slate-300" />
+                          ) : (
+                            <Eye className="w-4 h-4 text-slate-400" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Remember Me Checkbox & Forgot Password Link */}
+                    <div className="flex items-center justify-between text-xs pt-0.5">
+                      <label
+                        htmlFor="checkbox-remember-me"
+                        className="flex items-center gap-2 cursor-pointer select-none text-slate-300 hover:text-white transition-colors"
+                      >
+                        <input
+                          id="checkbox-remember-me"
+                          name="remember-me"
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => handleRememberMeToggle(e.target.checked)}
+                          className="w-4 h-4 rounded border-slate-700 bg-[#151a21] text-[#e35b2a] focus:ring-[#e35b2a]/30 focus:ring-offset-0 cursor-pointer accent-[#e35b2a]"
+                        />
+                        <span className="font-medium text-xs">Remember Me</span>
+                      </label>
+
+                      <button
+                        id="btn-login-forgot-password"
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('forgot');
+                          setErrorMessage(null);
+                          setResetSentMessage(null);
                         }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#2a2c30';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      />
+                        className="text-slate-400 hover:text-white transition-colors cursor-pointer text-xs"
+                      >
+                        Forgot Password?
+                      </button>
                     </div>
 
                     {errorMessage && (
@@ -591,7 +708,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       </div>
                     )}
 
-                    <div className="pt-2">
+                    <div className="pt-1.5">
                       <button
                         id="btn-login-submit"
                         type="submit"
@@ -610,28 +727,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+                    <div className="text-center pt-1">
                       <button
+                        id="btn-login-request-account"
                         type="button"
                         onClick={() => {
                           setAuthMode('request');
                           setErrorMessage(null);
                           setResetSentMessage(null);
                         }}
-                        className="text-slate-300 hover:text-white transition-colors underline cursor-pointer text-[11.5px]"
+                        className="text-slate-400 hover:text-white transition-colors underline cursor-pointer text-xs"
                       >
                         Request Account
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthMode('forgot');
-                          setErrorMessage(null);
-                          setResetSentMessage(null);
-                        }}
-                        className="text-slate-400 hover:text-white transition-colors cursor-pointer text-[11px]"
-                      >
-                        Forgot Password?
                       </button>
                     </div>
                   </form>
@@ -653,30 +760,36 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   {errorMessage && (
                     <div className="mb-4 p-3 rounded-xl bg-red-950/50 border border-red-500/40 text-red-200 text-xs flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                      <div className="leading-snack">{errorMessage}</div>
+                      <div className="leading-snug">{errorMessage}</div>
                     </div>
                   )}
 
                   {resetSentMessage && (
                     <div className="mb-4 p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-200 text-xs flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <div className="leading-snack">{resetSentMessage}</div>
+                      <div className="leading-snug">{resetSentMessage}</div>
                     </div>
                   )}
 
-                  <form onSubmit={handleSendPasswordReset} className="space-y-4">
+                  <form onSubmit={handleSendPasswordReset} method="post" action="#" className="space-y-4">
                     <div className="space-y-1.5 text-left">
-                      <label className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5">
+                      <label
+                        htmlFor="input-forgot-email"
+                        className="text-xs font-medium text-[#a0a0a0] flex items-center gap-1.5"
+                      >
                         <Mail className="w-3.5 h-3.5 text-slate-400" />
                         <span>Email Address</span>
                       </label>
                       <input
+                        id="input-forgot-email"
+                        name="username"
                         type="email"
+                        autoComplete="username"
                         required
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Enter your Walton email address"
-                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans"
+                        className="w-full bg-[#151a21] border border-[#2a2c30] px-4 py-3 rounded-xl text-white text-sm outline-none transition-all duration-300 font-sans placeholder:text-slate-500"
                         onFocus={(e) => {
                           e.currentTarget.style.borderColor = currentTheme.themeColor;
                           e.currentTarget.style.boxShadow = `0 0 10px rgba(${currentTheme.themeGlowRGB}, 0.35)`;
@@ -690,6 +803,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                     <div className="pt-2">
                       <button
+                        id="btn-forgot-submit"
                         type="submit"
                         disabled={isLoading}
                         className="w-full py-3.5 px-4 rounded-xl font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
@@ -710,6 +824,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                     <div className="text-center pt-2">
                       <button
+                        id="btn-forgot-back-to-login"
                         type="button"
                         onClick={() => {
                           setAuthMode('signin');
@@ -757,6 +872,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                   <div className="mt-4 pt-2 flex flex-col gap-2.5">
                     <a
+                      id="link-request-admin-email"
                       href="mailto:qm.pcba26@gmail.com?subject=Walton%20QM%20Account%20Access%20Request"
                       className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm cursor-pointer transition-all duration-300 active:scale-[0.98] shadow-md flex items-center justify-center gap-2 text-white bg-slate-700 hover:bg-slate-600"
                     >
@@ -764,6 +880,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       <span>Email Quality IT Administrator</span>
                     </a>
                     <button
+                      id="btn-request-back-to-login"
                       type="button"
                       onClick={() => {
                         setAuthMode('signin');

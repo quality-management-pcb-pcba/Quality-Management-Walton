@@ -49,19 +49,29 @@ service cloud.firestore {
     }
 
     // -------------------------------------------------------------------------
-    // ACCOUNT 3: APPROVED REGULAR USER 03 (PLACEHOLDER - CURRENTLY BLOCKED)
-    // Locked until exact UID, verified email, and approved section scope are confirmed.
+    // ACCOUNT 3: MD. ALAMGIR HOSSAIN (USER 02 - PCB SUPERVISOR)
+    // Scope: PCB, PCB_PROCESS, IQC_PCB, ESD, TASKS, KPI, NCR, CAPA, RCA, COMPLAINTS, DOCS, MANPOWER
+    // Strict Exclusion: PCBA, PCBA_PROCESS, IQC_PCBA, SMT, MI, MD_REPORT
     // -------------------------------------------------------------------------
-    function isApprovedUser03() {
-      return false; // PLACEHOLDER: Denied by default
+    function isAlamgir() {
+      return isAuthenticated() &&
+        hasActiveProfile() &&
+        request.auth.uid == '1Vl4LC50AUYh7nIuht0l2Te0kLc2' &&
+        request.auth.token.email == 'alamgir.pcb@waltonbd.com' &&
+        !('PCBA' in getUserData().get('excludedSections', []));
     }
 
     // -------------------------------------------------------------------------
-    // ACCOUNT 4: APPROVED REGULAR USER 04 (PLACEHOLDER - CURRENTLY BLOCKED)
-    // Locked until exact UID, verified email, and approved section scope are confirmed.
+    // ACCOUNT 4: MD. MAMUN HOSSEN (USER 03 - PCBA SUPERVISOR)
+    // Scope: PCBA, SMT, MI, IQC_PCBA, ESD, TASKS, KPI, NCR, CAPA, RCA, COMPLAINTS, DOCS, MANPOWER
+    // Strict Exclusion: PCB, PCB_PROCESS, IQC_PCB, MD_REPORT
     // -------------------------------------------------------------------------
-    function isApprovedUser04() {
-      return false; // PLACEHOLDER: Denied by default
+    function isMamun() {
+      return isAuthenticated() &&
+        hasActiveProfile() &&
+        request.auth.uid == 'GxbM1WUklKRg6wNXeNLBw8qZLKS2' &&
+        request.auth.token.email == 'mamun.pcba@waltonbd.com' &&
+        !('PCB' in getUserData().get('excludedSections', []));
     }
 
     // -------------------------------------------------------------------------
@@ -69,41 +79,41 @@ service cloud.firestore {
     // Exactly 1 Admin + 3 Approved Regular Users. Everyone else is a Visitor.
     // -------------------------------------------------------------------------
     function isApprovedStaff() {
-      return isAdmin() || isTajedul() || isApprovedUser03() || isApprovedUser04();
+      return isAdmin() || isTajedul() || isAlamgir() || isMamun();
     }
 
     // =========================================================================
     // 2. GRANULAR MODULE PERMISSION GATES
     // =========================================================================
 
-    // PCBA Manufacturing Clearance (Admin + Tajedul + approved PCBA delegates)
+    // PCBA Manufacturing Clearance (Admin + Tajedul + Mamun; Alamgir is strictly BLOCKED)
     function canAccessPcba() {
-      return isAdmin() || isTajedul();
+      return isAdmin() || isTajedul() || isMamun();
     }
 
-    // Bare-Board PCB Manufacturing Clearance (Admin only until User 03/04 assigned)
+    // Bare-Board PCB Manufacturing Clearance (Admin + Alamgir; Tajedul & Mamun strictly BLOCKED)
     function canAccessPcb() {
-      return isAdmin(); // Tajedul is strictly excluded
+      return isAdmin() || isAlamgir();
     }
 
-    // IQC PCBA Materials Clearance (PCBA, Component, Solder Paste)
+    // IQC PCBA Materials Clearance (Admin + Tajedul + Mamun; Alamgir BLOCKED)
     function canAccessIqcPcba() {
-      return isAdmin() || isTajedul();
+      return isAdmin() || isTajedul() || isMamun();
     }
 
-    // IQC Bare-Board PCB Materials Clearance (PCB)
+    // IQC Bare-Board PCB Materials Clearance (Admin + Alamgir; Tajedul & Mamun BLOCKED)
     function canAccessIqcPcb() {
-      return isAdmin(); // Tajedul is strictly excluded
+      return isAdmin() || isAlamgir();
     }
 
-    // Quality Governance Clearance (NCR, CAPA, RCA, Complaints)
+    // Quality Governance Clearance (NCR, CAPA, RCA, Complaints: All 4 approved staff)
     function canAccessGovernance() {
-      return isAdmin() || isTajedul();
+      return isApprovedStaff();
     }
 
-    // Quality Operations Clearance (Tasks, ESD, KPI, Docs)
+    // Quality Operations Clearance (Tasks, ESD, KPI, Docs: All 4 approved staff)
     function canAccessOperations() {
-      return isAdmin() || isTajedul();
+      return isApprovedStaff();
     }
 
     // =========================================================================

@@ -122,7 +122,7 @@ export default function App() {
    * @state currentUserEmail
    * Holds the email of the authenticated Firebase user.
    */
-  const [currentUserEmail, setCurrentUserEmail] = useState<string>('atiqur40736@waltonbd.com');
+  const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
 
   /**
    * @state currentUserProfile
@@ -160,7 +160,7 @@ export default function App() {
 
             // Strictly enforce: designated admin UID or email receives admin role
             const isAdmin =
-              user.uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1' ||
+              user.uid === 'EqqAbCPpNnSuyvXyjzYc63UaI173' ||
               isDesignatedAdminEmail(profile.email);
 
             const savedPortal = localStorage.getItem('walton_login_portal');
@@ -454,6 +454,7 @@ export default function App() {
       localStorage.removeItem('walton_login_portal');
     } catch {}
     setIsLoggedIn(false);
+    setCurrentUserEmail('');
     setCurrentUserProfile(null);
     setCurrentPage('home');
     setInPortal(false);
@@ -672,7 +673,7 @@ export default function App() {
               }`}
             >
               {(currentPage === 'dashboard' || currentPage === 'admin-dashboard') && (
-                currentUserProfile?.uid === 'q7aDnafVuBSYc8B0VipuXPOlenv1' ? (
+                currentUserProfile?.uid === 'EqqAbCPpNnSuyvXyjzYc63UaI173' ? (
                   <AdminDashboardView
                     currentUserId={currentUserProfile.uid}
                     currentUserEmail={currentUserProfile.email}
@@ -708,26 +709,44 @@ export default function App() {
                 currentPage === 'md-report-trend' ||
                 currentPage === 'md-report-action' ||
                 currentPage === 'md-report-data') && (
-                <MdSirReportView
-                  initialTab={
-                    currentPage === 'md-report-pcb'
-                      ? 'pcb'
-                      : currentPage === 'md-report-pcba'
-                      ? 'pcba'
-                      : currentPage === 'md-report-smt'
-                      ? 'smt'
-                      : currentPage === 'md-report-mi'
-                      ? 'mi'
-                      : currentPage === 'md-report-trend'
-                      ? 'trend'
-                      : currentPage === 'md-report-action'
-                      ? 'action'
-                      : currentPage === 'md-report-data'
-                      ? 'data'
-                      : 'summary'
-                  }
-                  onNavigate={handleNavigate}
-                />
+                canAccessPage(currentUserProfile, currentPage) ? (
+                  <MdSirReportView
+                    initialTab={
+                      currentPage === 'md-report-pcb'
+                        ? 'pcb'
+                        : currentPage === 'md-report-pcba'
+                        ? 'pcba'
+                        : currentPage === 'md-report-smt'
+                        ? 'smt'
+                        : currentPage === 'md-report-mi'
+                        ? 'mi'
+                        : currentPage === 'md-report-trend'
+                        ? 'trend'
+                        : currentPage === 'md-report-action'
+                        ? 'action'
+                        : currentPage === 'md-report-data'
+                        ? 'data'
+                        : 'summary'
+                    }
+                    onNavigate={handleNavigate}
+                  />
+                ) : (
+                  <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-2xl border border-rose-200 shadow-sm text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                      <ShieldCheck className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800">Access Restricted: MD Sir Report</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      This executive quality section is strictly restricted to system administrators. Regular user accounts do not have clearance.
+                    </p>
+                    <button
+                      onClick={() => handleNavigate('dashboard')}
+                      className="px-4 py-2 bg-[#0d1730] text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      Return to Dashboard
+                    </button>
+                  </div>
+                )
               )}
 
               {currentPage === 'pcb' && (
@@ -810,15 +829,51 @@ export default function App() {
               )}
 
               {currentPage === 'pcba-process' && (
-                <PCBAProcessFlowView onNavigate={handleNavigate} />
+                canAccessPage(currentUserProfile, 'pcba-process') ? (
+                  <PCBAProcessFlowView onNavigate={handleNavigate} />
+                ) : (
+                  <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-2xl border border-rose-200 shadow-sm text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                      <ShieldCheck className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800">Access Restricted: PCBA Process</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Your Walton employee profile does not have clearance to view PCBA manufacturing process flows.
+                    </p>
+                    <button
+                      onClick={() => handleNavigate('dashboard')}
+                      className="px-4 py-2 bg-[#0d1730] text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      Return to Dashboard
+                    </button>
+                  </div>
+                )
               )}
 
               {currentPage === 'pcba' && (
-                <PCBAView
-                  onNavigate={handleNavigate}
-                  selectedProduct={selectedProduct}
-                  selectedMonth={selectedMonth}
-                />
+                canAccessPage(currentUserProfile, 'pcba') ? (
+                  <PCBAView
+                    onNavigate={handleNavigate}
+                    selectedProduct={selectedProduct}
+                    selectedMonth={selectedMonth}
+                  />
+                ) : (
+                  <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-2xl border border-rose-200 shadow-sm text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                      <ShieldCheck className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800">Access Restricted: PCBA Module</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Your Walton employee profile is authorized for PCB Quality Control only. PCBA SMT &amp; MI assembly records are restricted.
+                    </p>
+                    <button
+                      onClick={() => handleNavigate('dashboard')}
+                      className="px-4 py-2 bg-[#0d1730] text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      Return to Dashboard
+                    </button>
+                  </div>
+                )
               )}
 
               {currentPage === 'quality-dev' && (

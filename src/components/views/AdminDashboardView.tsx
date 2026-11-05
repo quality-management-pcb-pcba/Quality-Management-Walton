@@ -30,7 +30,7 @@ interface AdminDashboardViewProps {
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
-  currentUserId = 'q7aDnafVuBSYc8B0VipuXPOlenv1',
+  currentUserId = 'EqqAbCPpNnSuyvXyjzYc63UaI173',
   currentUserEmail = 'qm.pcba26@gmail.com',
 }) => {
   const [users, setUsers] = useState<UserProfile[]>([]);

@@ -85,18 +85,46 @@ describe("Walton Quality Management - Firebase Storage Rules Security Tests", ()
   // --------------------------------------------------------------------------
   describe("2. Authorized Staff Uploads", () => {
     const staffContext = () =>
-      testEnv.authenticatedContext("user_tajedul_36924", {
+      testEnv.authenticatedContext("GzeuJVQenDNNCoauo3iWBH8EZZO2", {
         email: "tajedul36924@waltonbd.com",
         email_verified: true,
       });
 
-    it("MUST ALLOW authenticated staff to upload valid documents under 25 MiB", async () => {
+    it("MUST ALLOW authenticated staff (Tajedul, Alamgir, Mamun) to upload valid documents under 25 MiB", async () => {
       const storage = staffContext().storage(STORAGE_BUCKET);
       const fileRef = storage.ref("iqc_evidence/IQC-2026-001/evidence.png");
 
       const dummyPng = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
       await assertSucceeds(
         fileRef.put(dummyPng, { contentType: "image/png" })
+      );
+    });
+
+    it("MUST ALLOW User 02 (Alamgir) to upload valid inspection files", async () => {
+      const alamgirStorage = testEnv
+        .authenticatedContext("1Vl4LC50AUYh7nIuht0l2Te0kLc2", {
+          email: "alamgir.pcb@waltonbd.com",
+          email_verified: true,
+        })
+        .storage(STORAGE_BUCKET);
+      const fileRef = alamgirStorage.ref("documents/pcb_check.pdf");
+      const dummyPdf = Buffer.from("%PDF-1.4 test");
+      await assertSucceeds(
+        fileRef.put(dummyPdf, { contentType: "application/pdf" })
+      );
+    });
+
+    it("MUST ALLOW User 03 (Mamun) to upload valid inspection files", async () => {
+      const mamunStorage = testEnv
+        .authenticatedContext("GxbM1WUklKRg6wNXeNLBw8qZLKS2", {
+          email: "mamun.pcba@waltonbd.com",
+          email_verified: true,
+        })
+        .storage(STORAGE_BUCKET);
+      const fileRef = mamunStorage.ref("documents/pcba_check.pdf");
+      const dummyPdf = Buffer.from("%PDF-1.4 test");
+      await assertSucceeds(
+        fileRef.put(dummyPdf, { contentType: "application/pdf" })
       );
     });
 
@@ -166,22 +194,29 @@ describe("Walton Quality Management - Firebase Storage Rules Security Tests", ()
   describe("3. Administrator Permissions & Strict Updates", () => {
     // 3a. Verified designated admin UID with matching verified email
     const designatedAdminContext = () =>
-      testEnv.authenticatedContext("q7aDnafVuBSYc8B0VipuXPOlenv1", {
-        email: "atiqur40736@waltonbd.com",
+      testEnv.authenticatedContext("EqqAbCPpNnSuyvXyjzYc63UaI173", {
+        email: "qm.pcba26@gmail.com",
         email_verified: true,
       });
 
     // 3b. Impostor admin: Matching UID, but UNVERIFIED email claim
     const unverifiedAdminContext = () =>
-      testEnv.authenticatedContext("q7aDnafVuBSYc8B0VipuXPOlenv1", {
-        email: "atiqur40736@waltonbd.com",
+      testEnv.authenticatedContext("EqqAbCPpNnSuyvXyjzYc63UaI173", {
+        email: "qm.pcba26@gmail.com",
         email_verified: false,
       });
 
     // 3c. Impostor admin: Matching UID, but different/hijacked email
     const mismatchedAdminContext = () =>
-      testEnv.authenticatedContext("q7aDnafVuBSYc8B0VipuXPOlenv1", {
+      testEnv.authenticatedContext("EqqAbCPpNnSuyvXyjzYc63UaI173", {
         email: "attacker@external.com",
+        email_verified: true,
+      });
+
+    // 3d. Legacy admin UID: Attempting admin operations MUST FAIL
+    const legacyAdminContext = () =>
+      testEnv.authenticatedContext("q7aDnafVuBSYc8B0VipuXPOlenv1", {
+        email: "atiqur40736@waltonbd.com",
         email_verified: true,
       });
 
@@ -262,6 +297,14 @@ describe("Walton Quality Management - Firebase Storage Rules Security Tests", ()
       const fileRef = storage.ref("capa_evidence/CAPA-01/doc.pdf");
 
       // Attempt delete as mismatched UID
+      await assertFails(fileRef.delete());
+    });
+
+    it("MUST REJECT legacy admin UID q7aDnafVuBSYc8B0VipuXPOlenv1 from performing admin delete", async () => {
+      const storage = legacyAdminContext().storage(STORAGE_BUCKET);
+      const fileRef = storage.ref("capa_evidence/CAPA-01/doc.pdf");
+
+      // Attempt delete as legacy admin UID MUST FAIL
       await assertFails(fileRef.delete());
     });
   });
