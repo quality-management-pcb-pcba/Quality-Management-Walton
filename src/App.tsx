@@ -80,6 +80,7 @@ import { TaskManagerView } from './components/views/TaskManagerView';
 import { ResearchView } from './components/views/ResearchView';
 import { SettingsView } from './components/views/SettingsView';
 import { UserManagementView } from './components/views/UserManagementView';
+import { MdSirReportView } from './components/views/MdSirReportView';
 
 import { NewNcModal } from './components/modals/NewNcModal';
 import { NewCapaModal } from './components/modals/NewCapaModal';
@@ -655,23 +656,19 @@ export default function App() {
             ref={mainScrollRef}
             className={`flex-1 h-full overflow-y-auto min-h-0 bg-[#f4f6fb] transition-all ${
               currentPage === 'dashboard' || currentPage === 'admin-dashboard'
-                ? dashboardWidthMode === 'wide'
-                  ? 'p-2 sm:p-4 lg:p-5'
-                  : dashboardWidthMode === 'narrow'
-                  ? 'p-4 sm:p-6 lg:p-8'
-                  : 'p-4 sm:p-6 lg:p-8'
-                : 'p-4 sm:p-6 lg:p-8'
+                ? dashboardWidthMode === 'narrow'
+                  ? 'px-4 sm:px-6 lg:px-8 py-4 sm:py-6'
+                  : 'px-2.5 sm:px-3 lg:px-4 py-3 sm:py-4'
+                : 'px-2.5 sm:px-3 lg:px-4 py-3 sm:py-4'
             }`}
           >
             <div
               className={`transition-all duration-200 ${
-                currentPage === 'dashboard' || currentPage === 'admin-dashboard'
-                  ? dashboardWidthMode === 'wide'
-                    ? 'w-full max-w-[1780px] mx-auto'
-                    : dashboardWidthMode === 'narrow'
-                    ? 'max-w-5xl mx-auto'
-                    : 'max-w-7xl mx-auto'
-                  : 'max-w-7xl mx-auto'
+                (currentPage === 'dashboard' || currentPage === 'admin-dashboard') && dashboardWidthMode === 'narrow'
+                  ? 'max-w-5xl mx-auto'
+                  : (currentPage === 'dashboard' || currentPage === 'admin-dashboard') && dashboardWidthMode === 'standard'
+                  ? 'max-w-7xl mx-auto'
+                  : 'w-full'
               }`}
             >
               {(currentPage === 'dashboard' || currentPage === 'admin-dashboard') && (
@@ -700,6 +697,37 @@ export default function App() {
                     onDashboardWidthChange={handleDashboardWidthChange}
                   />
                 )
+              )}
+
+              {(currentPage === 'md-report' ||
+                currentPage === 'md-report-summary' ||
+                currentPage === 'md-report-pcb' ||
+                currentPage === 'md-report-pcba' ||
+                currentPage === 'md-report-smt' ||
+                currentPage === 'md-report-mi' ||
+                currentPage === 'md-report-trend' ||
+                currentPage === 'md-report-action' ||
+                currentPage === 'md-report-data') && (
+                <MdSirReportView
+                  initialTab={
+                    currentPage === 'md-report-pcb'
+                      ? 'pcb'
+                      : currentPage === 'md-report-pcba'
+                      ? 'pcba'
+                      : currentPage === 'md-report-smt'
+                      ? 'smt'
+                      : currentPage === 'md-report-mi'
+                      ? 'mi'
+                      : currentPage === 'md-report-trend'
+                      ? 'trend'
+                      : currentPage === 'md-report-action'
+                      ? 'action'
+                      : currentPage === 'md-report-data'
+                      ? 'data'
+                      : 'summary'
+                  }
+                  onNavigate={handleNavigate}
+                />
               )}
 
               {currentPage === 'pcb' && (

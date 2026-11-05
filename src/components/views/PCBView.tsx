@@ -67,7 +67,7 @@ export const PCBView: React.FC<PCBViewProps> = ({
   const [activeModal, setActiveModal] = useState<'attendance' | 'report' | 'sop' | null>(null);
   const [portalInitialGate, setPortalInitialGate] = useState<'FQC' | 'AOI' | 'ETEST' | undefined>(undefined);
   const [portalInitialNav, setPortalInitialNav] = useState<'report-entry' | 'defect-entry' | undefined>(undefined);
-  const [portalInitialSheet, setPortalInitialSheet] = useState<'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database' | undefined>('home');
+  const [portalInitialSheet, setPortalInitialSheet] = useState<'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database' | 'rejection' | undefined>('home');
 
   // PCB Manpower State
   const [manpowerList, setManpowerList] = useState<PCBManpowerEntry[]>(() => {

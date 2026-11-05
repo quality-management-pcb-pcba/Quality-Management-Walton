@@ -62,7 +62,16 @@ export type PageId =
   | 'manpower'
   | 'settings'
   | 'users'
-  | 'admin-dashboard';
+  | 'admin-dashboard'
+  | 'md-report'
+  | 'md-report-summary'
+  | 'md-report-pcb'
+  | 'md-report-pcba'
+  | 'md-report-smt'
+  | 'md-report-mi'
+  | 'md-report-trend'
+  | 'md-report-action'
+  | 'md-report-data';
 
 export type PageType = PageId;
 

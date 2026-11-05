@@ -461,6 +461,15 @@ export function mapPageToSection(pageId: string): QmSectionId {
       return QM_SECTIONS.USERS;
     case 'dashboard':
     case 'admin-dashboard':
+    case 'md-report':
+    case 'md-report-summary':
+    case 'md-report-pcb':
+    case 'md-report-pcba':
+    case 'md-report-smt':
+    case 'md-report-mi':
+    case 'md-report-trend':
+    case 'md-report-action':
+    case 'md-report-data':
     default:
       return QM_SECTIONS.DASHBOARD;
   }

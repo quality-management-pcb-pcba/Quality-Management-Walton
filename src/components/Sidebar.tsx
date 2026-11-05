@@ -57,6 +57,7 @@ import {
   ShieldCheck,
   UserCheck,
   Zap,
+  Award,
 } from 'lucide-react';
 import { canAccessPage } from '../services/userService';
 import { motion, AnimatePresence } from 'motion/react';
@@ -114,6 +115,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     iqc: currentPage === 'iqc' || currentPage === 'iqc-pcb' || currentPage === 'iqc-pcba',
     esd: currentPage === 'esd' || currentPage === 'esd-database' || currentPage === 'esd-entry',
     team: currentPage === 'team' || currentPage === 'team-database' || currentPage === 'team-entry',
+    'md-report':
+      currentPage === 'md-report' ||
+      currentPage === 'md-report-summary' ||
+      currentPage === 'md-report-pcb' ||
+      currentPage === 'md-report-pcba' ||
+      currentPage === 'md-report-smt' ||
+      currentPage === 'md-report-mi' ||
+      currentPage === 'md-report-trend' ||
+      currentPage === 'md-report-action' ||
+      currentPage === 'md-report-data',
   }));
 
   const sidebarCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -170,6 +181,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
         : 'Real-time PCB & PCBA quality metrics and PPM analytics',
       badge: isAdminUser ? 'Admin' : undefined,
       badgeColor: isAdminUser ? 'bg-rose-600' : undefined,
+    },
+    {
+      id: 'md-report' as PageId,
+      label: 'MD Sir Report',
+      icon: Award,
+      description: 'Executive Monthly Quality Report for MD Sir: PCB, PCBA, SMT, MI, Trends & Actions',
+      badge: 'MD',
+      badgeColor: 'bg-[#0f6b62]',
+      subItems: [
+        {
+          id: 'md-report-summary' as PageId,
+          label: 'Summary',
+          description: 'Executive summary & top 3 quality problems',
+        },
+        {
+          id: 'md-report-pcb' as PageId,
+          label: 'PCB',
+          description: 'PCB defect rate & monthly inspection yield',
+        },
+        {
+          id: 'md-report-pcba' as PageId,
+          label: 'PCBA',
+          description: 'Combined PCBA assembly quality overview',
+        },
+        {
+          id: 'md-report-smt' as PageId,
+          label: 'SMT',
+          description: 'SMT surface mount defect rate & yield',
+        },
+        {
+          id: 'md-report-mi' as PageId,
+          label: 'MI',
+          description: 'Manual insertion defect rate & yield',
+        },
+        {
+          id: 'md-report-trend' as PageId,
+          label: 'Trend',
+          description: '6-Month quality trends & Pareto defect analysis',
+        },
+        {
+          id: 'md-report-action' as PageId,
+          label: 'Action',
+          description: 'RCA & corrective action plan tracking',
+        },
+        {
+          id: 'md-report-data' as PageId,
+          label: 'Data',
+          description: 'Monthly inspection data entry & records',
+        },
+      ],
     },
     {
       id: 'pcb' as PageId,

@@ -15,6 +15,16 @@ import {
   ChevronDown,
   ChevronRight,
   Menu,
+  AlertOctagon,
+  TrendingDown,
+  Plus,
+  Trash2,
+  Printer,
+  Download,
+  Search,
+  FileSpreadsheet,
+  Check,
+  CheckCircle,
 } from 'lucide-react';
 import { WaltonSealLogo } from './WaltonSealLogo';
 import {
@@ -29,18 +39,24 @@ import { INITIAL_PCB_VISUAL_RECORDS } from '../data/pcbVisualRecords';
 import { INITIAL_PCB_AOI_RECORDS } from '../data/pcbAoiRecords';
 import { INITIAL_PCB_RECEIVE_RECORDS } from '../data/pcbReceiveRecords';
 import { INITIAL_PCB_DELIVERY_RECORDS } from '../data/pcbDeliveryRecords';
+import {
+  PcbRejectionRecord,
+  INITIAL_PCB_REJECTION_RECORDS,
+  getInitialPcbRejectionRecords,
+  savePcbRejectionRecords,
+} from '../data/pcbRejectionRecords';
 
 export interface PCBQualityDataEntryPortalProps {
   onClose: () => void;
   onNavigateHome?: () => void;
   initialGate?: 'FQC' | 'AOI' | 'ETEST';
   initialNav?: 'report-entry' | 'defect-entry';
-  initialSheet?: 'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database';
+  initialSheet?: 'visual' | 'aoi' | 'receive' | 'delivery' | 'home' | 'database' | 'rejection';
   initialLine?: string;
 }
 
 type SheetKey = 'visual' | 'aoi' | 'receive' | 'delivery';
-type PageKey = 'home' | 'database' | SheetKey;
+type PageKey = 'home' | 'database' | 'rejection' | SheetKey;
 
 interface PageConfig {
   name: string;
@@ -448,6 +464,136 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(15);
 
+  // ================= Rejection Report State & Handlers =================
+  const [rejectionRecords, setRejectionRecords] = useState<PcbRejectionRecord[]>(() =>
+    getInitialPcbRejectionRecords()
+  );
+  const [rejectionSearch, setRejectionSearch] = useState('');
+  const [rejectionFilter, setRejectionFilter] = useState<'all' | 'high' | 'normal'>('all');
+  const [rejFormPart, setRejFormPart] = useState('');
+  const [rejFormProd, setRejFormProd] = useState('');
+  const [rejFormRej, setRejFormRej] = useState('');
+  const [editingRejSl, setEditingRejSl] = useState<number | null>(null);
+  const [rejToast, setRejToast] = useState<string | null>(null);
+
+  // Live KPI metrics from rejection records
+  const rejLiveStats = useMemo(() => {
+    const totalProd = rejectionRecords.reduce((s, r) => s + (Number(r.production) || 0), 0);
+    const totalRej = rejectionRecords.reduce((s, r) => s + (Number(r.rejection) || 0), 0);
+    const overallWeighted = totalProd > 0 ? (totalRej / totalProd) * 100 : 0;
+    const avgRate = rejectionRecords.length > 0
+      ? rejectionRecords.reduce((s, r) => s + (Number(r.rejectionRate) || 0), 0) / rejectionRecords.length
+      : 0;
+    const highCount = rejectionRecords.filter((r) => r.isHighRejection || r.rejectionRate >= 2.0).length;
+    return {
+      totalProd,
+      totalRej,
+      overallWeighted: overallWeighted.toFixed(2),
+      avgRate: avgRate.toFixed(2),
+      highCount,
+    };
+  }, [rejectionRecords]);
+
+  // Filtered rejection rows
+  const filteredRejectionRecords = useMemo(() => {
+    return rejectionRecords.filter((r) => {
+      if (rejectionFilter === 'high' && !(r.isHighRejection || r.rejectionRate >= 2.0)) {
+        return false;
+      }
+      if (rejectionFilter === 'normal' && (r.isHighRejection || r.rejectionRate >= 2.0)) {
+        return false;
+      }
+      if (rejectionSearch.trim()) {
+        const q = rejectionSearch.toLowerCase().trim();
+        return r.partNo.toLowerCase().includes(q) || String(r.sl).includes(q);
+      }
+      return true;
+    });
+  }, [rejectionRecords, rejectionFilter, rejectionSearch]);
+
+  const handleSaveRejectionEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejFormPart.trim()) return;
+    const prod = Math.max(0, parseInt(rejFormProd, 10) || 0);
+    const rej = Math.max(0, parseInt(rejFormRej, 10) || 0);
+    const rate = prod > 0 ? parseFloat(((rej / prod) * 100).toFixed(2)) : 0;
+    const isHigh = rate >= 2.0;
+
+    let updated: PcbRejectionRecord[];
+    if (editingRejSl !== null) {
+      updated = rejectionRecords.map((r) =>
+        r.sl === editingRejSl
+          ? {
+              ...r,
+              partNo: rejFormPart.trim(),
+              production: prod,
+              rejection: rej,
+              rejectionRate: rate,
+              isHighRejection: isHigh,
+              updatedAt: new Date().toISOString(),
+            }
+          : r
+      );
+      setRejToast(`Updated Part #${editingRejSl} (${rejFormPart.trim()})`);
+    } else {
+      const maxSl = rejectionRecords.reduce((m, r) => Math.max(m, r.sl), 0);
+      const newRecord: PcbRejectionRecord = {
+        sl: maxSl + 1,
+        partNo: rejFormPart.trim(),
+        production: prod,
+        rejection: rej,
+        rejectionRate: rate,
+        isHighRejection: isHigh,
+        period: 'Jan-26 to Oct-26',
+        updatedAt: new Date().toISOString(),
+      };
+      updated = [...rejectionRecords, newRecord];
+      setRejToast(`Added new Part #${newRecord.sl} (${newRecord.partNo})`);
+    }
+
+    setRejectionRecords(updated);
+    savePcbRejectionRecords(updated);
+    setRejFormPart('');
+    setRejFormProd('');
+    setRejFormRej('');
+    setEditingRejSl(null);
+    setTimeout(() => setRejToast(null), 3000);
+  };
+
+  const handleEditRejection = (r: PcbRejectionRecord) => {
+    setEditingRejSl(r.sl);
+    setRejFormPart(r.partNo);
+    setRejFormProd(String(r.production));
+    setRejFormRej(String(r.rejection));
+  };
+
+  const handleDeleteRejection = (sl: number) => {
+    const updated = rejectionRecords.filter((r) => r.sl !== sl);
+    setRejectionRecords(updated);
+    savePcbRejectionRecords(updated);
+    setRejToast(`Deleted S/L #${sl}`);
+    setTimeout(() => setRejToast(null), 2500);
+  };
+
+  const handleResetRejectionToBaseline = () => {
+    if (window.confirm('Reset all 69 parts back to the original baseline report from the attached document?')) {
+      setRejectionRecords(INITIAL_PCB_REJECTION_RECORDS);
+      savePcbRejectionRecords(INITIAL_PCB_REJECTION_RECORDS);
+      setRejToast('Reset to original 69 baseline records.');
+      setTimeout(() => setRejToast(null), 3000);
+    }
+  };
+
+  const handleExportRejectionCSV = () => {
+    let csv = 'S/L No.,Part No,Total Production (Jan-26 to Oct-26),Total Rejection (Jan-26 to Oct-26),Total % of Rejection\n';
+    rejectionRecords.forEach((r) => {
+      csv += `"${r.sl}","${r.partNo.replace(/"/g, '""')}",${r.production},${r.rejection},"${r.rejectionRate.toFixed(2)}%"\n`;
+    });
+    csv += `,"Total",${rejLiveStats.totalProd},${rejLiveStats.totalRej},"${rejLiveStats.overallWeighted}%"\n`;
+    csv += `,"Average %=",,, "${rejLiveStats.avgRate}%"\n`;
+    downloadCSV(csv, 'Walton_PCB_Production_Rejection_Report_2026.csv');
+  };
+
   // Manage Master Lists state
   const [masterLists, setMasterLists] = useState<{
     products: string[];
@@ -518,7 +664,7 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
     setTableMonth('ALL');
     setPageNumber(1);
     setPageSize(15);
-    if (page !== 'home' && page !== 'database') {
+    if (page !== 'home' && page !== 'database' && page !== 'rejection') {
       const today = new Date().toISOString().slice(0, 10);
       setFormValues({
         Date: today,
@@ -965,6 +1111,20 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                     </div>
                   );
                 })}
+
+                {/* 5. Rejection in exact sequence: Visual Check -> AOI -> Receive -> Delivery -> Rejection */}
+                <div
+                  id="btn-sidebar-pcb-rejection"
+                  onClick={() => handleSelectPage('rejection')}
+                  className={`flex items-center gap-2 py-2 pr-3 pl-[30px] text-[12.5px] cursor-pointer border-l-[3px] transition-all duration-150 group select-none ${
+                    activePage === 'rejection'
+                      ? 'bg-[#17294a] text-white border-[#f43f5e] font-bold shadow-xs'
+                      : 'border-transparent text-[#b8c5db] hover:bg-[#17294a] hover:text-white hover:pl-[32px]'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full shrink-0 bg-[#f43f5e] transition-transform group-hover:scale-110" />
+                  <span className="flex-1 min-w-0 truncate text-[14px] font-medium tracking-wide">Rejection</span>
+                </div>
               </div>
             )}
           </div>
@@ -1078,7 +1238,7 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
         <div className="bg-gradient-to-r from-[#0f2942] to-[#16395c] text-white rounded-2xl shadow-md border border-[#234b73] px-5 py-4 sm:px-6 sm:py-5 mx-[14px] sm:mx-[26px] mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-2xl shadow-inner border border-white/15">
-              🔍
+              {activePage === 'rejection' ? '📊' : '🔍'}
             </div>
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
@@ -1087,12 +1247,16 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                     ? 'Daily PCB Report'
                     : activePage === 'database'
                     ? 'All Database'
+                    : activePage === 'rejection'
+                    ? 'Month wise Production/Rejection Report-2026'
                     : `${PAGES[activePage].name} Entry`}
                 </h1>
               </div>
               <p className="text-xs sm:text-sm text-[#b9c9dc] mt-0.5 m-0">
                 {activePage === 'home'
                   ? 'PCB Quality Management — Bare Board Fabrication, AOI, IQC & OQC'
+                  : activePage === 'rejection'
+                  ? 'PCB Production vs Rejection Analytics (Jan-26 to Oct-26) · 69 Models Tracked'
                   : activePage === 'visual'
                   ? 'PCB Visual Check (AOI Inspection)'
                   : activePage === 'aoi'
@@ -1177,7 +1341,7 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                     <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb] animate-pulse" />
                     <span>Quick Entry Portals</span>
                     <span className="text-[11px] font-semibold text-[#64748b] bg-[#f1f5f9] px-2 py-0.5 rounded-full border border-[#e2e8f0]">
-                      4 Quality Portals
+                      5 Quality Portals
                     </span>
                   </div>
                   <span className="text-xs text-[#64748b] font-medium hidden sm:inline">
@@ -1368,6 +1532,54 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
                         </div>
                       </div>
                     </div>
+
+                    {/* Rejection Report Card - Rose / Ruby Color Grading */}
+                    <div
+                      onClick={() => handleSelectPage('rejection')}
+                      className="group relative bg-gradient-to-br from-[#fff1f2] via-white to-[#ffe4e6]/50 border-2 border-[#fecdd3] hover:border-[#f43f5e] rounded-2xl p-4 sm:p-5 cursor-pointer shadow-xs hover:shadow-[0_12px_28px_-6px_rgba(244,63,94,0.22)] transition-all duration-200 hover:-translate-y-1.5 active:scale-[0.98] flex flex-col justify-between overflow-hidden sm:col-span-2"
+                    >
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-[#f43f5e]/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-300" />
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#e11d48] to-[#be123c] text-white shadow-md shadow-rose-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <AlertOctagon className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#ffe4e6] text-[#9f1239] border border-[#fecdd3]">
+                            Production &amp; Rejection · 2026
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-[15px] text-[#0d1730] group-hover:text-[#e11d48] transition-colors m-0 flex items-center gap-1.5">
+                          Month wise Production/Rejection Report
+                        </h4>
+                        <p className="text-[11.5px] text-[#5b6480] mt-1 m-0 leading-snug">
+                          Monthly part-by-part production volume vs scrap rejection percentage tracking &amp; defect thresholds
+                        </p>
+
+                        <div className="flex items-center gap-1.5 flex-wrap pt-2.5">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#fff1f2] text-[#9f1239] border border-[#fecdd3]">
+                            {rejectionRecords.length} Part Models
+                          </span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#ecfeff] text-[#0e7490] border border-[#a5f3fc]">
+                            Avg {rejLiveStats.avgRate}% Rejection
+                          </span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#fefce8] text-[#854d0e] border border-[#fef08a]">
+                            {rejLiveStats.highCount} High Defect Alerts
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 mt-4 border-t border-[#fecdd3]/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#9f1239]">
+                          <span className="w-2 h-2 rounded-full bg-[#e11d48]" />
+                          <span className="font-mono font-bold">{rejLiveStats.totalProd.toLocaleString()} pcs produced</span>
+                          <span className="text-[#64748b] font-normal">({rejLiveStats.totalRej.toLocaleString()} rejected)</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#e11d48] group-hover:translate-x-1 transition-transform">
+                          <span>Open Rejection Report &amp; Data Entry</span>
+                          <span className="text-sm">→</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1510,9 +1722,427 @@ export const PCBQualityDataEntryPortal: React.FC<PCBQualityDataEntryPortalProps>
             </div>
           )}
 
+          {/* ================= REJECTION PAGE (Month wise Production/Rejection Report-2026) ================= */}
+          {activePage === 'rejection' && (
+            <div className="space-y-4">
+              {/* Toast Notification */}
+              {rejToast && (
+                <div className="fixed top-20 right-6 z-50 bg-[#0d1730] border border-rose-500 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-top-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span>{rejToast}</span>
+                </div>
+              )}
+
+              {/* 5 KPI Metric Cards for Production & Rejection */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-3.5 text-center shadow-2xs">
+                  <div className="text-[24px] font-extrabold text-[#123a6b] font-mono">
+                    {rejectionRecords.length}
+                  </div>
+                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5 uppercase tracking-wider">
+                    Total Models
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-3.5 text-center shadow-2xs">
+                  <div className="text-[24px] font-extrabold text-[#0284c7] font-mono">
+                    {rejLiveStats.totalProd.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5 uppercase tracking-wider">
+                    Total Production
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-3.5 text-center shadow-2xs">
+                  <div className="text-[24px] font-extrabold text-[#e11d48] font-mono">
+                    {rejLiveStats.totalRej.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-[#64748b] font-semibold mt-0.5 uppercase tracking-wider">
+                    Total Rejection
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-3.5 text-center shadow-2xs bg-gradient-to-b from-white to-[#ecfeff]">
+                  <div className="text-[24px] font-extrabold text-[#0891b2] font-mono">
+                    {rejLiveStats.avgRate}%
+                  </div>
+                  <div className="text-[11px] text-[#0e7490] font-bold mt-0.5 uppercase tracking-wider">
+                    Average %
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#e2e8f0] rounded-[10px] p-3.5 text-center shadow-2xs bg-gradient-to-b from-white to-[#fefce8] col-span-2 sm:col-span-1">
+                  <div className="text-[24px] font-extrabold text-[#ca8a04] font-mono">
+                    {rejLiveStats.highCount}
+                  </div>
+                  <div className="text-[11px] text-[#854d0e] font-bold mt-0.5 uppercase tracking-wider">
+                    High Rejection (&ge;2%)
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Entry Card for Production & Rejection */}
+              <div className="bg-white border border-[#e2e8f0] rounded-[12px] overflow-hidden shadow-xs">
+                <header className="px-5 py-3 flex items-center justify-between font-bold text-[14px] bg-gradient-to-r from-[#0f2942] via-[#163a66] to-[#1e4a7a] text-white border-b border-[#234b73]">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4 text-cyan-400" />
+                    <span>
+                      {editingRejSl !== null
+                        ? `Edit Production & Rejection Record (S/L #${editingRejSl})`
+                        : 'New Production & Rejection Entry'}
+                    </span>
+                  </div>
+                  {editingRejSl !== null && (
+                    <span className="text-[11px] bg-amber-400 text-slate-900 font-bold px-2.5 py-0.5 rounded-full">
+                      Editing Mode
+                    </span>
+                  )}
+                </header>
+
+                <form onSubmit={handleSaveRejectionEntry} className="p-4 sm:p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Part No */}
+                    <div>
+                      <label className="block text-[11px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                        PART NO / MODEL <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        list="dl-rej-parts"
+                        value={rejFormPart}
+                        onChange={(e) => setRejFormPart(e.target.value)}
+                        placeholder="e.g. Smart Controller"
+                        required
+                        className="w-full text-[13px] text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-3 py-2 outline-none focus:ring-2 focus:ring-[#1565c0]"
+                      />
+                      <datalist id="dl-rej-parts">
+                        {rejectionRecords.map((r) => (
+                          <option key={r.sl} value={r.partNo} />
+                        ))}
+                        {masterLists.models.map((m) => (
+                          <option key={m} value={m} />
+                        ))}
+                      </datalist>
+                    </div>
+
+                    {/* Total Production */}
+                    <div>
+                      <label className="block text-[11px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                        TOTAL PRODUCTION (JAN-OCT) <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={rejFormProd}
+                        onChange={(e) => setRejFormProd(e.target.value)}
+                        placeholder="e.g. 236259"
+                        required
+                        className="w-full text-[13px] font-mono text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-3 py-2 outline-none focus:ring-2 focus:ring-[#1565c0]"
+                      />
+                    </div>
+
+                    {/* Total Rejection */}
+                    <div>
+                      <label className="block text-[11px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                        TOTAL REJECTION (JAN-OCT) <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={rejFormRej}
+                        onChange={(e) => setRejFormRej(e.target.value)}
+                        placeholder="e.g. 8627"
+                        required
+                        className="w-full text-[13px] font-mono text-[#1c2733] bg-white border border-[#cbd5e1] rounded-[7px] px-3 py-2 outline-none focus:ring-2 focus:ring-[#1565c0]"
+                      />
+                    </div>
+
+                    {/* Calculated Rejection Rate Preview */}
+                    <div>
+                      <label className="block text-[11px] font-bold tracking-[0.4px] text-[#64748b] mb-1.5 uppercase">
+                        TOTAL % OF REJECTION (AUTO)
+                      </label>
+                      <div className="w-full text-[13px] font-mono font-bold px-3 py-2 rounded-[7px] bg-[#f1f5f9] border border-[#cbd5e1] flex items-center justify-between">
+                        <span>
+                          {Number(rejFormProd) > 0
+                            ? ((Number(rejFormRej) / Number(rejFormProd)) * 100).toFixed(2) + '%'
+                            : '0.00%'}
+                        </span>
+                        {Number(rejFormProd) > 0 &&
+                          (Number(rejFormRej) / Number(rejFormProd)) * 100 >= 2.0 && (
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-yellow-300 text-yellow-900 font-extrabold uppercase">
+                              High Defect
+                            </span>
+                          )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Form Action Buttons */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-[#e2e8f0]">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="submit"
+                        className="px-5 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>{editingRejSl !== null ? 'Update Record' : 'Save Record'}</span>
+                      </button>
+
+                      {editingRejSl !== null && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingRejSl(null);
+                            setRejFormPart('');
+                            setRejFormProd('');
+                            setRejFormRej('');
+                          }}
+                          className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs cursor-pointer transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleResetRejectionToBaseline}
+                      className="text-xs text-[#64748b] hover:text-[#0d1730] flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#cbd5e1] hover:bg-[#f8fafc] transition-colors cursor-pointer"
+                      title="Restore original 69 parts dataset from attached document"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Restore Original 69 Parts</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Main Report Table Section matching uploaded document */}
+              <div className="bg-white border border-[#e2e8f0] rounded-[12px] overflow-hidden shadow-xs">
+                {/* Document Title Header matching image cyan color */}
+                <div className="bg-gradient-to-r from-[#00c6ff] via-[#0072ff] to-[#00c6ff] p-[3px]">
+                  <div className="bg-[#22d3ee] py-3 px-4 text-center">
+                    <h2 className="text-lg sm:text-xl font-extrabold text-[#083344] tracking-wide m-0">
+                      Month wise Production/Rejection Report-2026
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Table Filter & Action Controls */}
+                <div className="p-4 border-b border-[#e2e8f0] bg-[#f8fafc] flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Search */}
+                    <div className="relative min-w-[200px]">
+                      <Search className="w-3.5 h-3.5 text-[#94a3b8] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={rejectionSearch}
+                        onChange={(e) => setRejectionSearch(e.target.value)}
+                        placeholder="Search part or S/L..."
+                        className="pl-8 pr-3 py-1.5 text-xs bg-white border border-[#cbd5e1] rounded-lg outline-none focus:ring-2 focus:ring-[#1565c0] w-full"
+                      />
+                    </div>
+
+                    {/* Filter Tabs */}
+                    <div className="flex items-center gap-1 bg-[#e2e8f0] p-1 rounded-lg text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setRejectionFilter('all')}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                          rejectionFilter === 'all'
+                            ? 'bg-white text-[#0d1730] shadow-xs'
+                            : 'text-[#64748b] hover:text-[#0d1730]'
+                        }`}
+                      >
+                        All ({rejectionRecords.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRejectionFilter('high')}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                          rejectionFilter === 'high'
+                            ? 'bg-yellow-300 text-yellow-950 font-bold shadow-xs'
+                            : 'text-amber-700 hover:text-amber-900'
+                        }`}
+                      >
+                        High (&ge;2%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRejectionFilter('normal')}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                          rejectionFilter === 'normal'
+                            ? 'bg-white text-[#0d1730] shadow-xs'
+                            : 'text-[#64748b] hover:text-[#0d1730]'
+                        }`}
+                      >
+                        Normal (&lt;2%)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleExportRejectionCSV}
+                      className="px-3 py-1.5 rounded-lg border border-[#cbd5e1] bg-white hover:bg-slate-50 text-[#1c2733] text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+                      title="Export table as CSV spreadsheet"
+                    >
+                      <Download className="w-3.5 h-3.5 text-[#1565c0]" />
+                      <span>Export CSV</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="px-3 py-1.5 rounded-lg border border-[#cbd5e1] bg-white hover:bg-slate-50 text-[#1c2733] text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+                      title="Print current rejection report"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-[#64748b]" />
+                      <span>Print</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Table Data - Faithful reproduction of attached image */}
+                <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+                  <table className="w-full border-collapse text-xs">
+                    <thead className="sticky top-0 z-10 shadow-xs">
+                      <tr>
+                        <th className="bg-[#f8fafc] text-[#0d1730] font-bold py-2.5 px-3 border border-[#cbd5e1] text-center w-14">
+                          S/L No.
+                        </th>
+                        <th className="bg-[#22d3ee] text-[#083344] font-extrabold py-2.5 px-4 border border-[#cbd5e1] text-center min-w-[220px]">
+                          Part No
+                        </th>
+                        <th className="bg-white text-[#0d1730] font-bold py-2.5 px-4 border border-[#cbd5e1] text-center whitespace-nowrap">
+                          Total Production (Jan-26 to Oct-26)
+                        </th>
+                        <th className="bg-white text-[#0d1730] font-bold py-2.5 px-4 border border-[#cbd5e1] text-center whitespace-nowrap">
+                          Total Rejection (Jan-26 to Oct-26)
+                        </th>
+                        <th className="bg-white text-[#0d1730] font-bold py-2.5 px-4 border border-[#cbd5e1] text-center whitespace-nowrap">
+                          Total % of Rejection
+                        </th>
+                        <th className="bg-[#f8fafc] text-[#64748b] font-semibold py-2.5 px-3 border border-[#cbd5e1] text-center w-20 print:hidden">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRejectionRecords.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="text-center py-8 text-slate-500 border border-[#cbd5e1]">
+                            No matching parts found for &ldquo;{rejectionSearch}&rdquo;.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredRejectionRecords.map((row) => {
+                          const isHigh = row.isHighRejection || row.rejectionRate >= 2.0;
+                          return (
+                            <tr
+                              key={row.sl}
+                              className={`hover:bg-[#f0f9ff] transition-colors ${
+                                editingRejSl === row.sl ? 'bg-amber-50 ring-1 ring-amber-400' : ''
+                              }`}
+                            >
+                              {/* S/L No. */}
+                              <td className="py-2 px-3 border border-[#cbd5e1] text-center font-mono font-medium text-slate-700">
+                                {row.sl}
+                              </td>
+
+                              {/* Part No */}
+                              <td className="py-2 px-4 border border-[#cbd5e1] font-bold text-[#0d1730]">
+                                {row.partNo}
+                              </td>
+
+                              {/* Total Production */}
+                              <td className="py-2 px-4 border border-[#cbd5e1] text-center font-mono font-semibold text-slate-800">
+                                {row.production.toLocaleString()}
+                              </td>
+
+                              {/* Total Rejection */}
+                              <td className="py-2 px-4 border border-[#cbd5e1] text-center font-mono font-semibold text-slate-800">
+                                {row.rejection.toLocaleString()}
+                              </td>
+
+                              {/* Total % of Rejection - Exact Yellow Highlight for High Rejection */}
+                              <td
+                                className={`py-2 px-4 border border-[#cbd5e1] text-center font-mono font-bold ${
+                                  isHigh
+                                    ? 'bg-[#ffff00] text-black font-extrabold'
+                                    : 'text-slate-800'
+                                }`}
+                              >
+                                {row.rejectionRate.toFixed(2)}%
+                              </td>
+
+                              {/* Actions */}
+                              <td className="py-2 px-3 border border-[#cbd5e1] text-center print:hidden">
+                                <div className="flex items-center justify-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditRejection(row)}
+                                    className="p-1 text-[#0284c7] hover:bg-sky-100 rounded transition-colors cursor-pointer"
+                                    title="Edit part data"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteRejection(row.sl)}
+                                    className="p-1 text-[#e11d48] hover:bg-rose-100 rounded transition-colors cursor-pointer"
+                                    title="Delete part"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+
+                      {/* Summary Row: Subtotal */}
+                      <tr className="bg-[#f1f5f9] font-extrabold border-t-2 border-[#94a3b8]">
+                        <td colSpan={2} className="py-2.5 px-4 border border-[#cbd5e1] text-right uppercase tracking-wider text-[11px] text-[#0d1730]">
+                          Total Sum ({rejectionRecords.length} Parts)
+                        </td>
+                        <td className="py-2.5 px-4 border border-[#cbd5e1] text-center font-mono text-sm text-[#0d1730]">
+                          {rejLiveStats.totalProd.toLocaleString()}
+                        </td>
+                        <td className="py-2.5 px-4 border border-[#cbd5e1] text-center font-mono text-sm text-[#e11d48]">
+                          {rejLiveStats.totalRej.toLocaleString()}
+                        </td>
+                        <td className="py-2.5 px-4 border border-[#cbd5e1] text-center font-mono text-sm text-[#0d1730]">
+                          {rejLiveStats.overallWeighted}%
+                        </td>
+                        <td className="border border-[#cbd5e1] print:hidden"></td>
+                      </tr>
+
+                      {/* Footer Row: Average %= 0.72% in Cyan Background (Exact match to uploaded sheet footer) */}
+                      <tr className="bg-white">
+                        <td colSpan={2} className="border-none py-2"></td>
+                        <td colSpan={2} className="bg-[#22d3ee] border border-[#cbd5e1] py-2.5 px-4 text-center font-extrabold text-[#083344] text-[13px] tracking-wider uppercase">
+                          Average %=
+                        </td>
+                        <td className="bg-[#22d3ee] border border-[#cbd5e1] py-2.5 px-4 text-center font-extrabold text-[#083344] font-mono text-[14px]">
+                          {rejLiveStats.avgRate}%
+                        </td>
+                        <td className="border-none print:hidden"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ================= ENTRY PAGES (Visual / AOI / Receive / Delivery) ================= */}
           {activePage !== 'home' &&
             activePage !== 'database' &&
+            activePage !== 'rejection' &&
             (() => {
               const sheet: SheetKey = activePage;
               const cfg = PAGES[sheet];
